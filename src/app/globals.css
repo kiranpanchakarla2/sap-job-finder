@@ -1,0 +1,187 @@
+@import "tailwindcss";
+@import "../theme/theme-experience.css";
+
+/*
+ * Tailwind color / effect tokens → semantic CSS variables (ThemeProvider).
+ * Components should use these utilities or var(--token) — never raw hex.
+ */
+@theme {
+  --color-background: var(--background, #F6F8FB);
+  --color-surface: var(--surface, #F6F8FB);
+  --color-card: var(--card, #ffffff);
+  --color-glass: var(--glass, color-mix(in srgb, #f6f8fb 72%, transparent));
+
+  --color-primary: var(--primary, #0070F2);
+  --color-secondary: var(--secondary, #1E293B);
+  --color-accent: var(--accent, #6366F1);
+  --color-success: var(--success, #10B981);
+  --color-warning: var(--warning, #F59E0B);
+  --color-error: var(--error, #EF4444);
+
+  --color-text: var(--text, #0B1220);
+  --color-muted: var(--muted-text, #64748B);
+  --color-muted-text: var(--muted-text, #64748B);
+  --color-border: var(--border, #E2E8F0);
+
+  --color-navbar: var(--navbar, color-mix(in srgb, #ffffff 75%, transparent));
+  --color-navbar-fg: var(--navbar-fg, #0f172a);
+  --color-footer: var(--footer, #f8fafc);
+  --color-footer-fg: var(--footer-fg, #0f172a);
+  --color-input: var(--input, #ffffff);
+  --color-input-fg: var(--input-fg, #0f172a);
+  --color-badge: var(--badge, color-mix(in srgb, var(--primary) 12%, transparent));
+  --color-badge-fg: var(--badge-fg, var(--primary));
+  --color-link: var(--link, var(--primary));
+  --color-button: var(--button, var(--primary));
+  --color-button-fg: var(--button-fg, #ffffff);
+  --color-button-secondary: var(--button-secondary, #ffffff);
+  --color-button-secondary-fg: var(--button-secondary-fg, #0f172a);
+  --color-ring: var(--focus-ring, color-mix(in srgb, var(--primary) 20%, transparent));
+  --color-focus-ring: var(--focus-ring, color-mix(in srgb, var(--primary) 20%, transparent));
+
+  /* Legacy aliases */
+  --color-dark: var(--text, #0f172a);
+  --color-foreground: var(--text, #0f172a);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 16px;
+  --radius-control: 12px;
+  --radius-pill: 9999px;
+  --radius-button: 16px;
+
+  --shadow-soft: 0 4px 24px color-mix(in srgb, #0f172a 6%, transparent);
+  --shadow-lift: 0 12px 40px color-mix(in srgb, #0f172a 10%, transparent);
+  --shadow-glow: 0 0 0 1px color-mix(in srgb, var(--primary) 12%, transparent),
+    0 8px 32px color-mix(in srgb, var(--primary) 20%, transparent);
+  --shadow-button: 0 8px 24px color-mix(in srgb, var(--primary) 28%, transparent);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    background-color: var(--background, #ffffff);
+    color: var(--text, #0f172a);
+  }
+
+  ::selection {
+    @apply bg-primary/15 text-text;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .font-heading {
+    font-family: var(--font-heading, var(--font-sans));
+    font-weight: var(--weight-heading, 700);
+    letter-spacing: var(--tracking-heading, -0.02em);
+  }
+
+  .grid-pattern {
+    background-image:
+      linear-gradient(
+        to right,
+        color-mix(in srgb, var(--text) 3.5%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--text) 3.5%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 64px 64px;
+  }
+
+  .bg-gradient-brand {
+    background-image: var(--gradient-brand);
+  }
+
+  .bg-gradient-hero {
+    background-image: var(--gradient-hero);
+  }
+
+  .bg-gradient-soft {
+    background-image: var(--gradient-soft);
+  }
+
+  .bg-gradient-button {
+    background-image: var(--gradient-button);
+  }
+
+  .gradient-border {
+    position: relative;
+  }
+
+  .gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--primary) 50%, transparent),
+      color-mix(in srgb, var(--accent) 35%, transparent),
+      color-mix(in srgb, var(--border) 80%, transparent)
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity var(--motion-hover-ms, 180ms) var(--motion-ease, ease);
+    pointer-events: none;
+  }
+
+  .gradient-border:hover::before {
+    opacity: 1;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .how-it-works-connector-glow {
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--primary) 35%, transparent));
+  }
+
+  .how-it-works-connector-flow {
+    animation: how-it-works-dash 2.4s linear infinite;
+  }
+
+  @keyframes how-it-works-dash {
+    to {
+      stroke-dashoffset: -36;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .how-it-works-connector-flow,
+    .how-it-works-connector-dot {
+      animation: none !important;
+    }
+  }
+}

@@ -1,0 +1,340 @@
+/*
+ * Theme Experience Engine — decoration & interaction chrome.
+ * Driven entirely by CSS variables + data-* attributes on <html>.
+ * Components never need to know which theme is active.
+ */
+
+@layer base {
+  html {
+    scrollbar-color: var(--scrollbar-thumb, var(--border)) var(--scrollbar-track, transparent);
+  }
+
+  body {
+    font-family: var(--font-body, var(--font-sans));
+    transition:
+      background-color var(--motion-transition-ms, 220ms) var(--motion-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+      color var(--motion-transition-ms, 220ms) var(--motion-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading, var(--font-sans));
+    font-weight: var(--weight-heading, 700);
+    letter-spacing: var(--tracking-heading, -0.02em);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body {
+      transition: none;
+    }
+
+    .theme-atmosphere [data-animate="true"],
+    .theme-atmosphere__orb,
+    .theme-atmosphere__particles,
+    .theme-atmosphere__wash {
+      animation: none !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Primary button fill uses theme gradient when --button is transparent */
+  .theme-btn-primary {
+    background-color: var(--button);
+    background-image: var(--gradient-button);
+    background-size: 140% 140%;
+    background-position: 50% 50%;
+    border-radius: var(--radius-button, var(--radius-card));
+    transition:
+      transform var(--motion-hover-ms, 180ms) var(--motion-ease),
+      box-shadow var(--motion-hover-ms, 180ms) var(--motion-ease),
+      background-position var(--motion-transition-ms, 220ms) var(--motion-ease),
+      filter var(--motion-hover-ms, 180ms) var(--motion-ease);
+  }
+
+  .theme-btn {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: var(--radius-button, 16px);
+    transition-duration: var(--motion-hover-ms, 180ms);
+    transition-timing-function: var(--motion-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  }
+
+  /* Card surface personality */
+  .theme-card {
+    border-radius: var(--radius-card, 16px);
+    background: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-soft);
+    transition:
+      transform var(--motion-hover-ms, 180ms) var(--motion-ease),
+      box-shadow var(--motion-hover-ms, 180ms) var(--motion-ease),
+      border-color var(--motion-hover-ms, 180ms) var(--motion-ease);
+  }
+
+  .theme-card-glass {
+    background: var(--glass-fill, var(--glass));
+    border-color: var(--glass-border, var(--border));
+    backdrop-filter: blur(var(--glass-blur, 20px)) saturate(var(--glass-saturate, 1.2));
+    -webkit-backdrop-filter: blur(var(--glass-blur, 20px)) saturate(var(--glass-saturate, 1.2));
+  }
+
+  /* —— Button hover effects (data-button-hover on html) —— */
+  html[data-button-hover="lift"] .theme-btn:hover {
+    transform: translateY(calc(var(--motion-distance, 6px) * -0.5));
+  }
+
+  html[data-button-hover="fade"] .theme-btn:hover {
+    filter: brightness(1.06);
+    opacity: 0.96;
+  }
+
+  html[data-button-hover="glow"] .theme-btn-primary:hover,
+  html[data-glow="true"] .theme-btn-primary:hover {
+    box-shadow: var(--shadow-glow);
+    filter: brightness(1.05);
+  }
+
+  html[data-button-hover="ripple"] .theme-btn-primary::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      circle at var(--ripple-x, 50%) var(--ripple-y, 50%),
+      color-mix(in srgb, #ffffff 35%, transparent) 0%,
+      transparent 55%
+    );
+    opacity: 0;
+    transform: scale(0.6);
+    transition:
+      opacity var(--motion-hover-ms, 240ms) var(--motion-ease),
+      transform var(--motion-transition-ms, 320ms) var(--motion-ease);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  html[data-button-hover="ripple"] .theme-btn-primary:hover::after {
+    opacity: 1;
+    transform: scale(1.35);
+  }
+
+  html[data-button-hover="glow"] .theme-btn-primary,
+  html[data-glow="true"] .theme-btn-primary {
+    animation: theme-glow-pulse calc(var(--motion-transition-ms, 220ms) * 8) ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html[data-button-hover="glow"] .theme-btn-primary,
+    html[data-glow="true"] .theme-btn-primary {
+      animation: none;
+    }
+  }
+
+  /* —— Card hover effects —— */
+  html[data-card-hover="lift"] .theme-card:hover {
+    transform: translateY(calc(var(--motion-distance, 6px) * -0.66));
+    box-shadow: var(--shadow-lift);
+  }
+
+  html[data-card-hover="glow"] .theme-card:hover {
+    box-shadow: var(--shadow-glow);
+    border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+  }
+
+  html[data-card-hover="soft"] .theme-card:hover {
+    box-shadow: var(--shadow-soft);
+    border-color: var(--glass-border, var(--border));
+  }
+
+  /* —— Atmosphere layer —— */
+  .theme-atmosphere {
+    z-index: 0;
+  }
+
+  .theme-atmosphere__wash {
+    position: absolute;
+    inset: 0;
+    background-image: var(--hero-overlay, none);
+    opacity: 0.9;
+    pointer-events: none;
+  }
+
+  .theme-atmosphere__orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.35;
+    will-change: transform;
+  }
+
+  .theme-atmosphere__orb--a {
+    width: min(42vw, 28rem);
+    height: min(42vw, 28rem);
+    top: -8%;
+    left: -6%;
+    background: color-mix(in srgb, var(--primary) 28%, transparent);
+  }
+
+  .theme-atmosphere__orb--b {
+    width: min(36vw, 22rem);
+    height: min(36vw, 22rem);
+    top: 18%;
+    right: -8%;
+    background: color-mix(in srgb, var(--accent) 24%, transparent);
+  }
+
+  .theme-atmosphere__orb--c {
+    width: min(28vw, 16rem);
+    height: min(28vw, 16rem);
+    bottom: 8%;
+    left: 28%;
+    background: color-mix(in srgb, var(--primary) 16%, transparent);
+  }
+
+  .theme-atmosphere__particles {
+    position: absolute;
+    inset: 0;
+    opacity: 0.45;
+    background-image: radial-gradient(
+      circle at 20% 30%,
+      color-mix(in srgb, var(--primary) 22%, transparent) 0 1.5px,
+      transparent 2px
+    );
+    background-size: 72px 72px;
+    mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+  }
+
+  /* Atmosphere personality — SAP ecosystem palette presets */
+  html[data-atmosphere="btp"] .theme-atmosphere__orb--a {
+    border-radius: 60% 40% 55% 45%;
+    opacity: 0.4;
+  }
+
+  html[data-atmosphere="btp"] .theme-atmosphere__wash {
+    background-image:
+      var(--hero-overlay),
+      repeating-linear-gradient(
+        100deg,
+        transparent,
+        transparent 40px,
+        color-mix(in srgb, var(--accent) 3%, transparent) 40px,
+        color-mix(in srgb, var(--accent) 3%, transparent) 42px
+      );
+  }
+
+  html[data-atmosphere="s4hana"] .theme-atmosphere__orb {
+    border-radius: 42% 58% 48% 52%;
+    filter: blur(48px);
+    opacity: 0.28;
+  }
+
+  html[data-atmosphere="s4hana"] .theme-atmosphere__particles {
+    background-image:
+      radial-gradient(ellipse 40% 60% at 25% 40%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 70%),
+      radial-gradient(ellipse 35% 50% at 70% 60%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%);
+    background-size: auto;
+  }
+
+  html[data-atmosphere="analytics"] .theme-atmosphere__orb {
+    filter: blur(32px);
+    opacity: 0.42;
+  }
+
+  html[data-atmosphere="analytics"] .theme-atmosphere__orb--a {
+    background: color-mix(in srgb, var(--primary) 40%, transparent);
+  }
+
+  html[data-atmosphere="analytics"] .theme-atmosphere__particles {
+    background-image: conic-gradient(
+      from 180deg at 50% 0%,
+      transparent 0deg,
+      color-mix(in srgb, var(--accent) 14%, transparent) 40deg,
+      transparent 80deg
+    );
+    background-size: 100% 60%;
+    background-repeat: no-repeat;
+    opacity: 0.35;
+  }
+
+  html[data-atmosphere="fiori"] .theme-atmosphere__orb {
+    filter: blur(56px);
+    opacity: 0.22;
+  }
+
+  html[data-atmosphere="fiori"] .theme-atmosphere__particles {
+    background-size: 96px 96px;
+    opacity: 0.3;
+  }
+
+  /* Floating animation — only when data-animate=true */
+  .theme-atmosphere[data-animate="true"] .theme-atmosphere__orb--a {
+    animation: theme-float-a 18s ease-in-out infinite;
+  }
+
+  .theme-atmosphere[data-animate="true"] .theme-atmosphere__orb--b {
+    animation: theme-float-b 22s ease-in-out infinite;
+  }
+
+  .theme-atmosphere[data-animate="true"] .theme-atmosphere__orb--c {
+    animation: theme-float-c 26s ease-in-out infinite;
+  }
+
+  .theme-atmosphere[data-animate="true"] .theme-atmosphere__wash {
+    animation: theme-wash-shift 28s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes theme-float-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(3%, 4%, 0) scale(1.05);
+  }
+}
+
+@keyframes theme-float-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(-4%, 3%, 0);
+  }
+}
+
+@keyframes theme-float-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, -3%, 0) scale(1.08);
+  }
+}
+
+@keyframes theme-wash-shift {
+  from {
+    opacity: 0.75;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes theme-glow-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(calc(1 + var(--glow-intensity, 0.35) * 0.12));
+  }
+}
