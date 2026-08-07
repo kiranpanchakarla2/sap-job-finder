@@ -8,6 +8,7 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import { AppToaster } from "@/components/providers/AppToaster";
+import { GoogleAnalytics } from "@/components/providers/GoogleAnalytics";
 import { ThemeAtmosphere } from "@/components/theme/ThemeAtmosphere";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { siteConfig } from "@/lib/constants";
@@ -66,6 +67,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" className={fontVariables}>
       <body className="relative min-h-screen font-sans">
+        <GoogleAnalytics />
         <ThemeProvider>
           <ThemeAtmosphere />
           <div className="relative z-[1]">{children}</div>
