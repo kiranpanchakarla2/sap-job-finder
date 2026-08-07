@@ -66,8 +66,10 @@ const fontVariables = [
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={fontVariables}>
-      <body className="relative min-h-screen font-sans">
+      <head>
         <GoogleAnalytics />
+      </head>
+      <body className="relative min-h-screen font-sans">
         <ThemeProvider>
           <ThemeAtmosphere />
           <div className="relative z-[1]">{children}</div>

@@ -21,3 +21,10 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+// Local `next dev` bindings only — skip in production/CI builds.
+if (process.env.NODE_ENV === "development") {
+  void import("@opennextjs/cloudflare").then(({ initOpenNextCloudflareForDev }) => {
+    initOpenNextCloudflareForDev();
+  });
+}
