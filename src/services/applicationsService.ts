@@ -7,19 +7,19 @@ export type ApplicationRow = {
   applied_at: string;
   jobs?: {
     title: string;
-    location: string;
-    companies?: { name: string; logo: string | null } | null;
+    location: string | null;
+    employer_profiles?: { company_name: string; company_logo_url: string | null } | null;
   } | null;
 };
 
-export async function applyToJob(jobId: string, candidateId: string) {
+export async function applyToJob(jobId: string, candidateProfileId: string) {
   const supabase = createClient();
   const { data, error } = await supabase
-    .from("applications")
+    .from("job_applications")
     .upsert(
       {
         job_id: jobId,
-        candidate_id: candidateId,
+        candidate_id: candidateProfileId,
         status: "applied",
       },
       { onConflict: "job_id,candidate_id" },
@@ -30,26 +30,26 @@ export async function applyToJob(jobId: string, candidateId: string) {
   return { data, error };
 }
 
-export async function listMyApplications(candidateId: string) {
+export async function listMyApplications(candidateProfileId: string) {
   const supabase = createClient();
   const { data, error } = await supabase
-    .from("applications")
+    .from("job_applications")
     .select(
-      "id, job_id, status, applied_at, jobs(title, location, companies(name, logo))",
+      "id, job_id, status, applied_at, jobs(title, location, employer_profiles(company_name, company_logo_url))",
     )
-    .eq("candidate_id", candidateId)
+    .eq("candidate_id", candidateProfileId)
     .order("applied_at", { ascending: false });
 
   return { data: (data as ApplicationRow[] | null) ?? [], error };
 }
 
-export async function hasApplied(jobId: string, candidateId: string) {
+export async function hasApplied(jobId: string, candidateProfileId: string) {
   const supabase = createClient();
   const { data } = await supabase
-    .from("applications")
+    .from("job_applications")
     .select("id")
     .eq("job_id", jobId)
-    .eq("candidate_id", candidateId)
+    .eq("candidate_id", candidateProfileId)
     .maybeSingle();
 
   return Boolean(data);

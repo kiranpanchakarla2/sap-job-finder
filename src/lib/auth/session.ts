@@ -7,7 +7,9 @@ import {
   getHomePathForRole,
   getLoginPathForPlatform,
   getPlatformForRole,
+  normalizeRole,
   resolveRoleFromAppMetadata,
+  resolveRoleFromUserMetadata,
   type Platform,
   type UserRole,
 } from "@/lib/auth/roles";
@@ -24,10 +26,25 @@ export type AuthUser = {
 function resolveFullName(
   metadata: Record<string, unknown> | undefined,
   email: string,
+  profile?: { first_name?: string | null; last_name?: string | null } | null,
 ): string {
+  const fromProfile = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ").trim();
+  if (fromProfile) return fromProfile;
+
   const fullName = metadata?.full_name;
   if (typeof fullName === "string" && fullName.trim()) {
     return fullName.trim();
+  }
+
+  const first = metadata?.first_name;
+  const last = metadata?.last_name;
+  if (typeof first === "string" && first.trim()) {
+    return [first, typeof last === "string" ? last : ""].filter(Boolean).join(" ").trim();
+  }
+
+  const recruiter = metadata?.recruiter_name;
+  if (typeof recruiter === "string" && recruiter.trim()) {
+    return recruiter.trim();
   }
 
   const name = metadata?.name;
@@ -38,37 +55,11 @@ function resolveFullName(
   return email.split("@")[0] || "User";
 }
 
-function toAuthUser(user: {
-  id: string;
-  email?: string | null;
-  user_metadata?: Record<string, unknown>;
-  app_metadata?: Record<string, unknown>;
-}): AuthUser | null {
-  if (!user.email) {
-    return null;
-  }
-
-  const role = resolveRoleFromAppMetadata(
-    user.app_metadata as Record<string, unknown> | undefined,
-  );
-
-  return {
-    id: user.id,
-    email: user.email,
-    fullName: resolveFullName(
-      user.user_metadata as Record<string, unknown> | undefined,
-      user.email,
-    ),
-    role,
-    platform: getPlatformForRole(role),
-  };
-}
-
 /**
  * Returns the authenticated user or redirects to sign-in.
  */
 export async function requireUser(
-  redirectTo = "/dashboard",
+  redirectTo = "/candidate/dashboard",
   platform: Platform = "public",
 ): Promise<AuthUser> {
   const supabase = await createClient();
@@ -77,23 +68,38 @@ export async function requireUser(
     error,
   } = await supabase.auth.getUser();
 
-  if (error || !user) {
+  if (error || !user || !user.email) {
     const params = new URLSearchParams({ next: redirectTo });
     redirect(`${getLoginPathForPlatform(platform)}?${params.toString()}`);
   }
 
-  const authUser = toAuthUser(user);
-  if (!authUser) {
-    const params = new URLSearchParams({ next: redirectTo });
-    redirect(`${getLoginPathForPlatform(platform)}?${params.toString()}`);
-  }
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, first_name, last_name")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
-  return authUser;
+  const role =
+    normalizeRole(profile?.role) ??
+    resolveRoleFromUserMetadata(user.user_metadata as Record<string, unknown> | undefined) ??
+    resolveRoleFromAppMetadata(user.app_metadata as Record<string, unknown> | undefined);
+
+  return {
+    id: user.id,
+    email: user.email,
+    fullName: resolveFullName(
+      user.user_metadata as Record<string, unknown> | undefined,
+      user.email,
+      profile,
+    ),
+    role,
+    platform: getPlatformForRole(role),
+  };
 }
 
 /** Require an authenticated candidate (or admin) for candidate surfaces. */
 export async function requireCandidateUser(
-  redirectTo = "/dashboard",
+  redirectTo = "/candidate/dashboard",
 ): Promise<AuthUser> {
   const user = await requireUser(redirectTo, "public");
 
@@ -104,16 +110,16 @@ export async function requireCandidateUser(
   return user;
 }
 
-/** @deprecated alias for GoBuildResume naming */
+/** @deprecated alias */
 export async function requirePublicUser(
-  redirectTo = "/dashboard",
+  redirectTo = "/candidate/dashboard",
 ): Promise<AuthUser> {
   return requireCandidateUser(redirectTo);
 }
 
-/** Require a recruiter (or admin). */
+/** Require an employer/recruiter (or admin). */
 export async function requireRecruiterUser(
-  redirectTo = "/recruiter",
+  redirectTo = "/employer/dashboard",
 ): Promise<AuthUser> {
   const user = await requireUser(redirectTo, "public");
 
@@ -135,9 +141,9 @@ export async function requireAdminUser(redirectTo = "/admin"): Promise<AuthUser>
   return user;
 }
 
-/** Stub — SAPfinder has no institution platform */
+/** Stub — no institution platform */
 export async function requireInstitutionUser(
-  redirectTo = "/dashboard",
+  redirectTo = "/candidate/dashboard",
 ): Promise<AuthUser> {
   redirect(redirectTo);
 }

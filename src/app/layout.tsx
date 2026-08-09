@@ -7,6 +7,7 @@ import {
   Space_Grotesk,
 } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/auth/AuthContext";
 import { AppToaster } from "@/components/providers/AppToaster";
 import { GoogleAnalytics } from "@/components/providers/GoogleAnalytics";
 import { ThemeAtmosphere } from "@/components/theme/ThemeAtmosphere";
@@ -71,10 +72,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className="relative min-h-screen font-sans">
         <ThemeProvider>
-          <ThemeAtmosphere />
-          <div className="relative z-[1]">{children}</div>
-          <ThemeSwitcher />
-          <AppToaster />
+          <AuthProvider>
+            <ThemeAtmosphere />
+            <div className="relative z-[1]">{children}</div>
+            <ThemeSwitcher />
+            <AppToaster />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

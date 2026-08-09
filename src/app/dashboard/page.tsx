@@ -22,34 +22,30 @@ export default async function DashboardPage() {
   if (tryGetSupabaseEnv()) {
     try {
       const supabase = await createClient();
-      const [{ count }, resumeRes, profileRes, candidateRes] = await Promise.all([
-        supabase
-          .from("applications")
-          .select("*", { count: "exact", head: true })
-          .eq("candidate_id", user.id),
-        supabase.from("resumes").select("id").eq("user_id", user.id).maybeSingle(),
-        supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-        supabase
-          .from("candidate_profiles")
-          .select("*")
-          .eq("user_id", user.id)
-          .maybeSingle(),
-      ]);
+      const { data: candidate } = await supabase
+        .from("candidate_profiles")
+        .select("id, profile_completion")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
-      applicationCount = count ?? 0;
-      resumeUploaded = Boolean(resumeRes.data);
-      const checks = [
-        Boolean(profileRes.data?.full_name || user.fullName),
-        Boolean(profileRes.data?.phone),
-        Boolean(profileRes.data?.location),
-        Boolean(profileRes.data?.headline),
-        Boolean(candidateRes.data?.skills?.length),
-        Boolean(candidateRes.data?.summary),
-        resumeUploaded,
-      ];
-      completion = Math.round((checks.filter(Boolean).length / checks.length) * 100);
+      if (candidate?.id) {
+        const [{ count }, resumes] = await Promise.all([
+          supabase
+            .from("job_applications")
+            .select("*", { count: "exact", head: true })
+            .eq("candidate_id", candidate.id),
+          supabase
+            .from("candidate_resumes")
+            .select("id")
+            .eq("candidate_id", candidate.id)
+            .limit(1),
+        ]);
+        applicationCount = count ?? 0;
+        resumeUploaded = Boolean(resumes.data?.length);
+        completion = candidate.profile_completion ?? 35;
+      }
     } catch {
-      // Tables may not exist yet — keep demo defaults.
+      // Keep demo defaults when queries fail.
     }
   }
 
@@ -99,21 +95,6 @@ export default async function DashboardPage() {
           {recommended.map((job) => (
             <JobCard key={job.id} job={job} />
           ))}
-        </div>
-      </section>
-
-      <section className="mt-10">
-        <h2 className="text-lg font-semibold text-text">Recent activity</h2>
-        <div className="mt-4 rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft">
-          <ul className="space-y-3 text-sm text-muted">
-            <li>Welcome to SAP Jobs Finder — complete your profile to unlock recommendations.</li>
-            <li>Browse featured SAP Commerce, ABAP, and Fiori roles.</li>
-            {applicationCount > 0 ? (
-              <li>You have {applicationCount} active application(s).</li>
-            ) : (
-              <li>No applications yet — find a role and apply.</li>
-            )}
-          </ul>
         </div>
       </section>
     </AppShell>

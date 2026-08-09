@@ -18,37 +18,44 @@ export default async function ApplicationsPage() {
 
   if (tryGetSupabaseEnv()) {
     const supabase = await createClient();
-    const { data } = await supabase
-      .from("applications")
-      .select("id, status, applied_at, job_id, jobs(title, companies(name))")
-      .eq("candidate_id", user.id)
-      .order("applied_at", { ascending: false });
+    const { data: candidate } = await supabase
+      .from("candidate_profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-    rows =
-      // Nested selects are loosely typed until generated Supabase types are wired.
-      ((data as unknown as Array<{
-        id: string;
-        status: string;
-        applied_at: string;
-        job_id: string;
-        jobs?: {
-          title?: string;
-          companies?: { name?: string } | { name?: string }[] | null;
-        } | null;
-      }>) ?? []).map((row) => {
-        const job = row.jobs;
-        const company = Array.isArray(job?.companies)
-          ? job.companies[0]
-          : job?.companies;
-        return {
-          id: row.id,
-          status: row.status,
-          applied_at: row.applied_at,
-          job_id: row.job_id,
-          title: job?.title,
-          company: company?.name,
-        };
-      });
+    if (candidate?.id) {
+      const { data } = await supabase
+        .from("job_applications")
+        .select("id, status, applied_at, job_id, jobs(title, employer_profiles(company_name))")
+        .eq("candidate_id", candidate.id)
+        .order("applied_at", { ascending: false });
+
+      rows =
+        ((data as unknown as Array<{
+          id: string;
+          status: string;
+          applied_at: string;
+          job_id: string;
+          jobs?: {
+            title?: string;
+            employer_profiles?: { company_name?: string } | { company_name?: string }[] | null;
+          } | null;
+        }>) ?? []).map((row) => {
+          const job = row.jobs;
+          const company = Array.isArray(job?.employer_profiles)
+            ? job.employer_profiles[0]
+            : job?.employer_profiles;
+          return {
+            id: row.id,
+            status: row.status,
+            applied_at: row.applied_at,
+            job_id: row.job_id,
+            title: job?.title,
+            company: company?.company_name,
+          };
+        });
+    }
   }
 
   return (
@@ -89,16 +96,10 @@ export default async function ApplicationsPage() {
             </tbody>
           </table>
         ) : (
-          <div className="px-6 py-16 text-center">
-            <p className="font-semibold text-text">No applications yet</p>
-            <p className="mt-1 text-sm text-muted">
-              Browse open SAP roles and apply to get started.
-            </p>
-            <Link
-              href="/jobs"
-              className="mt-4 inline-block text-sm font-semibold text-primary"
-            >
-              Explore jobs
+          <div className="px-4 py-10 text-center text-sm text-muted">
+            No applications yet.{" "}
+            <Link href="/jobs" className="font-semibold text-primary hover:text-accent">
+              Browse SAP jobs
             </Link>
           </div>
         )}

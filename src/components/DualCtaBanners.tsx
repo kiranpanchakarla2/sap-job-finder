@@ -8,7 +8,7 @@ const ctaBanners = [
     title: "Become a Candidate",
     description:
       "Create your profile, upload your SAP resume, and apply to thousands of roles across modules and locations.",
-    href: "/signup",
+    href: "/register/candidate",
     cta: "Register Now",
     variant: "light" as const,
     image: {
@@ -21,7 +21,7 @@ const ctaBanners = [
     title: "Become an Employer",
     description:
       "Post SAP openings, reach qualified consultants, and manage applicants from one recruiter dashboard.",
-    href: "/signup?role=recruiter",
+    href: "/register/employer",
     cta: "Register Now",
     variant: "primary" as const,
     image: {

@@ -56,10 +56,10 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Button href="/signin" variant="ghost" className="px-4 py-2.5">
+          <Button href="/login" variant="ghost" className="px-4 py-2.5">
             Sign in
           </Button>
-          <Button href="/signup" className="px-4 py-2.5">
+          <Button href="/register" className="px-4 py-2.5">
             Create profile
             <ArrowRight size={16} />
           </Button>
@@ -97,10 +97,10 @@ export function Navbar() {
               <ServicesNav variant="mobile" onNavigate={() => setOpen(false)} />
             </nav>
             <div className="mt-4 flex flex-col gap-2">
-              <Button href="/signin" variant="secondary" onClick={() => setOpen(false)}>
+              <Button href="/login" variant="secondary" onClick={() => setOpen(false)}>
                 Sign in
               </Button>
-              <Button href="/signup" onClick={() => setOpen(false)}>
+              <Button href="/register" onClick={() => setOpen(false)}>
                 Create profile
               </Button>
             </div>

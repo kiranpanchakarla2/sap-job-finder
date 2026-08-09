@@ -20,19 +20,29 @@ export default async function ProfilePage({
 
   if (tryGetSupabaseEnv()) {
     const supabase = await createClient();
-    const [p, c, r] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+    const [p, c] = await Promise.all([
+      supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
       supabase
         .from("candidate_profiles")
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle(),
-      supabase.from("resumes").select("filename").eq("user_id", user.id).maybeSingle(),
     ]);
     profile = p.data;
     candidate = c.data;
-    resumeFilename = r.data?.filename ?? null;
+
+    if (c.data?.id) {
+      const { data: resume } = await supabase
+        .from("candidate_resumes")
+        .select("resume_name")
+        .eq("candidate_id", c.data.id)
+        .eq("is_primary", true)
+        .maybeSingle();
+      resumeFilename = resume?.resume_name ?? null;
+    }
   }
+
+  const [firstName, ...rest] = user.fullName.split(" ");
 
   return (
     <AppShell user={user}>
@@ -45,11 +55,12 @@ export default async function ProfilePage({
           userId={user.id}
           profile={
             profile ?? {
-              id: user.id,
-              full_name: user.fullName,
+              id: "",
+              user_id: user.id,
+              first_name: firstName || user.fullName,
+              last_name: rest.join(" ") || null,
               phone: null,
-              location: null,
-              headline: null,
+              avatar_url: null,
               role: user.role,
             }
           }

@@ -58,7 +58,7 @@ export async function getSignedInRole(): Promise<UserRole | null> {
 /** Post-auth home path for the currently signed-in user. */
 export async function getSignedInHomePath(): Promise<string> {
   const role = await getSignedInRole();
-  return getHomePathForRole(role ?? "CANDIDATE");
+  return getHomePathForRole(role ?? "candidate");
 }
 
 export async function signOutClient() {

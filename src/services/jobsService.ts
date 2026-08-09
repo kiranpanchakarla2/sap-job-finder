@@ -9,7 +9,7 @@ export type JobFilters = {
 };
 
 /**
- * Lists jobs from Supabase when configured; falls back to mock data for local UI.
+ * Lists published jobs from Supabase when available; falls back to mock data.
  */
 export async function listJobs(filters: JobFilters = {}): Promise<MockJob[]> {
   try {
@@ -17,18 +17,16 @@ export async function listJobs(filters: JobFilters = {}): Promise<MockJob[]> {
     let query = supabase
       .from("jobs")
       .select(
-        "id, title, location, salary_min, salary_max, experience_years, work_mode, module, skills, description, requirements, benefits, featured, created_at, companies(id, name, logo)",
+        "id, title, location, salary_min, salary_max, experience_min, experience_max, remote_type, sap_module, description, status, created_at, employer_profiles(id, company_name, company_logo_url)",
       )
       .eq("status", "published")
       .order("created_at", { ascending: false });
 
-    if (filters.module) query = query.eq("module", filters.module);
-    if (filters.workMode) query = query.ilike("work_mode", filters.workMode);
+    if (filters.module) query = query.eq("sap_module", filters.module);
+    if (filters.workMode) query = query.ilike("remote_type", filters.workMode);
     if (filters.location) query = query.ilike("location", `%${filters.location}%`);
     if (filters.q) {
-      query = query.or(
-        `title.ilike.%${filters.q}%,description.ilike.%${filters.q}%`,
-      );
+      query = query.or(`title.ilike.%${filters.q}%,description.ilike.%${filters.q}%`);
     }
 
     const { data, error } = await query;
@@ -48,7 +46,7 @@ export async function getJob(id: string): Promise<MockJob | null> {
     const { data, error } = await supabase
       .from("jobs")
       .select(
-        "id, title, location, salary_min, salary_max, experience_years, work_mode, module, skills, description, requirements, benefits, featured, created_at, companies(id, name, logo)",
+        "id, title, location, salary_min, salary_max, experience_min, experience_max, remote_type, sap_module, description, status, created_at, employer_profiles(id, company_name, company_logo_url)",
       )
       .eq("id", id)
       .maybeSingle();
@@ -71,29 +69,42 @@ export async function listFeaturedJobs(): Promise<MockJob[]> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapRowToJob(row: any): MockJob {
-  const company = Array.isArray(row.companies) ? row.companies[0] : row.companies;
+  const employer = Array.isArray(row.employer_profiles)
+    ? row.employer_profiles[0]
+    : row.employer_profiles;
   const salaryMin = row.salary_min;
   const salaryMax = row.salary_max;
+  const expMin = row.experience_min;
+  const expMax = row.experience_max;
+
   return {
     id: row.id,
     title: row.title,
-    company: company?.name ?? "Company",
-    companyId: company?.id ?? "",
-    logo: company?.logo ?? (company?.name?.[0] ?? "C"),
-    location: row.location ?? "",
+    company: employer?.company_name ?? "Company",
+    companyId: employer?.id ?? "company",
+    logo: (employer?.company_name ?? "C").slice(0, 1).toUpperCase(),
+    location: row.location ?? "Remote",
     salary:
-      salaryMin && salaryMax
+      salaryMin != null && salaryMax != null
         ? `₹${salaryMin}–${salaryMax} LPA`
         : "Competitive",
-    experience: row.experience_years ? `${row.experience_years} Years` : "—",
+    experience:
+      expMin != null && expMax != null
+        ? `${expMin}-${expMax} years`
+        : expMin != null
+          ? `${expMin}+ years`
+          : "Not specified",
     employmentType: "FULL-TIME",
-    workMode: (row.work_mode as MockJob["workMode"]) ?? "Hybrid",
-    module: row.module ?? "",
-    skills: row.skills ?? [],
+    workMode:
+      row.remote_type === "Remote" || row.remote_type === "Hybrid" || row.remote_type === "Onsite"
+        ? row.remote_type
+        : "Hybrid",
+    module: row.sap_module ?? "SAP",
+    skills: [],
     description: row.description ?? "",
-    requirements: row.requirements ?? [],
-    benefits: row.benefits ?? [],
-    featured: Boolean(row.featured),
+    requirements: [],
+    benefits: [],
+    featured: false,
     postedAt: row.created_at
       ? new Date(row.created_at).toLocaleDateString()
       : "Recently",

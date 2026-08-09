@@ -4,31 +4,38 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   canAccessPath,
   getHomePathForRole,
-  getLoginPathForPlatform,
+  getLoginPathForRole,
   resolveRoleFromClaims,
-  type Platform,
+  type UserRole,
 } from "@/lib/auth/roles";
 import type { Database } from "@/types/database";
 
 import { tryGetSupabaseEnv } from "./env";
 
-type ProtectedRoute = {
-  prefix: string;
-  platform: Platform;
-};
+const PROTECTED_PREFIXES = [
+  "/candidate",
+  "/employer",
+  "/dashboard",
+  "/profile",
+  "/applications",
+  "/recruiter",
+  "/admin",
+] as const;
 
-const PROTECTED_ROUTES: ProtectedRoute[] = [
-  { prefix: "/dashboard", platform: "public" },
-  { prefix: "/profile", platform: "public" },
-  { prefix: "/applications", platform: "public" },
-  { prefix: "/recruiter", platform: "public" },
-  { prefix: "/admin", platform: "public" },
-];
-
-function matchProtectedRoute(pathname: string): ProtectedRoute | undefined {
-  return PROTECTED_ROUTES.find(
-    (route) => pathname === route.prefix || pathname.startsWith(`${route.prefix}/`),
+function matchProtectedRoute(pathname: string): boolean {
+  return PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
+}
+
+function loginPathForProtectedRoute(pathname: string): string {
+  if (pathname.startsWith("/employer") || pathname.startsWith("/recruiter")) {
+    return getLoginPathForRole("employer");
+  }
+  if (pathname.startsWith("/admin")) {
+    return getLoginPathForRole("admin");
+  }
+  return getLoginPathForRole("candidate");
 }
 
 function copyCookies(from: NextResponse, to: NextResponse) {
@@ -46,12 +53,12 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   });
 
   const env = tryGetSupabaseEnv();
-  const protectedRoute = matchProtectedRoute(request.nextUrl.pathname);
+  const isProtected = matchProtectedRoute(request.nextUrl.pathname);
 
   if (!env) {
-    if (protectedRoute) {
+    if (isProtected) {
       const loginUrl = request.nextUrl.clone();
-      loginUrl.pathname = getLoginPathForPlatform(protectedRoute.platform);
+      loginUrl.pathname = loginPathForProtectedRoute(request.nextUrl.pathname);
       loginUrl.searchParams.set("next", request.nextUrl.pathname);
       return NextResponse.redirect(loginUrl);
     }
@@ -89,17 +96,34 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   const claims = data?.claims as Record<string, unknown> | undefined;
   const isAuthenticated = Boolean(claims?.sub);
 
-  if (!isAuthenticated && protectedRoute) {
+  if (!isAuthenticated && isProtected) {
     const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = getLoginPathForPlatform(protectedRoute.platform);
+    loginUrl.pathname = loginPathForProtectedRoute(request.nextUrl.pathname);
     loginUrl.searchParams.set("next", request.nextUrl.pathname);
     const redirectResponse = NextResponse.redirect(loginUrl);
     copyCookies(supabaseResponse, redirectResponse);
     return redirectResponse;
   }
 
-  if (isAuthenticated && protectedRoute) {
-    const role = resolveRoleFromClaims(claims);
+  if (isAuthenticated && isProtected) {
+    let role: UserRole = resolveRoleFromClaims(claims);
+
+    // Prefer DB profile role when available
+    try {
+      const userId = typeof claims?.sub === "string" ? claims.sub : null;
+      if (userId) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (profile?.role) {
+          role = profile.role as UserRole;
+        }
+      }
+    } catch {
+      // Fall back to claims-derived role
+    }
 
     if (!canAccessPath(role, request.nextUrl.pathname)) {
       const homeUrl = request.nextUrl.clone();

@@ -1,23 +1,27 @@
 import { createClient } from "@/lib/supabase/client";
-import type { Database, Json, UserRole } from "@/types/database";
+import type { AppRole } from "@/types/database";
 
 export type ProfileRow = {
   id: string;
-  full_name: string | null;
+  user_id: string;
+  first_name: string | null;
+  last_name: string | null;
   phone: string | null;
-  location: string | null;
-  headline: string | null;
-  role: UserRole | null;
+  avatar_url: string | null;
+  role: AppRole | null;
 };
 
 export type CandidateProfileRow = {
+  id: string;
   user_id: string;
-  experience_years: number | null;
-  skills: string[] | null;
-  education: unknown;
-  certifications: unknown;
-  summary: string | null;
-  completion_percent: number | null;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
+  current_city: string | null;
+  headline: string | null;
+  about_me: string | null;
+  years_of_experience: number;
+  profile_completion: number;
 };
 
 export async function getProfile(userId: string) {
@@ -25,26 +29,17 @@ export async function getProfile(userId: string) {
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", userId)
+    .eq("user_id", userId)
     .maybeSingle();
   return { data: data as ProfileRow | null, error };
 }
 
 export async function updateProfile(
   userId: string,
-  values: Partial<
-    Pick<ProfileRow, "full_name" | "phone" | "location" | "headline">
-  >,
+  values: Partial<Pick<ProfileRow, "first_name" | "last_name" | "phone" | "avatar_url">>,
 ) {
   const supabase = createClient();
-  const payload: Database["public"]["Tables"]["profiles"]["Insert"] = {
-    id: userId,
-    full_name: values.full_name,
-    phone: values.phone,
-    location: values.location,
-    headline: values.headline,
-  };
-  return supabase.from("profiles").upsert(payload);
+  return supabase.from("profiles").update(values).eq("user_id", userId);
 }
 
 export async function getCandidateProfile(userId: string) {
@@ -59,65 +54,22 @@ export async function getCandidateProfile(userId: string) {
 
 export async function updateCandidateProfile(
   userId: string,
-  values: {
-    experience_years?: number | null;
-    skills?: string[];
-    education?: Json | null;
-    certifications?: Json | null;
-    summary?: string | null;
-    completion_percent?: number;
-  },
+  values: Partial<
+    Pick<
+      CandidateProfileRow,
+      | "first_name"
+      | "last_name"
+      | "phone"
+      | "current_city"
+      | "headline"
+      | "about_me"
+      | "years_of_experience"
+      | "profile_completion"
+    >
+  >,
 ) {
   const supabase = createClient();
-  const payload: Database["public"]["Tables"]["candidate_profiles"]["Insert"] = {
-    user_id: userId,
-    experience_years: values.experience_years,
-    skills: values.skills,
-    education: values.education,
-    certifications: values.certifications,
-    summary: values.summary,
-    completion_percent: values.completion_percent,
-  };
-  return supabase.from("candidate_profiles").upsert(payload);
-}
-
-export async function uploadResume(userId: string, file: File) {
-  const supabase = createClient();
-  const path = `${userId}/${Date.now()}-${file.name}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from("resumes")
-    .upload(path, file, { upsert: true });
-
-  if (uploadError) {
-    return { error: uploadError };
-  }
-
-  const { data, error } = await supabase
-    .from("resumes")
-    .upsert(
-      {
-        user_id: userId,
-        storage_path: path,
-        filename: file.name,
-        uploaded_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" },
-    )
-    .select("*")
-    .single();
-
-  return { data, error };
-}
-
-export async function getResume(userId: string) {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("resumes")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle();
-  return { data, error };
+  return supabase.from("candidate_profiles").update(values).eq("user_id", userId);
 }
 
 export function computeProfileCompletion(input: {

@@ -26,7 +26,7 @@ export function ApplyButton({
       toast.message("Demo mode", {
         description: "Connect Supabase to persist applications. Redirecting to sign in…",
       });
-      router.push(`/signin?next=/jobs/${jobId}`);
+      router.push(`/login/candidate?next=/jobs/${jobId}`);
       return;
     }
 
@@ -39,15 +39,30 @@ export function ApplyButton({
 
       if (!user) {
         toast.error("Please sign in to apply");
-        router.push(`/signin?next=/jobs/${jobId}`);
+        router.push(`/login/candidate?next=/jobs/${jobId}`);
         return;
       }
 
-      const { error } = await applyToJob(jobId, user.id);
+      const { data: candidate, error: candidateError } = await supabase
+        .from("candidate_profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (candidateError || !candidate?.id) {
+        toast.error("Your account does not have permission to access this area.");
+        return;
+      }
+
+      const { error } = await applyToJob(jobId, candidate.id);
       if (error) {
-        // Mock job ids won't exist in DB — treat as soft success for UX demo
+        if (error.code === "23505") {
+          toast.message("You have already applied to this job");
+          setApplied(true);
+          return;
+        }
         if (error.code === "23503" || error.message?.includes("foreign key")) {
-          toast.success("Application recorded locally — seed jobs in Supabase for persistence");
+          toast.success("Application recorded — seed published jobs in Supabase for persistence");
           setApplied(true);
           return;
         }

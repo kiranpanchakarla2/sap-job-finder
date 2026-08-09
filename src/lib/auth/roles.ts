@@ -1,42 +1,66 @@
 /**
- * Role-Based Access Control for SAPfinder.
+ * Role-Based Access Control for SAPJobsFinder.
  *
- * Roles are read from Supabase `app_metadata.role` (server-controlled).
- * Never authorize from `user_metadata` — it is user-editable.
+ * Application roles live in `public.profiles.role` (candidate | employer | admin).
+ * Signup metadata may also include `user_metadata.role` (never trust for security —
+ * RLS enforces access; this module is for UX routing).
  */
 
-export const USER_ROLES = ["CANDIDATE", "RECRUITER", "ADMIN"] as const;
+export const USER_ROLES = ["candidate", "employer", "admin"] as const;
 
 export type UserRole = (typeof USER_ROLES)[number];
 
 export type Platform = "public";
 
-export const DEFAULT_PUBLIC_ROLE: UserRole = "CANDIDATE";
+export const DEFAULT_PUBLIC_ROLE: UserRole = "candidate";
 
 const ROLE_SET = new Set<string>(USER_ROLES);
 
+/** Normalize legacy uppercase roles and synonyms. */
+export function normalizeRole(value: unknown): UserRole | null {
+  if (typeof value !== "string") return null;
+  const raw = value.trim();
+  const lower = raw.toLowerCase();
+
+  if (ROLE_SET.has(lower)) {
+    return lower as UserRole;
+  }
+
+  switch (raw.toUpperCase()) {
+    case "CANDIDATE":
+      return "candidate";
+    case "RECRUITER":
+    case "EMPLOYER":
+      return "employer";
+    case "ADMIN":
+      return "admin";
+    default:
+      return null;
+  }
+}
+
 export function isUserRole(value: unknown): value is UserRole {
-  return typeof value === "string" && ROLE_SET.has(value);
+  return normalizeRole(value) !== null;
 }
 
 export function isCandidateRole(role: UserRole): boolean {
-  return role === "CANDIDATE";
+  return role === "candidate";
 }
 
 export function isRecruiterRole(role: UserRole): boolean {
-  return role === "RECRUITER";
+  return role === "employer";
 }
 
 export function isAdminRole(role: UserRole): boolean {
-  return role === "ADMIN";
+  return role === "admin";
 }
 
-/** @deprecated alias — SAPfinder has a single public platform */
+/** @deprecated alias */
 export function isPublicRole(role: UserRole): boolean {
   return isUserRole(role);
 }
 
-/** @deprecated — no institution platform in SAPfinder */
+/** @deprecated */
 export function isInstitutionRole(_role: UserRole): boolean {
   return false;
 }
@@ -45,36 +69,44 @@ export function getPlatformForRole(_role: UserRole): Platform {
   return "public";
 }
 
-/** Default landing path after authentication for a given role. */
 export function getHomePathForRole(role: UserRole): string {
   switch (role) {
-    case "ADMIN":
+    case "admin":
       return "/admin";
-    case "RECRUITER":
-      return "/recruiter";
-    case "CANDIDATE":
+    case "employer":
+      return "/employer/dashboard";
+    case "candidate":
     default:
-      return "/dashboard";
+      return "/candidate/dashboard";
   }
 }
 
-/** Sign-in entry path. */
 export function getLoginPathForPlatform(_platform: Platform = "public"): string {
-  return "/signin";
+  return "/login";
 }
 
-/**
- * Resolves role from JWT / user `app_metadata`.
- * Falls back to CANDIDATE for accounts without an explicit role.
- */
+export function getLoginPathForRole(role: UserRole): string {
+  switch (role) {
+    case "employer":
+    case "admin":
+      return "/login/employer";
+    case "candidate":
+    default:
+      return "/login/candidate";
+  }
+}
+
 export function resolveRoleFromAppMetadata(
   appMetadata: Record<string, unknown> | null | undefined,
 ): UserRole {
-  const role = appMetadata?.role;
-  if (isUserRole(role)) {
-    return role;
-  }
-  return DEFAULT_PUBLIC_ROLE;
+  const role = normalizeRole(appMetadata?.role);
+  return role ?? DEFAULT_PUBLIC_ROLE;
+}
+
+export function resolveRoleFromUserMetadata(
+  userMetadata: Record<string, unknown> | null | undefined,
+): UserRole | null {
+  return normalizeRole(userMetadata?.role);
 }
 
 export function resolveRoleFromClaims(
@@ -86,27 +118,39 @@ export function resolveRoleFromClaims(
 
   const appMetadata = claims.app_metadata;
   if (appMetadata && typeof appMetadata === "object") {
-    return resolveRoleFromAppMetadata(appMetadata as Record<string, unknown>);
+    const fromApp = normalizeRole((appMetadata as Record<string, unknown>).role);
+    if (fromApp) return fromApp;
   }
 
-  if (isUserRole(claims.role)) {
-    return claims.role;
+  const userMetadata = claims.user_metadata;
+  if (userMetadata && typeof userMetadata === "object") {
+    const fromUser = normalizeRole((userMetadata as Record<string, unknown>).role);
+    if (fromUser) return fromUser;
   }
+
+  const direct = normalizeRole(claims.role);
+  if (direct) return direct;
 
   return DEFAULT_PUBLIC_ROLE;
 }
 
-/** Whether a role may access a pathname under RBAC route rules. */
 export function canAccessPath(role: UserRole, pathname: string): boolean {
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-    return role === "ADMIN";
-  }
-
-  if (pathname === "/recruiter" || pathname.startsWith("/recruiter/")) {
-    return role === "RECRUITER" || role === "ADMIN";
+    return role === "admin";
   }
 
   if (
+    pathname === "/employer" ||
+    pathname.startsWith("/employer/") ||
+    pathname === "/recruiter" ||
+    pathname.startsWith("/recruiter/")
+  ) {
+    return role === "employer" || role === "admin";
+  }
+
+  if (
+    pathname === "/candidate" ||
+    pathname.startsWith("/candidate/") ||
     pathname === "/dashboard" ||
     pathname.startsWith("/dashboard/") ||
     pathname === "/profile" ||
@@ -114,25 +158,25 @@ export function canAccessPath(role: UserRole, pathname: string): boolean {
     pathname === "/applications" ||
     pathname.startsWith("/applications/")
   ) {
-    return role === "CANDIDATE" || role === "ADMIN";
+    return role === "candidate" || role === "admin";
   }
 
   return true;
 }
 
 export function canAccessPublicDashboard(role: UserRole): boolean {
-  return role === "CANDIDATE" || role === "ADMIN";
+  return role === "candidate" || role === "admin";
 }
 
 export function canAccessRecruiter(role: UserRole): boolean {
-  return role === "RECRUITER" || role === "ADMIN";
+  return role === "employer" || role === "admin";
 }
 
 export function canAccessAdmin(role: UserRole): boolean {
-  return role === "ADMIN";
+  return role === "admin";
 }
 
-/** Compatibility stub for copied auth forms */
+/** Compatibility stub */
 export function canAccessInstitutionDashboard(_role: UserRole): boolean {
   return false;
 }

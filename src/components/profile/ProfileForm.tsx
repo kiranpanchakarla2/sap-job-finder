@@ -14,7 +14,6 @@ import {
 import {
   updateCandidateProfile,
   updateProfile,
-  uploadResume,
   type CandidateProfileRow,
   type ProfileRow,
 } from "@/services/profileService";
@@ -53,10 +52,10 @@ export function ProfileForm({
   const personalForm = useForm<PersonalProfileValues>({
     resolver: zodResolver(personalProfileSchema),
     defaultValues: {
-      fullName: profile?.full_name ?? "",
-      phone: profile?.phone ?? "",
-      location: profile?.location ?? "",
-      headline: profile?.headline ?? "",
+      fullName: [profile?.first_name, profile?.last_name].filter(Boolean).join(" "),
+      phone: profile?.phone ?? candidate?.phone ?? "",
+      location: candidate?.current_city ?? "",
+      headline: candidate?.headline ?? "",
     },
   });
 
@@ -64,23 +63,13 @@ export function ProfileForm({
     resolver: zodResolver(candidateDetailsSchema),
     defaultValues: {
       experienceYears:
-        candidate?.experience_years != null
-          ? String(candidate.experience_years)
+        candidate?.years_of_experience != null
+          ? String(candidate.years_of_experience)
           : "",
-      skills: (candidate?.skills ?? []).join(", "),
-      education:
-        typeof candidate?.education === "string"
-          ? candidate.education
-          : candidate?.education
-            ? JSON.stringify(candidate.education)
-            : "",
-      certifications:
-        typeof candidate?.certifications === "string"
-          ? candidate.certifications
-          : candidate?.certifications
-            ? JSON.stringify(candidate.certifications)
-            : "",
-      summary: candidate?.summary ?? "",
+      skills: "",
+      education: "",
+      certifications: "",
+      summary: candidate?.about_me ?? "",
     },
   });
 
@@ -101,14 +90,28 @@ export function ProfileForm({
       toast.message("Demo mode — connect Supabase to save profile");
       return;
     }
-    const { error } = await updateProfile(userId, {
-      full_name: values.fullName,
-      phone: values.phone,
-      location: values.location,
-      headline: values.headline,
-    });
-    if (error) toast.error(error.message);
-    else toast.success("Personal details saved");
+    const parts = values.fullName.trim().split(/\s+/);
+    const first_name = parts[0] || "";
+    const last_name = parts.slice(1).join(" ") || null;
+    const [{ error: profileError }, { error: candidateError }] = await Promise.all([
+      updateProfile(userId, {
+        first_name,
+        last_name,
+        phone: values.phone,
+      }),
+      updateCandidateProfile(userId, {
+        first_name,
+        last_name,
+        phone: values.phone,
+        current_city: values.location,
+        headline: values.headline,
+      }),
+    ]);
+    if (profileError || candidateError) {
+      toast.error(profileError?.message || candidateError?.message || "Unable to save");
+    } else {
+      toast.success("Personal details saved");
+    }
   });
 
   const saveDetails = detailsForm.handleSubmit(async (values) => {
@@ -116,19 +119,13 @@ export function ProfileForm({
       toast.message("Demo mode — connect Supabase to save profile");
       return;
     }
-    const skills = values.skills
-      ? values.skills.split(",").map((s) => s.trim()).filter(Boolean)
-      : [];
     const years =
       values.experienceYears && values.experienceYears.trim() !== ""
         ? Number(values.experienceYears)
         : undefined;
     const { error } = await updateCandidateProfile(userId, {
-      experience_years: Number.isFinite(years) ? years : undefined,
-      skills,
-      education: values.education || null,
-      certifications: values.certifications || null,
-      summary: values.summary || null,
+      years_of_experience: Number.isFinite(years) ? years : undefined,
+      about_me: values.summary || null,
     });
     if (error) toast.error(error.message);
     else toast.success("Profile details saved");
@@ -136,19 +133,9 @@ export function ProfileForm({
 
   const onResume = async (file: File | undefined) => {
     if (!file) return;
-    if (!tryGetSupabaseEnv()) {
-      toast.message("Demo mode — connect Supabase to upload resumes");
-      setResumeName(file.name);
-      return;
-    }
-    setUploading(true);
-    const { error } = await uploadResume(userId, file);
+    setResumeName(file.name);
+    toast.message("Resume storage will be enabled once Supabase Storage buckets are configured.");
     setUploading(false);
-    if (error) toast.error(error.message);
-    else {
-      setResumeName(file.name);
-      toast.success("Resume uploaded");
-    }
   };
 
   return (
