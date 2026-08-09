@@ -18,7 +18,7 @@ import { GuestOnlyRoute } from "@/routes/GuestOnlyRoute";
 import {
   candidateRegisterSchema,
   type CandidateRegisterValues,
-} from "@/lib/validations/erpjobs-auth";
+} from "@/lib/validations/sapjobsfinder-auth";
 import { EXPERIENCE_OPTIONS, SAP_MODULE_OPTIONS } from "@/types/candidate";
 
 export function RegisterCandidate() {

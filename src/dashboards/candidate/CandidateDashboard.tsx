@@ -33,7 +33,7 @@ export function CandidateDashboard() {
             Welcome back, {firstName} 👋
           </h1>
           <p className="mt-1 text-sm text-muted">
-            Continue your ERPJobs career journey with tailored SAP opportunities.
+            Continue your SAP Jobs Finder career journey with tailored SAP opportunities.
           </p>
         </div>
         <Link

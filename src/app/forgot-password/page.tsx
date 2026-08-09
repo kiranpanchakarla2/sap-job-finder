@@ -4,7 +4,7 @@ import { siteConfig } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: `Forgot Password — ${siteConfig.name}`,
-  description: "Reset your ERPJobs account password.",
+  description: "Reset your SAP Jobs Finder account password.",
 };
 
 export default function ForgotPasswordPage() {

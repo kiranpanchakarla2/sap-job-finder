@@ -18,7 +18,7 @@ import { GuestOnlyRoute } from "@/routes/GuestOnlyRoute";
 import {
   employerLoginSchema,
   type EmployerLoginValues,
-} from "@/lib/validations/erpjobs-auth";
+} from "@/lib/validations/sapjobsfinder-auth";
 
 export function LoginEmployer() {
   const { login } = useAuth();

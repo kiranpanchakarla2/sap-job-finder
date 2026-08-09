@@ -11,7 +11,7 @@ import { AuthInput } from "@/components/auth/AuthInput";
 import {
   forgotPasswordSchema,
   type ForgotPasswordValues,
-} from "@/lib/validations/erpjobs-auth";
+} from "@/lib/validations/sapjobsfinder-auth";
 import { resetPassword } from "@/services/authService";
 
 export function ForgotPassword() {

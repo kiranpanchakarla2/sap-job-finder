@@ -18,7 +18,7 @@ import { GuestOnlyRoute } from "@/routes/GuestOnlyRoute";
 import {
   employerRegisterSchema,
   type EmployerRegisterValues,
-} from "@/lib/validations/erpjobs-auth";
+} from "@/lib/validations/sapjobsfinder-auth";
 import { COMPANY_SIZE_OPTIONS, INDUSTRY_OPTIONS } from "@/types/employer";
 
 export function RegisterEmployer() {

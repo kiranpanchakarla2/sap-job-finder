@@ -4,7 +4,7 @@ import { siteConfig } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: `Employer Registration — ${siteConfig.name}`,
-  description: "Register your company and hire SAP professionals on ERPJobs.",
+  description: "Register your company and hire SAP professionals on SAP Jobs Finder.",
 };
 
 export default function RegisterEmployerPage() {

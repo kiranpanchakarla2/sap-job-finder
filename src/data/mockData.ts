@@ -1,5 +1,5 @@
 /**
- * ERPJobs mock data for dashboards and demo authentication.
+ * SAP Jobs Finder mock data for dashboards and demo authentication.
  * Replace with REST API responses later.
  */
 
@@ -19,11 +19,11 @@ import type {
 /** Demo credentials (password checked in authService) */
 export const DEMO_CREDENTIALS = {
   candidate: {
-    email: "candidate@erpjobs.com",
+    email: "candidate@sapjobsfinder.com",
     password: "Candidate@123",
   },
   employer: {
-    email: "employer@erpjobs.com",
+    email: "employer@sapjobsfinder.com",
     password: "Employer@123",
   },
 };

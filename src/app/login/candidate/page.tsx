@@ -6,7 +6,7 @@ import { siteConfig } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: `Candidate Login — ${siteConfig.name}`,
-  description: "Sign in to continue your ERPJobs career journey.",
+  description: "Sign in to continue your SAP Jobs Finder career journey.",
 };
 
 export default function CandidateLoginPage() {
