@@ -8,8 +8,6 @@ import {
   getLoginPathForPlatform,
   getPlatformForRole,
   normalizeRole,
-  resolveRoleFromAppMetadata,
-  resolveRoleFromUserMetadata,
   type Platform,
   type UserRole,
 } from "@/lib/auth/roles";
@@ -57,6 +55,7 @@ function resolveFullName(
 
 /**
  * Returns the authenticated user or redirects to sign-in.
+ * Role comes only from `public.profiles` — never JWT / user_metadata.
  */
 export async function requireUser(
   redirectTo = "/candidate/dashboard",
@@ -79,10 +78,14 @@ export async function requireUser(
     .eq("user_id", user.id)
     .maybeSingle();
 
-  const role =
-    normalizeRole(profile?.role) ??
-    resolveRoleFromUserMetadata(user.user_metadata as Record<string, unknown> | undefined) ??
-    resolveRoleFromAppMetadata(user.app_metadata as Record<string, unknown> | undefined);
+  const role = normalizeRole(profile?.role);
+
+  // Fail closed: authenticated users without a profile cannot proceed.
+  if (!role) {
+    await supabase.auth.signOut();
+    const params = new URLSearchParams({ next: redirectTo });
+    redirect(`${getLoginPathForPlatform(platform)}?${params.toString()}`);
+  }
 
   return {
     id: user.id,

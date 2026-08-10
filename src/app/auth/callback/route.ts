@@ -7,10 +7,7 @@ import {
   getAuthErrorMessage,
   getVerificationLinkErrorMessage,
 } from "@/lib/auth/errors";
-import {
-  getHomePathForRole,
-  resolveRoleFromAppMetadata,
-} from "@/lib/auth/roles";
+import { getHomePathForRole, normalizeRole } from "@/lib/auth/roles";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 import type { Database } from "@/types/database";
 
@@ -129,10 +126,25 @@ export async function GET(request: Request) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const role = resolveRoleFromAppMetadata(
-      user?.app_metadata as Record<string, unknown> | undefined,
-    );
-    const destination = requestedNext ?? getHomePathForRole(role);
+    // Authorization source of truth: profiles.role only (never JWT metadata).
+    let role = null as ReturnType<typeof normalizeRole>;
+    if (user?.id) {
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        role = normalizeRole(profile?.role);
+      } catch {
+        role = null;
+      }
+    }
+
+    // Fail closed when profile is missing — send to role-agnostic login picker.
+    const destination = role
+      ? (requestedNext ?? getHomePathForRole(role))
+      : "/login";
 
     const roleAwareRedirect = NextResponse.redirect(
       buildRedirectUrl(request, destination),

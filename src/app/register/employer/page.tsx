@@ -1,12 +1,8 @@
-import type { Metadata } from "next";
-import { RegisterEmployer } from "@/auth/RegisterEmployer";
-import { siteConfig } from "@/lib/constants";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: `Employer Registration — ${siteConfig.name}`,
-  description: "Register your company and hire SAP professionals on SAP Jobs Finder.",
-};
-
-export default function RegisterEmployerPage() {
-  return <RegisterEmployer />;
+/**
+ * Legacy route — Sprint 1 employer auth lives at `/employer/register`.
+ */
+export default function LegacyEmployerRegisterPage() {
+  redirect("/employer/register");
 }

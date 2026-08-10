@@ -9,7 +9,7 @@ export type JobFilters = {
 };
 
 /**
- * Lists published jobs from Supabase when available; falls back to mock data.
+ * Lists active jobs from Supabase when available; falls back to mock data.
  */
 export async function listJobs(filters: JobFilters = {}): Promise<MockJob[]> {
   try {
@@ -17,13 +17,13 @@ export async function listJobs(filters: JobFilters = {}): Promise<MockJob[]> {
     let query = supabase
       .from("jobs")
       .select(
-        "id, title, location, salary_min, salary_max, experience_min, experience_max, remote_type, sap_module, description, status, created_at, employer_profiles(id, company_name, company_logo_url)",
+        "id, title, location, salary_min, salary_max, minimum_experience, maximum_experience, work_arrangement, sap_module, description, status, created_at, published_at, company_id",
       )
-      .eq("status", "published")
-      .order("created_at", { ascending: false });
+      .eq("status", "active")
+      .order("published_at", { ascending: false, nullsFirst: false });
 
     if (filters.module) query = query.eq("sap_module", filters.module);
-    if (filters.workMode) query = query.ilike("remote_type", filters.workMode);
+    if (filters.workMode) query = query.ilike("work_arrangement", filters.workMode);
     if (filters.location) query = query.ilike("location", `%${filters.location}%`);
     if (filters.q) {
       query = query.or(`title.ilike.%${filters.q}%,description.ilike.%${filters.q}%`);
@@ -34,7 +34,17 @@ export async function listJobs(filters: JobFilters = {}): Promise<MockJob[]> {
       return filterJobs(filters);
     }
 
-    return data.map(mapRowToJob);
+    const companyIds = [...new Set(data.map((row) => row.company_id).filter(Boolean))];
+    const { data: companies } = await supabase
+      .from("company_profiles")
+      .select("id, company_name, logo_url")
+      .in("id", companyIds);
+
+    const companyMap = new Map(
+      (companies ?? []).map((company) => [company.id, company] as const),
+    );
+
+    return data.map((row) => mapRowToJob(row, companyMap.get(row.company_id) ?? null));
   } catch {
     return filterJobs(filters);
   }
@@ -46,7 +56,7 @@ export async function getJob(id: string): Promise<MockJob | null> {
     const { data, error } = await supabase
       .from("jobs")
       .select(
-        "id, title, location, salary_min, salary_max, experience_min, experience_max, remote_type, sap_module, description, status, created_at, employer_profiles(id, company_name, company_logo_url)",
+        "id, title, location, salary_min, salary_max, minimum_experience, maximum_experience, work_arrangement, sap_module, description, status, created_at, published_at, company_id",
       )
       .eq("id", id)
       .maybeSingle();
@@ -55,7 +65,13 @@ export async function getJob(id: string): Promise<MockJob | null> {
       return getJobById(id) ?? null;
     }
 
-    return mapRowToJob(data);
+    const { data: company } = await supabase
+      .from("company_profiles")
+      .select("id, company_name, logo_url")
+      .eq("id", data.company_id)
+      .maybeSingle();
+
+    return mapRowToJob(data, company);
   } catch {
     return getJobById(id) ?? null;
   }
@@ -67,22 +83,43 @@ export async function listFeaturedJobs(): Promise<MockJob[]> {
   return featured.length ? featured : mockJobs.filter((j) => j.featured);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapRowToJob(row: any): MockJob {
-  const employer = Array.isArray(row.employer_profiles)
-    ? row.employer_profiles[0]
-    : row.employer_profiles;
+function mapRowToJob(
+  row: {
+    id: string;
+    title: string;
+    location: string | null;
+    salary_min: number | null;
+    salary_max: number | null;
+    minimum_experience: number | null;
+    maximum_experience: number | null;
+    work_arrangement: string | null;
+    sap_module: string | null;
+    description: string | null;
+    created_at: string;
+    company_id: string;
+  },
+  company: { id: string; company_name: string; logo_url: string | null } | null,
+): MockJob {
   const salaryMin = row.salary_min;
   const salaryMax = row.salary_max;
-  const expMin = row.experience_min;
-  const expMax = row.experience_max;
+  const expMin = row.minimum_experience;
+  const expMax = row.maximum_experience;
+  const work =
+    row.work_arrangement === "Remote" ||
+    row.work_arrangement === "Hybrid" ||
+    row.work_arrangement === "On-site" ||
+    row.work_arrangement === "Onsite"
+      ? row.work_arrangement === "On-site"
+        ? "Onsite"
+        : row.work_arrangement
+      : "Hybrid";
 
   return {
     id: row.id,
     title: row.title,
-    company: employer?.company_name ?? "Company",
-    companyId: employer?.id ?? "company",
-    logo: (employer?.company_name ?? "C").slice(0, 1).toUpperCase(),
+    company: company?.company_name ?? "Company",
+    companyId: company?.id ?? row.company_id,
+    logo: (company?.company_name ?? "C").slice(0, 1).toUpperCase(),
     location: row.location ?? "Remote",
     salary:
       salaryMin != null && salaryMax != null
@@ -95,10 +132,7 @@ function mapRowToJob(row: any): MockJob {
           ? `${expMin}+ years`
           : "Not specified",
     employmentType: "FULL-TIME",
-    workMode:
-      row.remote_type === "Remote" || row.remote_type === "Hybrid" || row.remote_type === "Onsite"
-        ? row.remote_type
-        : "Hybrid",
+    workMode: work as MockJob["workMode"],
     module: row.sap_module ?? "SAP",
     skills: [],
     description: row.description ?? "",

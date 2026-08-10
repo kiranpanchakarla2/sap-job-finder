@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
+import { Building2, ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { useRouter } from "next/navigation";
 import type { AuthRole } from "@/types/auth";
@@ -43,12 +43,12 @@ export function UserMenu() {
 
   if (!user) return null;
 
-  const profileHref =
-    user.role === "employer" ? "/employer/company-profile" : "/candidate/profile";
-  const settingsHref =
-    user.role === "employer" ? "/employer/settings" : "/candidate/settings";
-  const profileLabel = user.role === "employer" ? "Company Profile" : "My Profile";
-  const displayName = user.role === "employer" && user.companyName ? user.companyName : user.name;
+  const isEmployer = user.role === "employer";
+  const profileHref = isEmployer ? "/employer/company" : "/candidate/profile";
+  const companyHref = "/employer/company";
+  const settingsHref = isEmployer ? "/employer/settings" : "/candidate/settings";
+  const profileLabel = isEmployer ? "Profile" : "My Profile";
+  const displayName = isEmployer && user.companyName ? user.companyName : user.name;
   const initials =
     user.avatarInitials ||
     displayName
@@ -100,6 +100,17 @@ export function UserMenu() {
             <UserRound size={15} aria-hidden="true" />
             {profileLabel}
           </Link>
+          {isEmployer ? (
+            <Link
+              href={companyHref}
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 px-3 py-2.5 text-sm text-text transition hover:bg-surface"
+            >
+              <Building2 size={15} aria-hidden="true" />
+              Company Profile
+            </Link>
+          ) : null}
           <Link
             href={settingsHref}
             role="menuitem"
@@ -113,7 +124,7 @@ export function UserMenu() {
             type="button"
             role="menuitem"
             onClick={onLogout}
-            className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-red-600 transition hover:bg-red-50"
+            className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-error transition hover:bg-error/10"
           >
             <LogOut size={15} aria-hidden="true" />
             Logout

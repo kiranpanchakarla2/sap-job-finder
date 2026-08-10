@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -9,6 +10,8 @@ import {
   Briefcase,
   Building2,
   CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   CreditCard,
   FileText,
   Heart,
@@ -39,73 +42,127 @@ export type SidebarNavSection = {
   items: SidebarNavItem[];
 };
 
-export function DashboardSidebar({
+const EMPLOYER_SIDEBAR_COLLAPSED_KEY = "sapjobsfinder-employer-sidebar-collapsed";
+
+function SidebarTooltip({
+  label,
+  enabled,
+  children,
+}: {
+  label: string;
+  enabled: boolean;
+  children: ReactNode;
+}) {
+  if (!enabled) return <>{children}</>;
+
+  return (
+    <span className="group/tooltip relative flex w-full justify-center">
+      {children}
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-text opacity-0 shadow-lift transition-opacity duration-150 group-hover/tooltip:opacity-100 group-focus-within/tooltip:opacity-100"
+      >
+        {label}
+      </span>
+    </span>
+  );
+}
+
+function SidebarNav({
   sections,
   homeHref,
-  open,
-  onClose,
   ariaLabel,
+  collapsed,
+  onNavigate,
+  onLogout,
+  showCloseButton,
+  onClose,
 }: {
   sections: SidebarNavSection[];
   homeHref: string;
-  open: boolean;
-  onClose: () => void;
   ariaLabel: string;
+  collapsed: boolean;
+  onNavigate: () => void;
+  onLogout: () => void;
+  showCloseButton?: boolean;
+  onClose?: () => void;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const { logout } = useAuth();
+  const allHrefs = sections.flatMap((entry) => entry.items.map((item) => item.href));
+  const activeHref =
+    allHrefs
+      .filter(
+        (href) =>
+          href === pathname ||
+          (href !== homeHref &&
+            (pathname === href || pathname.startsWith(`${href}/`))),
+      )
+      .sort((a, b) => b.length - a.length)[0] ?? null;
 
-  const onLogout = async () => {
-    const redirect = await logout();
-    onClose();
-    router.push(redirect);
-  };
-
-  const nav = (
-    <div className="flex h-full flex-col px-4 py-5">
-      <div className="mb-6 flex items-center justify-between gap-2 px-2">
-        <BrandLogo href={homeHref} onClick={onClose} />
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted lg:hidden"
-          aria-label="Close navigation menu"
-        >
-          <X size={16} />
-        </button>
+  return (
+    <div
+      className={`flex h-full flex-col py-5 ${collapsed ? "px-2" : "px-4"}`}
+    >
+      <div
+        className={`mb-6 flex items-center gap-2 ${
+          collapsed ? "justify-center px-0" : "justify-between px-2"
+        }`}
+      >
+        <BrandLogo href={homeHref} onClick={onNavigate} markOnly={collapsed} />
+        {showCloseButton ? (
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted lg:hidden focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+            aria-label="Close navigation menu"
+          >
+            <X size={16} />
+          </button>
+        ) : null}
       </div>
 
-      <nav className="flex flex-1 flex-col gap-5 overflow-y-auto" aria-label={ariaLabel}>
+      <nav
+        className="flex flex-1 flex-col gap-5 overflow-y-auto overflow-x-hidden"
+        aria-label={ariaLabel}
+      >
         {sections.map((section) => (
           <div key={section.title ?? section.items[0]?.label}>
-            {section.title ? (
+            {section.title && !collapsed ? (
               <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted">
                 {section.title}
               </p>
             ) : null}
-            <div className="flex flex-col gap-1">
+            <div className={`flex flex-col gap-1 ${collapsed ? "items-center" : ""}`}>
               {section.items.map((item) => {
                 const Icon = item.icon;
-                const active =
-                  pathname === item.href ||
-                  (item.href !== homeHref && pathname.startsWith(item.href));
+                const active = activeHref === item.href;
 
                 return (
-                  <Link
+                  <SidebarTooltip
                     key={item.href}
-                    href={item.href}
-                    onClick={onClose}
-                    className={`inline-flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 ${
-                      active
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted hover:bg-surface hover:text-text"
-                    }`}
-                    aria-current={active ? "page" : undefined}
+                    label={item.label}
+                    enabled={collapsed}
                   >
-                    <Icon size={18} aria-hidden="true" />
-                    {item.label}
-                  </Link>
+                    <Link
+                      href={item.href}
+                      onClick={onNavigate}
+                      title={collapsed ? item.label : undefined}
+                      aria-label={collapsed ? item.label : undefined}
+                      className={`inline-flex items-center rounded-[var(--radius-control)] text-sm font-medium transition duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 ${
+                        collapsed
+                          ? "h-10 w-10 justify-center"
+                          : "w-full gap-3 px-3 py-2.5"
+                      } ${
+                        active
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted hover:bg-surface hover:text-text"
+                      }`}
+                      aria-current={active ? "page" : undefined}
+                    >
+                      <Icon size={18} className="shrink-0" aria-hidden="true" />
+                      {!collapsed ? <span>{item.label}</span> : null}
+                    </Link>
+                  </SidebarTooltip>
                 );
               })}
             </div>
@@ -113,21 +170,120 @@ export function DashboardSidebar({
         ))}
       </nav>
 
-      <button
-        type="button"
-        onClick={onLogout}
-        className="mt-4 inline-flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-200"
-      >
-        <LogOut size={18} aria-hidden="true" />
-        Logout
-      </button>
+      <div className={`mt-4 ${collapsed ? "flex justify-center" : ""}`}>
+      <SidebarTooltip label="Logout" enabled={collapsed}>
+        <button
+          type="button"
+          onClick={onLogout}
+          title={collapsed ? "Logout" : undefined}
+          aria-label="Logout"
+          className={`inline-flex items-center rounded-[var(--radius-control)] text-sm font-medium text-error transition duration-200 hover:bg-error/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-error/20 ${
+            collapsed
+              ? "h-10 w-10 justify-center"
+              : "w-full gap-3 px-3 py-2.5"
+          }`}
+        >
+          <LogOut size={18} className="shrink-0" aria-hidden="true" />
+          {!collapsed ? <span>Logout</span> : null}
+        </button>
+      </SidebarTooltip>
+      </div>
     </div>
   );
+}
+
+export function DashboardSidebar({
+  sections,
+  homeHref,
+  open,
+  onClose,
+  ariaLabel,
+  collapsible = false,
+}: {
+  sections: SidebarNavSection[];
+  homeHref: string;
+  open: boolean;
+  onClose: () => void;
+  ariaLabel: string;
+  /** Desktop expand/collapse — employer only. Mobile drawer always stays expanded. */
+  collapsible?: boolean;
+}) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
+  const [collapsed, setCollapsed] = useState(false);
+  const [preferenceReady, setPreferenceReady] = useState(false);
+
+  useEffect(() => {
+    if (!collapsible) return;
+    try {
+      const stored = window.localStorage.getItem(EMPLOYER_SIDEBAR_COLLAPSED_KEY);
+      setCollapsed(stored === "true");
+    } catch {
+      setCollapsed(false);
+    }
+    setPreferenceReady(true);
+  }, [collapsible]);
+
+  useEffect(() => {
+    if (!collapsible || !preferenceReady) return;
+    try {
+      window.localStorage.setItem(
+        EMPLOYER_SIDEBAR_COLLAPSED_KEY,
+        collapsed ? "true" : "false",
+      );
+    } catch {
+      // Ignore storage write failures (private mode, quota, etc.)
+    }
+  }, [collapsed, collapsible, preferenceReady]);
+
+  const onLogout = async () => {
+    const redirect = await logout();
+    onClose();
+    if (pathname.startsWith("/employer")) {
+      router.push("/employer/login");
+      return;
+    }
+    router.push(redirect);
+  };
+
+  const toggleCollapsed = () => setCollapsed((value) => !value);
+  const collapseLabel = collapsed ? "Expand sidebar" : "Collapse sidebar";
 
   return (
     <>
-      <aside className="hidden w-64 shrink-0 border-r border-border bg-card lg:block">
-        <div className="sticky top-0 h-screen">{nav}</div>
+      <aside
+        className={`relative hidden shrink-0 border-r border-border bg-card transition-[width] duration-200 ease-out lg:block ${
+          collapsible && collapsed ? "w-20" : "w-64"
+        }`}
+      >
+        {collapsible ? (
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            aria-label={collapseLabel}
+            title={collapseLabel}
+            aria-expanded={!collapsed}
+            className="absolute top-7 -right-3 z-20 inline-flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-muted shadow-soft transition hover:border-primary/30 hover:text-text focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+          >
+            {collapsed ? (
+              <ChevronRight size={14} aria-hidden="true" />
+            ) : (
+              <ChevronLeft size={14} aria-hidden="true" />
+            )}
+          </button>
+        ) : null}
+
+        <div className="sticky top-0 h-screen">
+          <SidebarNav
+            sections={sections}
+            homeHref={homeHref}
+            ariaLabel={ariaLabel}
+            collapsed={Boolean(collapsible && collapsed)}
+            onNavigate={onClose}
+            onLogout={onLogout}
+          />
+        </div>
       </aside>
 
       {open ? (
@@ -139,7 +295,16 @@ export function DashboardSidebar({
             onClick={onClose}
           />
           <aside className="absolute inset-y-0 left-0 w-[min(20rem,88vw)] border-r border-border bg-card shadow-lift">
-            {nav}
+            <SidebarNav
+              sections={sections}
+              homeHref={homeHref}
+              ariaLabel={ariaLabel}
+              collapsed={false}
+              onNavigate={onClose}
+              onLogout={onLogout}
+              showCloseButton
+              onClose={onClose}
+            />
           </aside>
         </div>
       ) : null}
@@ -186,7 +351,7 @@ export const employerNavSections: SidebarNavSection[] = [
   {
     items: [
       { label: "Dashboard", href: "/employer/dashboard", icon: LayoutDashboard },
-      { label: "Post Job", href: "/employer/post-job", icon: PlusCircle },
+      { label: "Post Job", href: "/employer/jobs/new", icon: PlusCircle },
       { label: "Manage Jobs", href: "/employer/jobs", icon: Briefcase },
       { label: "Applicants", href: "/employer/applicants", icon: Users },
       { label: "Shortlisted", href: "/employer/shortlisted", icon: Heart },
@@ -197,7 +362,7 @@ export const employerNavSections: SidebarNavSection[] = [
   {
     title: "Company",
     items: [
-      { label: "Company Profile", href: "/employer/company-profile", icon: Building2 },
+      { label: "Company Profile", href: "/employer/company", icon: Building2 },
     ],
   },
   {

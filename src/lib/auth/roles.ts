@@ -1,9 +1,9 @@
 /**
  * Role-Based Access Control for SAPJobsFinder.
  *
- * Application roles live in `public.profiles.role` (candidate | employer | admin).
- * Signup metadata may also include `user_metadata.role` (never trust for security —
- * RLS enforces access; this module is for UX routing).
+ * Authorization source of truth: `public.profiles.role` (candidate | employer | admin).
+ * Signup may set `user_metadata.role` for the DB trigger only — never use JWT /
+ * user_metadata claims for access control (middleware, session, callback).
  */
 
 export const USER_ROLES = ["candidate", "employer", "admin"] as const;
@@ -89,7 +89,7 @@ export function getLoginPathForRole(role: UserRole): string {
   switch (role) {
     case "employer":
     case "admin":
-      return "/login/employer";
+      return "/employer/login";
     case "candidate":
     default:
       return "/login/candidate";

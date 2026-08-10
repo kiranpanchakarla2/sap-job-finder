@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import {
   getHomePathForRole,
-  resolveRoleFromAppMetadata,
+  normalizeRole,
   type UserRole,
 } from "@/lib/auth/roles";
 
@@ -39,7 +39,7 @@ export async function signUpWithEmail(input: {
   });
 }
 
-/** Reads the signed-in user's role from server-controlled app_metadata. */
+/** Reads the signed-in user's role from `public.profiles` (source of truth). */
 export async function getSignedInRole(): Promise<UserRole | null> {
   const supabase = createClient();
   const {
@@ -50,15 +50,19 @@ export async function getSignedInRole(): Promise<UserRole | null> {
     return null;
   }
 
-  return resolveRoleFromAppMetadata(
-    user.app_metadata as Record<string, unknown> | undefined,
-  );
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  return normalizeRole(profile?.role);
 }
 
 /** Post-auth home path for the currently signed-in user. */
 export async function getSignedInHomePath(): Promise<string> {
   const role = await getSignedInRole();
-  return getHomePathForRole(role ?? "candidate");
+  return role ? getHomePathForRole(role) : "/login";
 }
 
 export async function signOutClient() {

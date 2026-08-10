@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
 
-export default function EmployerRegisterLayout({ children }: { children: ReactNode }) {
-  return <div className="mx-auto w-full max-w-5xl">{children}</div>;
+export default function LegacyEmployerRegisterLayout({ children }: { children: ReactNode }) {
+  return children;
 }

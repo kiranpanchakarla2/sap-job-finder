@@ -94,7 +94,7 @@ export function ForgotPassword() {
           </Link>
           {" · "}
           <Link
-            href="/login/employer"
+            href="/employer/login"
             className="rounded font-semibold text-primary transition hover:text-accent focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
           >
             Employer Login

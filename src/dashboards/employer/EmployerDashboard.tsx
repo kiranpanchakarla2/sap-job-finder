@@ -38,7 +38,7 @@ export function EmployerDashboard() {
           </p>
         </div>
         <Link
-          href="/employer/post-job"
+          href="/employer/jobs/new"
           className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-soft transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
         >
           <PlusCircle size={16} aria-hidden="true" />

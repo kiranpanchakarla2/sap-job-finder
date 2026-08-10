@@ -46,8 +46,16 @@ export function mapAuthError(error: { message?: string; status?: number } | null
   ) {
     return "An account with this email already exists.";
   }
+  if (
+    message.includes("password should be") ||
+    message.includes("weak password") ||
+    message.includes("password is known") ||
+    (message.includes("password") && message.includes("least"))
+  ) {
+    return "Your password does not meet the required security requirements.";
+  }
   if (message.includes("password")) {
-    return "Password does not meet requirements. Use at least 8 characters.";
+    return "Your password does not meet the required security requirements.";
   }
   if (message.includes("over_email_send_rate_limit") || message.includes("email rate limit")) {
     return "Email sending is temporarily rate-limited. Wait a few minutes, or disable Confirm email in the Supabase Auth settings for local testing.";
@@ -63,7 +71,7 @@ async function fetchProfile(userId: string): Promise<AuthProfile | null> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, user_id, role, first_name, last_name, phone, avatar_url")
+    .select("id, user_id, role, first_name, last_name, email, phone, avatar_url")
     .eq("user_id", userId)
     .maybeSingle();
 

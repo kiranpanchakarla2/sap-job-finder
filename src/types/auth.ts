@@ -12,6 +12,7 @@ export type AuthProfile = {
   role: AuthRole;
   first_name: string | null;
   last_name: string | null;
+  email?: string | null;
   phone: string | null;
   avatar_url: string | null;
 };
@@ -55,7 +56,7 @@ export function getLoginPathForRole(role: AuthRole): string {
   switch (role) {
     case "employer":
     case "admin":
-      return "/login/employer";
+      return "/employer/login";
     case "candidate":
     default:
       return "/login/candidate";

@@ -1,9 +1,8 @@
 /**
- * SAP Jobs Finder mock data for dashboards and demo authentication.
- * Replace with REST API responses later.
+ * SAP Jobs Finder mock dashboard data.
+ * Auth uses Supabase — these fixtures are UI placeholders only.
  */
 
-import type { AuthUser } from "@/types/auth";
 import type {
   CandidateApplication,
   CandidateInterview,
@@ -15,37 +14,6 @@ import type {
   EmployerDashboardStats,
   RecommendedJob,
 } from "@/types/job";
-
-/** Demo credentials (password checked in authService) */
-export const DEMO_CREDENTIALS = {
-  candidate: {
-    email: "candidate@sapjobsfinder.com",
-    password: "Candidate@123",
-  },
-  employer: {
-    email: "employer@sapjobsfinder.com",
-    password: "Employer@123",
-  },
-};
-
-export const mockCandidateUser: AuthUser = {
-  id: "user_candidate_demo",
-  name: "Priya Sharma",
-  email: DEMO_CREDENTIALS.candidate.email,
-  role: "candidate",
-  avatarInitials: "PS",
-  phone: "+91 98765 43210",
-};
-
-export const mockEmployerUser: AuthUser = {
-  id: "user_employer_demo",
-  name: "Rahul Mehta",
-  email: DEMO_CREDENTIALS.employer.email,
-  role: "employer",
-  avatarInitials: "RM",
-  companyName: "Nexus SAP Solutions",
-  phone: "+91 99887 66554",
-};
 
 export const candidateDashboardStats: CandidateDashboardStats = {
   appliedJobs: 12,

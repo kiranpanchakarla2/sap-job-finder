@@ -7,7 +7,9 @@ export type Json =
   | Json[];
 
 export type AppRole = "candidate" | "employer" | "admin";
-export type JobStatus = "draft" | "published" | "paused" | "closed" | "expired";
+export type JobStatus = "draft" | "active" | "paused" | "closed";
+/** @deprecated legacy published/expired values mapped to active/closed in Sprint 3B */
+export type LegacyJobStatus = "published" | "expired";
 export type ApplicationStatus =
   | "applied"
   | "shortlisted"
@@ -30,6 +32,7 @@ type ProfileRow = {
   role: AppRole;
   first_name: string | null;
   last_name: string | null;
+  email: string | null;
   phone: string | null;
   avatar_url: string | null;
   created_at: string;
@@ -79,22 +82,64 @@ type EmployerProfileRow = {
   updated_at: string;
 };
 
+type CompanyProfileRow = {
+  id: string;
+  user_id: string;
+  company_name: string;
+  logo_url: string | null;
+  website: string;
+  industry: string;
+  company_size: string;
+  country: string;
+  state: string;
+  city: string;
+  address: string;
+  about: string;
+  recruiter_name: string;
+  designation: string;
+  work_email: string;
+  phone: string;
+  setup_complete: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 type JobRow = {
   id: string;
+  company_id: string;
   employer_id: string;
+  created_by: string;
   title: string;
+  employment_type: string;
+  job_type: string;
+  experience_level: string;
+  location: string;
+  work_arrangement: string;
+  sap_module: string;
+  sap_specialization: string | null;
+  sap_version: string | null;
+  project_type: string | null;
+  industry: string | null;
   description: string;
-  experience_min: number | null;
-  experience_max: number | null;
+  responsibilities: string;
+  required_skills: string;
+  preferred_skills: string | null;
+  minimum_experience: number;
+  maximum_experience: number | null;
+  salary_type: string | null;
   salary_min: number | null;
   salary_max: number | null;
-  employment_type: string | null;
-  location: string | null;
-  remote_type: string | null;
-  sap_module: string | null;
-  vacancies: number;
+  currency: string | null;
+  salary_visible: boolean;
+  benefits: Json;
+  number_of_openings: number;
+  application_deadline: string | null;
+  recruiter_name: string | null;
+  application_email: string | null;
+  application_url: string | null;
   status: JobStatus;
-  expiry_date: string | null;
+  published_at: string | null;
+  closed_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -117,6 +162,7 @@ export type Database = {
           role: AppRole;
           first_name?: string | null;
           last_name?: string | null;
+          email?: string | null;
           phone?: string | null;
           avatar_url?: string | null;
           created_at?: string;
@@ -132,6 +178,10 @@ export type Database = {
         { user_id: string; company_name: string } & Partial<Omit<EmployerProfileRow, "user_id" | "company_name" | "id">> & {
           id?: string;
         }
+      >;
+      company_profiles: GenericTable<
+        CompanyProfileRow,
+        { user_id: string } & Partial<Omit<CompanyProfileRow, "user_id" | "id">> & { id?: string }
       >;
       recruiters: GenericTable<{
         id: string;
@@ -204,7 +254,22 @@ export type Database = {
       }>;
       jobs: GenericTable<
         JobRow,
-        { employer_id: string; title: string } & Partial<Omit<JobRow, "employer_id" | "title" | "id">> & { id?: string }
+        {
+          company_id: string;
+          employer_id: string;
+          created_by: string;
+          title: string;
+          employment_type: string;
+          job_type: string;
+          experience_level: string;
+          location: string;
+          work_arrangement: string;
+          sap_module: string;
+          description: string;
+          responsibilities: string;
+          required_skills: string;
+          minimum_experience: number;
+        } & Partial<Omit<JobRow, "id">> & { id?: string }
       >;
       job_skills: GenericTable<{ id: string; job_id: string; skill_id: string }>;
       job_applications: GenericTable<{
@@ -240,6 +305,7 @@ export type Database = {
     Views: Record<string, never>;
     Functions: {
       current_app_role: { Args: Record<string, never>; Returns: AppRole };
+      current_company_id: { Args: Record<string, never>; Returns: string };
       current_candidate_id: { Args: Record<string, never>; Returns: string };
       current_employer_id: { Args: Record<string, never>; Returns: string };
       owns_job: { Args: { p_job_id: string }; Returns: boolean };

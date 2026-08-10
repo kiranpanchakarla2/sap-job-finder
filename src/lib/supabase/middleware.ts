@@ -5,7 +5,7 @@ import {
   canAccessPath,
   getHomePathForRole,
   getLoginPathForRole,
-  resolveRoleFromClaims,
+  normalizeRole,
   type UserRole,
 } from "@/lib/auth/roles";
 import type { Database } from "@/types/database";
@@ -22,7 +22,25 @@ const PROTECTED_PREFIXES = [
   "/admin",
 ] as const;
 
+/** Public employer auth routes — no session required. */
+const EMPLOYER_AUTH_PUBLIC_PATHS = [
+  "/employer/login",
+  "/employer/register",
+  "/employer/forgot-password",
+  "/employer/reset-password",
+  "/employer/verify-email",
+] as const;
+
+function isEmployerAuthPublicPath(pathname: string): boolean {
+  return EMPLOYER_AUTH_PUBLIC_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
+}
+
 function matchProtectedRoute(pathname: string): boolean {
+  if (isEmployerAuthPublicPath(pathname)) {
+    return false;
+  }
   return PROTECTED_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
@@ -46,6 +64,7 @@ function copyCookies(from: NextResponse, to: NextResponse) {
 
 /**
  * Refreshes the Supabase auth session and guards protected routes.
+ * Authorization uses `profiles.role` only — never JWT / user_metadata.
  */
 export async function updateSession(request: NextRequest): Promise<NextResponse> {
   let supabaseResponse = NextResponse.next({
@@ -53,13 +72,14 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   });
 
   const env = tryGetSupabaseEnv();
-  const isProtected = matchProtectedRoute(request.nextUrl.pathname);
+  const pathname = request.nextUrl.pathname;
+  const isProtected = matchProtectedRoute(pathname);
 
   if (!env) {
     if (isProtected) {
       const loginUrl = request.nextUrl.clone();
-      loginUrl.pathname = loginPathForProtectedRoute(request.nextUrl.pathname);
-      loginUrl.searchParams.set("next", request.nextUrl.pathname);
+      loginUrl.pathname = loginPathForProtectedRoute(pathname);
+      loginUrl.searchParams.set("next", pathname);
       return NextResponse.redirect(loginUrl);
     }
     return supabaseResponse;
@@ -98,34 +118,42 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
 
   if (!isAuthenticated && isProtected) {
     const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = loginPathForProtectedRoute(request.nextUrl.pathname);
-    loginUrl.searchParams.set("next", request.nextUrl.pathname);
+    loginUrl.pathname = loginPathForProtectedRoute(pathname);
+    loginUrl.searchParams.set("next", pathname);
     const redirectResponse = NextResponse.redirect(loginUrl);
     copyCookies(supabaseResponse, redirectResponse);
     return redirectResponse;
   }
 
   if (isAuthenticated && isProtected) {
-    let role: UserRole = resolveRoleFromClaims(claims);
+    const userId = typeof claims?.sub === "string" ? claims.sub : null;
+    let role: UserRole | null = null;
 
-    // Prefer DB profile role when available
-    try {
-      const userId = typeof claims?.sub === "string" ? claims.sub : null;
-      if (userId) {
+    if (userId) {
+      try {
         const { data: profile } = await supabase
           .from("profiles")
           .select("role")
           .eq("user_id", userId)
           .maybeSingle();
-        if (profile?.role) {
-          role = profile.role as UserRole;
-        }
+        role = normalizeRole(profile?.role);
+      } catch {
+        role = null;
       }
-    } catch {
-      // Fall back to claims-derived role
     }
 
-    if (!canAccessPath(role, request.nextUrl.pathname)) {
+    // Fail closed: session without a DB profile cannot access protected routes.
+    if (!role) {
+      await supabase.auth.signOut();
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = loginPathForProtectedRoute(pathname);
+      loginUrl.searchParams.set("next", pathname);
+      const redirectResponse = NextResponse.redirect(loginUrl);
+      copyCookies(supabaseResponse, redirectResponse);
+      return redirectResponse;
+    }
+
+    if (!canAccessPath(role, pathname)) {
       const homeUrl = request.nextUrl.clone();
       homeUrl.pathname = getHomePathForRole(role);
       homeUrl.search = "";

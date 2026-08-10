@@ -26,9 +26,9 @@ export const serviceGroups: ServiceGroup[] = [
         description: "Expert feedback on your SAP resume",
       },
       {
-        label: "Salary Guidance",
-        slug: "salary-guidance",
-        description: "Benchmark pay across modules and regions",
+        label: "Mock Interviews",
+        slug: "mock-interviews",
+        description: "Practice SAP interviews with structured feedback",
       },
       {
         label: "Mentorship",
@@ -39,6 +39,11 @@ export const serviceGroups: ServiceGroup[] = [
         label: "Certification Guidance",
         slug: "certification-guidance",
         description: "Plan certifications that match your goals",
+      },
+      {
+        label: "Salary Guidance",
+        slug: "salary-guidance",
+        description: "Benchmark pay across modules and regions",
       },
     ],
   },
@@ -180,6 +185,8 @@ const pageSubtitles: Record<string, string> = {
     "Expert feedback on your SAP resume, skills positioning, and module focus.",
   "salary-guidance":
     "Understand market rates for your SAP module, experience, and location.",
+  "mock-interviews":
+    "Practice SAP interviews with structured feedback before the real thing.",
   mentorship: "Ongoing guidance from senior SAP practitioners as you grow your career.",
   "certification-guidance":
     "Choose the right SAP certifications for your target role and module path.",
@@ -203,6 +210,10 @@ const pageSubtitles: Record<string, string> = {
 };
 
 export function getServiceHref(categoryId: string, slug: string) {
+  // Featured mock interview experience lives on a dedicated page.
+  if (slug === "mock-interviews") {
+    return "/mock-interview";
+  }
   return `/services/${categoryId}/${slug}`;
 }
 

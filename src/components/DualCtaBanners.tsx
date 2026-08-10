@@ -21,7 +21,7 @@ const ctaBanners = [
     title: "Become an Employer",
     description:
       "Post SAP openings, reach qualified consultants, and manage applicants from one recruiter dashboard.",
-    href: "/register/employer",
+    href: "/employer/register",
     cta: "Register Now",
     variant: "primary" as const,
     image: {

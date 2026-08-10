@@ -38,7 +38,7 @@ export function RoleSelectCards({
 }) {
   const reduceMotion = useReducedMotion();
   const candidateHref = mode === "login" ? "/login/candidate" : "/register/candidate";
-  const employerHref = mode === "login" ? "/login/employer" : "/register/employer";
+  const employerHref = mode === "login" ? "/employer/login" : "/employer/register";
 
   return (
     <div className="mx-auto w-full max-w-5xl">
@@ -82,7 +82,7 @@ export function RoleSelectCards({
             </p>
             <Link
               href={employerHref}
-              className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-border bg-white px-4 text-sm font-semibold text-dark shadow-soft transition hover:border-primary/25 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+              className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-4 text-sm font-semibold text-text shadow-soft transition hover:border-accent/40 hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/20"
             >
               {mode === "login" ? "Employer Login" : "Register as Employer"}
               <ArrowRight size={16} aria-hidden="true" />

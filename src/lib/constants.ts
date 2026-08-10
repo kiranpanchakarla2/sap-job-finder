@@ -26,10 +26,13 @@ export const workModeOptions = [
   { label: "Onsite", value: "onsite" },
 ] as const;
 
+/** @deprecated Prefer `mainNavMenus` from `@/lib/main-nav` for the public header. */
 export const publicNavLinks = [
   { label: "Jobs", href: "/jobs" },
   { label: "Companies", href: "/companies" },
-  { label: "Mock Interview", href: "/mock-interview" },
+  { label: "Salaries", href: "/services/resources/salary-reports" },
+  { label: "Career Services", href: "/services" },
+  { label: "Resources", href: "/services" },
 ] as const;
 
 export const sapModules = [
