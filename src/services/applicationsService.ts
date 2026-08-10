@@ -20,12 +20,19 @@ export async function applyToJob(jobId: string, candidateProfileId: string) {
       {
         job_id: jobId,
         candidate_id: candidateProfileId,
-        status: "applied",
+        status: "new",
       },
       { onConflict: "job_id,candidate_id" },
     )
     .select("id")
     .single();
+
+  if (error?.code === "23505") {
+    return {
+      data: null,
+      error: { ...error, message: "You have already applied to this job." },
+    };
+  }
 
   return { data, error };
 }

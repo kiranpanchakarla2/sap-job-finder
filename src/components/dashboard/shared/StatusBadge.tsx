@@ -47,18 +47,42 @@ export function jobStatusTone(
 }
 
 export function applicantStatusTone(
-  status: "New" | "Reviewing" | "Shortlisted" | "Under Review" | "Interview" | string,
+  status:
+    | "New"
+    | "Reviewing"
+    | "Shortlisted"
+    | "Under Review"
+    | "Interview"
+    | "Hired"
+    | "Rejected"
+    | "new"
+    | "reviewing"
+    | "shortlisted"
+    | "interview"
+    | "hired"
+    | "rejected"
+    | string,
 ): StatusTone {
   switch (status) {
     case "New":
+    case "new":
       return "info";
     case "Reviewing":
     case "Under Review":
+    case "reviewing":
       return "warning";
     case "Shortlisted":
+    case "shortlisted":
       return "success";
     case "Interview":
+    case "interview":
       return "default";
+    case "Hired":
+    case "hired":
+      return "success";
+    case "Rejected":
+    case "rejected":
+      return "danger";
     default:
       return "muted";
   }

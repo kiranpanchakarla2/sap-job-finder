@@ -1,11 +1,11 @@
-import { PlaceholderPage } from "@/components/dashboard/shared/PlaceholderPage";
+import { Suspense } from "react";
+import { InterviewsPage } from "@/features/employer-interviews";
+import { InterviewListSkeleton } from "@/features/employer-interviews/components/InterviewSkeletons";
 
 export default function Page() {
   return (
-    <PlaceholderPage
-      title="Interviews"
-      description="Schedule and track interview rounds."
-      backHref="/employer/dashboard"
-    />
+    <Suspense fallback={<InterviewListSkeleton />}>
+      <InterviewsPage />
+    </Suspense>
   );
 }

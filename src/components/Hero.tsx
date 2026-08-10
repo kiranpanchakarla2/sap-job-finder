@@ -107,6 +107,7 @@ export function Hero() {
                 <select
                   value={module}
                   onChange={(e) => setModule(e.target.value)}
+                  data-chevron="custom"
                   className="w-full min-w-0 appearance-none truncate bg-transparent pr-5 text-sm text-text outline-none"
                 >
                   <option value="">All modules</option>
@@ -124,6 +125,7 @@ export function Hero() {
                 <select
                   value={workMode}
                   onChange={(e) => setWorkMode(e.target.value)}
+                  data-chevron="custom"
                   className="w-full min-w-0 appearance-none truncate bg-transparent pr-5 text-sm text-text outline-none"
                 >
                   {workModeOptions.map((option) => (

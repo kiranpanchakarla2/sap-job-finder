@@ -189,9 +189,29 @@ export const jobService = {
       logoUrl: ctx.data.logoUrl,
     };
 
+    const jobIds = ((data ?? []) as JobRow[]).map((row) => row.id);
+    const countByJob = new Map<string, number>();
+
+    if (jobIds.length > 0) {
+      const { data: apps, error: appsError } = await supabase
+        .from("job_applications")
+        .select("job_id")
+        .in("job_id", jobIds);
+
+      if (appsError) {
+        logError("listJobs application counts", appsError);
+      } else {
+        for (const app of apps ?? []) {
+          countByJob.set(app.job_id, (countByJob.get(app.job_id) ?? 0) + 1);
+        }
+      }
+    }
+
     return {
       success: true,
-      data: ((data ?? []) as JobRow[]).map((row) => mapRow(row, brand)),
+      data: ((data ?? []) as JobRow[]).map((row) =>
+        mapJobRow(row, brand, countByJob.get(row.id) ?? 0),
+      ),
     };
   },
 
@@ -450,12 +470,17 @@ export const jobService = {
       )
       .slice(0, 5);
 
+    const totalApplications = jobs.reduce(
+      (sum, job) => sum + (job.applications ?? 0),
+      0,
+    );
+
     return {
       success: true,
       data: {
         activeJobs,
         draftJobs,
-        totalApplications: 0,
+        totalApplications,
         recentJobs,
       },
     };

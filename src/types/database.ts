@@ -11,12 +11,31 @@ export type JobStatus = "draft" | "active" | "paused" | "closed";
 /** @deprecated legacy published/expired values mapped to active/closed in Sprint 3B */
 export type LegacyJobStatus = "published" | "expired";
 export type ApplicationStatus =
-  | "applied"
+  | "new"
+  | "reviewing"
   | "shortlisted"
   | "interview"
-  | "offer"
-  | "rejected"
   | "hired"
+  | "rejected";
+
+export type InterviewStatus =
+  | "scheduled"
+  | "completed"
+  | "cancelled"
+  | "no_show";
+
+export type InterviewType = "video" | "phone" | "in_person";
+
+export type InterviewRecommendation =
+  | "strong_hire"
+  | "hire"
+  | "maybe"
+  | "no_hire";
+
+/** @deprecated Sprint 4B maps applied→new, offer→shortlisted, withdrawn→rejected */
+export type LegacyApplicationStatus =
+  | "applied"
+  | "offer"
   | "withdrawn";
 export type AlertFrequency = "daily" | "weekly" | "instant";
 export type SkillProficiency = "beginner" | "intermediate" | "advanced" | "expert";
@@ -62,6 +81,23 @@ type CandidateProfileRow = {
   github_url: string | null;
   profile_photo_url: string | null;
   profile_completion: number;
+  current_job_role: string | null;
+  location: string | null;
+  professional_summary: string | null;
+  total_experience: number | null;
+  expected_salary: number | null;
+  currency: string | null;
+  availability: string | null;
+  portfolio_url: string | null;
+  resume_url: string | null;
+  resume_file_name: string | null;
+  avatar_url: string | null;
+  sap_skills: string[];
+  skills: string[];
+  certifications: Json;
+  education: Json;
+  work_experience: Json;
+  languages: string[];
   created_at: string;
   updated_at: string;
 };
@@ -281,6 +317,64 @@ export type Database = {
         status: ApplicationStatus;
         applied_at: string;
         updated_at: string;
+        employer_notes: string | null;
+        reviewed_at: string | null;
+        shortlisted_at: string | null;
+        interviewed_at: string | null;
+        hired_at: string | null;
+        rejected_at: string | null;
+      }>;
+      interviews: GenericTable<{
+        id: string;
+        application_id: string;
+        scheduled_date: string;
+        start_time: string;
+        end_time: string;
+        timezone: string;
+        type: InterviewType;
+        meeting_link: string | null;
+        phone_number: string | null;
+        location: string | null;
+        notes: string | null;
+        interviewers: Json;
+        status: InterviewStatus;
+        created_by: string;
+        created_at: string;
+        updated_at: string;
+        cancelled_at: string | null;
+        completed_at: string | null;
+        no_show_at: string | null;
+      }>;
+      interview_feedback: GenericTable<{
+        id: string;
+        interview_id: string;
+        overall_rating: number | null;
+        technical_skills: number | null;
+        communication: number | null;
+        sap_knowledge: number | null;
+        problem_solving: number | null;
+        strengths: string | null;
+        concerns: string | null;
+        recommendation: InterviewRecommendation | null;
+        submitted_by: string;
+        submitted_at: string;
+        created_at: string;
+        updated_at: string;
+      }>;
+      conversations: GenericTable<{
+        id: string;
+        application_id: string;
+        created_by: string;
+        created_at: string;
+        updated_at: string;
+      }>;
+      messages: GenericTable<{
+        id: string;
+        conversation_id: string;
+        sender_id: string;
+        content: string;
+        created_at: string;
+        read_at: string | null;
       }>;
       saved_jobs: GenericTable<{
         id: string;
@@ -309,7 +403,58 @@ export type Database = {
       current_candidate_id: { Args: Record<string, never>; Returns: string };
       current_employer_id: { Args: Record<string, never>; Returns: string };
       owns_job: { Args: { p_job_id: string }; Returns: boolean };
+      owns_application: { Args: { p_application_id: string }; Returns: boolean };
+      is_application_candidate: {
+        Args: { p_application_id: string };
+        Returns: boolean;
+      };
       map_experience_band: { Args: { band: string }; Returns: number };
+      schedule_interview: {
+        Args: {
+          p_application_id: string;
+          p_scheduled_date: string;
+          p_start_time: string;
+          p_end_time: string;
+          p_timezone: string;
+          p_type: string;
+          p_meeting_link?: string | null;
+          p_phone_number?: string | null;
+          p_location?: string | null;
+          p_notes?: string | null;
+          p_interviewers?: Json;
+        };
+        Returns: {
+          id: string;
+          application_id: string;
+          scheduled_date: string;
+          start_time: string;
+          end_time: string;
+          timezone: string;
+          type: InterviewType;
+          meeting_link: string | null;
+          phone_number: string | null;
+          location: string | null;
+          notes: string | null;
+          interviewers: Json;
+          status: InterviewStatus;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+          cancelled_at: string | null;
+          completed_at: string | null;
+          no_show_at: string | null;
+        };
+      };
+      get_or_create_conversation: {
+        Args: { p_application_id: string };
+        Returns: {
+          id: string;
+          application_id: string;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+      };
     };
     Enums: {
       app_role: AppRole;

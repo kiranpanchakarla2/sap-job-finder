@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Filter, X } from "lucide-react";
 import { getFocusableElements, trapFocus } from "@/components/theme/theme-a11y";
 import { Button } from "@/components/ui/Button";
+import { NativeSelect } from "@/components/ui/NativeSelect";
 import { JOB_SORT_OPTIONS, JOB_STATUS_FILTERS } from "../constants";
 import type { JobSortOption, JobStatusFilter } from "../types/job.types";
 
@@ -83,7 +84,7 @@ export function JobFilters({
         ))}
         <label className="ml-2 inline-flex items-center gap-2 text-xs text-muted">
           <span className="font-semibold uppercase tracking-wide">Sort by</span>
-          <select
+          <NativeSelect
             value={sort}
             onChange={(event) => onSortChange(event.target.value as JobSortOption)}
             className="h-9 rounded-xl border border-border bg-input px-3 text-sm font-medium text-input-fg outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(79,70,229,0.12)]"
@@ -93,7 +94,7 @@ export function JobFilters({
                 {option.label}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
       </div>
 
@@ -163,19 +164,20 @@ export function JobFilters({
 
               <label className="mt-5 block text-xs font-semibold uppercase tracking-wide text-muted">
                 Sort by
-                <select
+                <NativeSelect
                   value={sort}
                   onChange={(event) =>
                     onSortChange(event.target.value as JobSortOption)
                   }
-                  className="mt-2 h-11 w-full rounded-2xl border border-border bg-input px-3 text-sm font-medium text-input-fg outline-none focus:border-primary"
+                  wrapperClassName="mt-2"
+                  className="h-11 rounded-2xl border border-border bg-input px-3 text-sm font-medium text-input-fg outline-none focus:border-primary"
                 >
                   {JOB_SORT_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </label>
 
               <Button className="mt-5 w-full" onClick={() => setOpen(false)}>

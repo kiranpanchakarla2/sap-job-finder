@@ -27,7 +27,13 @@ export type EmployerApplicantSummary = {
   sapModule: string;
   experience: string;
   appliedAt: string;
-  status: "New" | "Reviewing" | "Shortlisted";
+  status:
+    | "New"
+    | "Reviewing"
+    | "Shortlisted"
+    | "Interview"
+    | "Hired"
+    | "Rejected";
 };
 
 export type EmployerInterviewSummary = {
@@ -36,7 +42,7 @@ export type EmployerInterviewSummary = {
   job: string;
   date: string;
   time: string;
-  type: "Video" | "Phone" | "Onsite";
+  type: "Video" | "Phone" | "Onsite" | "In-person";
 };
 
 export type EmployerDashboardData = {

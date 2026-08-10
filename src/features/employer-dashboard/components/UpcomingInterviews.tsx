@@ -40,13 +40,18 @@ export function UpcomingInterviews({
             <StatusBadge tone="info">{interview.type}</StatusBadge>
           </div>
           <Link
-            href={EMPLOYER_ROUTES.interviews}
+            href={EMPLOYER_ROUTES.interviewDetails(interview.id)}
             className="mt-3 inline-flex text-xs font-semibold text-primary hover:text-accent"
           >
             View Interview
           </Link>
         </li>
       ))}
+      <li className="pt-1">
+        <Button href={EMPLOYER_ROUTES.interviews} variant="secondary" className="w-full !py-2.5 text-xs">
+          View All
+        </Button>
+      </li>
     </ul>
   );
 }

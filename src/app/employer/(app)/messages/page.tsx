@@ -1,11 +1,17 @@
-import { PlaceholderPage } from "@/components/dashboard/shared/PlaceholderPage";
+import { Suspense } from "react";
+import { MessagesPage } from "@/features/employer-messages";
+import { ConversationSkeleton } from "@/features/employer-messages/components/MessageSkeletons";
 
 export default function Page() {
   return (
-    <PlaceholderPage
-      title="Messages"
-      description="Communicate with candidates."
-      backHref="/employer/dashboard"
-    />
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-7xl p-4">
+          <ConversationSkeleton />
+        </div>
+      }
+    >
+      <MessagesPage />
+    </Suspense>
   );
 }

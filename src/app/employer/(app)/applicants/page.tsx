@@ -1,11 +1,11 @@
-import { PlaceholderPage } from "@/components/dashboard/shared/PlaceholderPage";
+import { Suspense } from "react";
+import { ApplicantsPage } from "@/features/employer-applicants";
+import { ApplicantTableSkeleton } from "@/features/employer-applicants/components/ApplicantSkeletons";
 
 export default function Page() {
   return (
-    <PlaceholderPage
-      title="Applicants"
-      description="Review candidates who applied to your jobs."
-      backHref="/employer/dashboard"
-    />
+    <Suspense fallback={<ApplicantTableSkeleton />}>
+      <ApplicantsPage />
+    </Suspense>
   );
 }

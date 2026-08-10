@@ -80,6 +80,28 @@
   }
 }
 
+/*
+ * Native <select> chevrons sit too close to the right edge in most browsers.
+ * Unlayered + !important so padding/chevron beat Tailwind bg-* / px-* utilities.
+ * Base64 data-URIs (percent-encoded SVGs can be mangled by the CSS pipeline).
+ * Opt out with data-chevron="custom" when a component draws its own icon.
+ */
+select:not([data-chevron="custom"]):not([multiple]) {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-inline-end: 2.75rem !important;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNjQ3NDhCIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0ibTYgOSA2IDYgNi02Ii8+PC9zdmc+") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.875rem center !important;
+  background-size: 1rem 1rem !important;
+}
+
+:root[data-theme="dark"] select:not([data-chevron="custom"]):not([multiple]),
+:root[data-mode="dark"] select:not([data-chevron="custom"]):not([multiple]) {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTRBM0I4IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0ibTYgOSA2IDYgNi02Ii8+PC9zdmc+") !important;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

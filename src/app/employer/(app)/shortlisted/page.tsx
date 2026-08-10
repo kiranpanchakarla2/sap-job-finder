@@ -1,11 +1,15 @@
-import { PlaceholderPage } from "@/components/dashboard/shared/PlaceholderPage";
+import { Suspense } from "react";
+import { ApplicantsPage } from "@/features/employer-applicants";
+import { ApplicantTableSkeleton } from "@/features/employer-applicants/components/ApplicantSkeletons";
 
 export default function Page() {
   return (
-    <PlaceholderPage
-      title="Shortlisted"
-      description="Candidates you have shortlisted."
-      backHref="/employer/dashboard"
-    />
+    <Suspense fallback={<ApplicantTableSkeleton />}>
+      <ApplicantsPage
+        lockedStatus="shortlisted"
+        pageTitle="Shortlisted"
+        pageSubtitle="Candidates you have shortlisted for further review."
+      />
+    </Suspense>
   );
 }

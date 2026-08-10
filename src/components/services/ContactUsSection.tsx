@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
+import { NativeSelect } from "@/components/ui/NativeSelect";
 import { contactSection } from "@/lib/services-content";
 
 export function ContactUsSection() {
@@ -117,18 +118,19 @@ export function ContactUsSection() {
             <label htmlFor="contact-topic" className="block text-sm font-medium text-text">
               Topic
             </label>
-            <select
+            <NativeSelect
               id="contact-topic"
               name="topic"
               required
-              className="mt-1.5 w-full rounded-[var(--radius-control)] border border-border bg-background px-4 py-2.5 text-sm text-text outline-none ring-primary/20 focus:ring-2"
+              wrapperClassName="mt-1.5"
+              className="rounded-[var(--radius-control)] border border-border bg-background px-4 py-2.5 text-sm text-text outline-none ring-primary/20 focus:ring-2"
             >
               {contactSection.topics.map((topic) => (
                 <option key={topic} value={topic}>
                   {topic}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </div>
           <div>
             <label htmlFor="contact-message" className="block text-sm font-medium text-text">

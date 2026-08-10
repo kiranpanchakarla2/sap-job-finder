@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Building2, MapPin, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { EmptyState } from "@/components/dashboard/shared/EmptyState";
 import { ErrorState } from "@/components/dashboard/shared/ErrorState";
 import { Skeleton, SkeletonCard } from "@/components/dashboard/shared/Skeleton";
+import {
+  applicationService,
+  JobApplicantsPanel,
+} from "@/features/employer-applicants";
 import { JobConfirmationDialog } from "../components/JobConfirmationDialog";
 import { JobPreviewView } from "../components/JobPreviewView";
 import { JobStatusBadge } from "../components/JobStatusBadge";
@@ -21,6 +24,7 @@ type DetailsTab = "overview" | "applications" | "activity";
 export function JobDetailsPage({ jobId }: { jobId: string }) {
   const { job, isLoading, isError, error, reload } = useJob(jobId);
   const [tab, setTab] = useState<DetailsTab>("overview");
+  const [applicantCount, setApplicantCount] = useState(0);
   const {
     confirmOpen,
     confirmCopy,
@@ -29,6 +33,17 @@ export function JobDetailsPage({ jobId }: { jobId: string }) {
     confirmAction,
     handleAction,
   } = useJobMutations(() => void reload());
+
+  useEffect(() => {
+    let active = true;
+    void applicationService.countForJob(jobId).then((result) => {
+      if (!active) return;
+      if (result.success) setApplicantCount(result.data);
+    });
+    return () => {
+      active = false;
+    };
+  }, [jobId, tab]);
 
   if (isLoading) {
     return (
@@ -112,7 +127,8 @@ export function JobDetailsPage({ jobId }: { jobId: string }) {
                 </span>
                 <span>{job.sapModule}</span>
                 <span>
-                  {job.applications} application{job.applications === 1 ? "" : "s"}
+                  {applicantCount} application
+                  {applicantCount === 1 ? "" : "s"}
                 </span>
               </div>
             </div>
@@ -178,15 +194,7 @@ export function JobDetailsPage({ jobId }: { jobId: string }) {
       {tab === "overview" ? <JobPreviewView job={job} /> : null}
 
       {tab === "applications" ? (
-        <EmptyState
-          title="Applications will appear here once candidates apply."
-          description="Application tracking lands in a future sprint. For now, this is a UI placeholder."
-          action={
-            <Button variant="secondary" href={EMPLOYER_JOB_ROUTES.list}>
-              Back to Manage Jobs
-            </Button>
-          }
-        />
+        <JobApplicantsPanel jobId={job.id} jobTitle={job.title} />
       ) : null}
 
       {tab === "activity" ? (

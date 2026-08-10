@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { JobCard } from "@/components/jobs/JobCard";
+import { NativeSelect } from "@/components/ui/NativeSelect";
 import { filterJobs } from "@/lib/mock-data";
 import { sapModules } from "@/lib/constants";
 
@@ -53,7 +54,7 @@ export default async function JobsPage({
             placeholder="Location"
             className="rounded-[var(--radius-control)] border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
           />
-          <select
+          <NativeSelect
             name="module"
             defaultValue={params.module ?? ""}
             className="rounded-[var(--radius-control)] border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
@@ -64,7 +65,7 @@ export default async function JobsPage({
                 {m.name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
           <button
             type="submit"
             className="rounded-[var(--radius-button)] bg-primary px-4 py-2.5 text-sm font-semibold text-button-fg shadow-[var(--shadow-button)]"

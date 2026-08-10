@@ -31,26 +31,29 @@ export function RecentApplicantsTable({
         <thead>
           <tr className="border-b border-border text-xs uppercase tracking-wide text-muted">
             <th className="px-3 py-3 font-semibold">Candidate</th>
-            <th className="px-3 py-3 font-semibold">Position</th>
-            <th className="px-3 py-3 font-semibold">SAP Module</th>
-            <th className="px-3 py-3 font-semibold">Experience</th>
-            <th className="px-3 py-3 font-semibold">Applied</th>
+            <th className="px-3 py-3 font-semibold">Job</th>
             <th className="px-3 py-3 font-semibold">Status</th>
+            <th className="px-3 py-3 font-semibold">Date</th>
           </tr>
         </thead>
         <tbody>
           {applicants.map((applicant) => (
             <tr key={applicant.id} className="border-b border-border/70 last:border-0">
-              <td className="px-3 py-3.5 font-medium text-text">{applicant.candidate}</td>
+              <td className="px-3 py-3.5">
+                <Link
+                  href={EMPLOYER_ROUTES.applicantDetails(applicant.id)}
+                  className="font-medium text-text hover:text-primary"
+                >
+                  {applicant.candidate}
+                </Link>
+              </td>
               <td className="px-3 py-3.5 text-muted">{applicant.position}</td>
-              <td className="px-3 py-3.5 text-muted">{applicant.sapModule}</td>
-              <td className="px-3 py-3.5 text-muted">{applicant.experience}</td>
-              <td className="px-3 py-3.5 text-muted">{applicant.appliedAt}</td>
               <td className="px-3 py-3.5">
                 <StatusBadge tone={applicantStatusTone(applicant.status)}>
                   {applicant.status}
                 </StatusBadge>
               </td>
+              <td className="px-3 py-3.5 text-muted">{applicant.appliedAt}</td>
             </tr>
           ))}
         </tbody>

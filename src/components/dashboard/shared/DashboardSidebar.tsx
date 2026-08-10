@@ -35,6 +35,8 @@ export type SidebarNavItem = {
   label: string;
   href: string;
   icon: LucideIcon;
+  /** Optional unread / count badge (e.g. Messages). */
+  badgeCount?: number;
 };
 
 export type SidebarNavSection = {
@@ -136,19 +138,31 @@ function SidebarNav({
               {section.items.map((item) => {
                 const Icon = item.icon;
                 const active = activeHref === item.href;
+                const badge = item.badgeCount && item.badgeCount > 0
+                  ? item.badgeCount > 9
+                    ? "9+"
+                    : String(item.badgeCount)
+                  : null;
+                const ariaLabel = collapsed
+                  ? badge
+                    ? `${item.label}, ${item.badgeCount} unread`
+                    : item.label
+                  : undefined;
 
                 return (
                   <SidebarTooltip
                     key={item.href}
-                    label={item.label}
+                    label={
+                      badge ? `${item.label} (${badge})` : item.label
+                    }
                     enabled={collapsed}
                   >
                     <Link
                       href={item.href}
                       onClick={onNavigate}
                       title={collapsed ? item.label : undefined}
-                      aria-label={collapsed ? item.label : undefined}
-                      className={`inline-flex items-center rounded-[var(--radius-control)] text-sm font-medium transition duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 ${
+                      aria-label={ariaLabel}
+                      className={`relative inline-flex items-center rounded-[var(--radius-control)] text-sm font-medium transition duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 ${
                         collapsed
                           ? "h-10 w-10 justify-center"
                           : "w-full gap-3 px-3 py-2.5"
@@ -159,8 +173,24 @@ function SidebarNav({
                       }`}
                       aria-current={active ? "page" : undefined}
                     >
-                      <Icon size={18} className="shrink-0" aria-hidden="true" />
-                      {!collapsed ? <span>{item.label}</span> : null}
+                      <span className="relative shrink-0">
+                        <Icon size={18} aria-hidden="true" />
+                        {collapsed && badge ? (
+                          <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold text-white">
+                            {badge}
+                          </span>
+                        ) : null}
+                      </span>
+                      {!collapsed ? (
+                        <>
+                          <span className="flex-1">{item.label}</span>
+                          {badge ? (
+                            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-bold text-white">
+                              {badge}
+                            </span>
+                          ) : null}
+                        </>
+                      ) : null}
                     </Link>
                   </SidebarTooltip>
                 );

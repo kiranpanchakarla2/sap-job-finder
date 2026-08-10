@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Briefcase,
@@ -129,13 +130,18 @@ export function EmployerDashboardPage() {
           tone="info"
           hint={data.stats.draftJobsDelta}
         />
-        <StatCard
-          label="Applications"
-          value={data.stats.totalApplications}
-          icon={Users}
-          tone="success"
-          hint={data.stats.applicationsDelta}
-        />
+        <Link
+          href={EMPLOYER_ROUTES.applicants}
+          className="block rounded-[var(--radius-card)] transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+        >
+          <StatCard
+            label="Applications"
+            value={data.stats.totalApplications}
+            icon={Users}
+            tone="success"
+            hint={data.stats.applicationsDelta}
+          />
+        </Link>
         <StatCard
           label="Upcoming Interviews"
           value={data.stats.upcomingInterviews}

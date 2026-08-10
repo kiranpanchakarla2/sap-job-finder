@@ -55,6 +55,7 @@ export const AuthSelect = forwardRef<HTMLSelectElement, AuthSelectProps>(
           <select
             ref={ref}
             id={id}
+            data-chevron="custom"
             aria-invalid={Boolean(error)}
             aria-describedby={error ? errorId : undefined}
             className={`peer h-full w-full appearance-none rounded-2xl bg-transparent px-4 pb-2 pt-5 text-sm font-medium text-input-fg outline-none ${
