@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { toast } from "sonner";
 import { getFocusableElements, trapFocus } from "@/components/theme/theme-a11y";
@@ -10,6 +11,7 @@ import { ErrorState } from "@/components/dashboard/shared/ErrorState";
 import { Skeleton, SkeletonCard } from "@/components/dashboard/shared/Skeleton";
 import { EMPLOYER_ROUTES } from "@/features/employer-company/constants";
 import { useEmployerAuth } from "@/features/employer-auth";
+import { EMPLOYER_LOGOUT_LANDING_PATH } from "@/features/employer-auth/config/employerSession";
 import { SettingsToggle } from "../components/SettingsToggle";
 
 type NotificationPrefs = {
@@ -170,6 +172,7 @@ function DeleteAccountDialog({
 
 export function SettingsPage() {
   const { employer, isLoading, signOut } = useEmployerAuth();
+  const router = useRouter();
   const [notifications, setNotifications] =
     useState<NotificationPrefs>(DEFAULT_NOTIFICATIONS);
   const [preferences, setPreferences] =
@@ -333,7 +336,12 @@ export function SettingsPage() {
             <Button
               type="button"
               variant="ghost"
-              onClick={() => void signOut()}
+              onClick={() => {
+                void (async () => {
+                  await signOut();
+                  router.replace(EMPLOYER_LOGOUT_LANDING_PATH);
+                })();
+              }}
             >
               Sign Out
             </Button>

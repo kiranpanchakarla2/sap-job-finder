@@ -24,6 +24,7 @@ const PROTECTED_PREFIXES = [
 
 /** Public employer auth routes — no session required. */
 const EMPLOYER_AUTH_PUBLIC_PATHS = [
+  "/employer",
   "/employer/login",
   "/employer/register",
   "/employer/forgot-password",
@@ -32,7 +33,8 @@ const EMPLOYER_AUTH_PUBLIC_PATHS = [
 ] as const;
 
 function isEmployerAuthPublicPath(pathname: string): boolean {
-  return EMPLOYER_AUTH_PUBLIC_PATHS.some(
+  if (pathname === "/employer") return true;
+  return EMPLOYER_AUTH_PUBLIC_PATHS.filter((path) => path !== "/employer").some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
   );
 }

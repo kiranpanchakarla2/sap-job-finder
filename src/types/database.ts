@@ -7,6 +7,12 @@ export type Json =
   | Json[];
 
 export type AppRole = "candidate" | "employer" | "admin";
+export type EmployerCompanyRole =
+  | "owner"
+  | "admin"
+  | "recruiter"
+  | "hiring_manager";
+export type EmployerAccountStatus = "active" | "invited" | "suspended";
 export type JobStatus = "draft" | "active" | "paused" | "closed";
 /** @deprecated legacy published/expired values mapped to active/closed in Sprint 3B */
 export type LegacyJobStatus = "published" | "expired";
@@ -110,6 +116,7 @@ type SavedCandidateRow = {
   id: string;
   company_id: string;
   candidate_id: string;
+  saved_by: string | null;
   created_at: string;
 };
 
@@ -117,7 +124,18 @@ type EmployerShortlistedCandidateRow = {
   id: string;
   company_id: string;
   candidate_id: string;
+  created_by: string | null;
   created_at: string;
+};
+
+type EmployerAccountRow = {
+  id: string;
+  user_id: string;
+  company_id: string;
+  role: EmployerCompanyRole;
+  status: EmployerAccountStatus;
+  created_at: string;
+  updated_at: string;
 };
 
 type SubscriptionPlanRow = {
@@ -198,6 +216,7 @@ type JobRow = {
   company_id: string;
   employer_id: string;
   created_by: string;
+  assigned_to: string | null;
   title: string;
   employment_type: string;
   job_type: string;
@@ -271,6 +290,38 @@ export type Database = {
       company_profiles: GenericTable<
         CompanyProfileRow,
         { user_id: string } & Partial<Omit<CompanyProfileRow, "user_id" | "id">> & { id?: string }
+      >;
+      employer_accounts: GenericTable<
+        EmployerAccountRow,
+        {
+          user_id: string;
+          company_id: string;
+          role?: EmployerCompanyRole;
+          status?: EmployerAccountStatus;
+          id?: string;
+        }
+      >;
+      employer_invitations: GenericTable<
+        {
+          id: string;
+          company_id: string;
+          email: string;
+          role: Exclude<EmployerCompanyRole, "owner">;
+          invited_by: string | null;
+          status: "pending" | "accepted" | "cancelled" | "expired";
+          expires_at: string;
+          created_at: string;
+          updated_at: string;
+        },
+        {
+          company_id: string;
+          email: string;
+          role: Exclude<EmployerCompanyRole, "owner">;
+          invited_by?: string | null;
+          status?: "pending" | "accepted" | "cancelled" | "expired";
+          expires_at?: string;
+          id?: string;
+        }
       >;
       recruiters: GenericTable<{
         id: string;
@@ -440,6 +491,7 @@ export type Database = {
         {
           company_id: string;
           candidate_id: string;
+          saved_by?: string | null;
           id?: string;
           created_at?: string;
         }
@@ -449,6 +501,7 @@ export type Database = {
         {
           company_id: string;
           candidate_id: string;
+          created_by?: string | null;
           id?: string;
           created_at?: string;
         }
@@ -491,6 +544,20 @@ export type Database = {
       current_company_id: { Args: Record<string, never>; Returns: string };
       current_candidate_id: { Args: Record<string, never>; Returns: string };
       current_employer_id: { Args: Record<string, never>; Returns: string };
+      get_current_employer_account_id: {
+        Args: Record<string, never>;
+        Returns: string;
+      };
+      get_current_employer_role: {
+        Args: Record<string, never>;
+        Returns: EmployerCompanyRole;
+      };
+      is_company_owner_or_admin: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+      can_access_job: { Args: { p_job_id: string }; Returns: boolean };
+      can_manage_job: { Args: { p_job_id: string }; Returns: boolean };
       owns_job: { Args: { p_job_id: string }; Returns: boolean };
       owns_application: { Args: { p_application_id: string }; Returns: boolean };
       is_application_candidate: {
@@ -551,6 +618,10 @@ export type Database = {
         Args: Record<string, never>;
         Returns: Json;
       };
+      list_company_team_members: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
       schedule_interview: {
         Args: {
           p_application_id: string;
@@ -600,6 +671,8 @@ export type Database = {
     };
     Enums: {
       app_role: AppRole;
+      employer_company_role: EmployerCompanyRole;
+      employer_account_status: EmployerAccountStatus;
       job_status: JobStatus;
       application_status: ApplicationStatus;
       alert_frequency: AlertFrequency;

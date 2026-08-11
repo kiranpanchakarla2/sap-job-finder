@@ -268,12 +268,16 @@ export function DashboardSidebar({
   }, [collapsed, collapsible, preferenceReady]);
 
   const onLogout = async () => {
-    const redirect = await logout();
     onClose();
     if (pathname.startsWith("/employer")) {
-      router.push("/employer/login");
+      const { endEmployerSession } = await import(
+        "@/features/employer-auth/lib/endEmployerSession"
+      );
+      const redirect = await endEmployerSession({ reason: "explicit" });
+      router.push(redirect);
       return;
     }
+    const redirect = await logout();
     router.push(redirect);
   };
 
@@ -283,7 +287,7 @@ export function DashboardSidebar({
   return (
     <>
       <aside
-        className={`relative hidden shrink-0 border-r border-border bg-card transition-[width] duration-200 ease-out lg:block ${
+        className={`relative sticky top-0 z-30 hidden h-screen shrink-0 self-start overflow-visible border-r border-border bg-card transition-[width] duration-200 ease-out lg:block ${
           collapsible && collapsed ? "w-20" : "w-64"
         }`}
       >
@@ -294,7 +298,7 @@ export function DashboardSidebar({
             aria-label={collapseLabel}
             title={collapseLabel}
             aria-expanded={!collapsed}
-            className="absolute top-7 -right-3 z-20 inline-flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-muted shadow-soft transition hover:border-primary/30 hover:text-text focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+            className="absolute top-7 -right-3 z-40 inline-flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-muted shadow-soft transition hover:border-primary/30 hover:text-text focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
           >
             {collapsed ? (
               <ChevronRight size={14} aria-hidden="true" />
@@ -304,7 +308,7 @@ export function DashboardSidebar({
           </button>
         ) : null}
 
-        <div className="sticky top-0 h-screen">
+        <div className="h-full overflow-hidden">
           <SidebarNav
             sections={sections}
             homeHref={homeHref}
@@ -393,6 +397,7 @@ export const employerNavSections: SidebarNavSection[] = [
     title: "Company",
     items: [
       { label: "Company Profile", href: "/employer/company", icon: Building2 },
+      { label: "Team & Users", href: "/employer/team", icon: UsersRound },
     ],
   },
   {

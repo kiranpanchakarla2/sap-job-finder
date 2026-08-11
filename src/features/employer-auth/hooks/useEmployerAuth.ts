@@ -114,6 +114,10 @@ export function useEmployerAuth() {
       if (result.success) {
         setPendingVerificationEmail(null);
         await refreshSession();
+        const { markEmployerSessionStart } = await import(
+          "../lib/employerSessionStorage"
+        );
+        markEmployerSessionStart(result.data.employer.id);
       }
       return result;
     },
@@ -121,11 +125,12 @@ export function useEmployerAuth() {
   );
 
   const logout = useCallback(async (): Promise<AuthResult> => {
-    const result = await employerAuthService.logout();
+    const { endEmployerSession } = await import("../lib/endEmployerSession");
+    await endEmployerSession({ reason: "explicit" });
     setPendingVerificationEmail(null);
     setEmployerProfile(null);
     await refreshSession();
-    return result;
+    return { success: true, data: undefined };
   }, [refreshSession]);
 
   const requestPasswordReset = useCallback(

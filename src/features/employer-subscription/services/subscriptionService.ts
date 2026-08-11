@@ -67,8 +67,9 @@ export const subscriptionService = {
           .from("job_applications")
           .select("id", { count: "exact", head: true }),
         supabase
-          .from("recruiters")
-          .select("id", { count: "exact", head: true }),
+          .from("employer_accounts")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "active"),
         supabase.rpc("get_talent_search_usage"),
       ]);
 

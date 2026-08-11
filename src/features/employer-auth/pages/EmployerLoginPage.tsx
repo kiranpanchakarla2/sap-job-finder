@@ -15,6 +15,7 @@ import { companyService } from "@/features/employer-company/services/companyServ
 import { useCompanySetupStatus } from "@/features/employer-company/hooks/useCompanySetupStatus";
 import { AuthMessage } from "../components/AuthMessage";
 import { EmployerAuthLayout } from "../components/EmployerAuthLayout";
+import { EMPLOYER_SESSION_MESSAGES } from "../config/employerSession";
 import { useEmployerAuth } from "../hooks/useEmployerAuth";
 import {
   employerSprintLoginSchema,
@@ -33,12 +34,28 @@ function resolveSafeNext(next: string | null) {
   return null;
 }
 
+function reasonMessage(reason: string | null): string | null {
+  switch (reason) {
+    case "inactivity":
+      return EMPLOYER_SESSION_MESSAGES.inactivityExpired;
+    case "absolute":
+      return EMPLOYER_SESSION_MESSAGES.absoluteExpired;
+    case "suspended":
+      return EMPLOYER_SESSION_MESSAGES.suspended;
+    case "invalid":
+      return EMPLOYER_SESSION_MESSAGES.invalid;
+    default:
+      return null;
+  }
+}
+
 export function EmployerLoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, isAuthenticated } = useEmployerAuth();
   const { setupComplete, isChecking, getPostAuthPath } = useCompanySetupStatus();
   const [formError, setFormError] = useState<string | null>(null);
+  const sessionNotice = reasonMessage(searchParams.get("reason"));
 
   const {
     register,
@@ -86,6 +103,9 @@ export function EmployerLoginPage() {
       }
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        {sessionNotice ? (
+          <AuthMessage variant="info">{sessionNotice}</AuthMessage>
+        ) : null}
         {formError ? <AuthMessage variant="error">{formError}</AuthMessage> : null}
 
         <AuthInput

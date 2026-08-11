@@ -4,6 +4,8 @@ export const EMPLOYER_ROUTES = {
   dashboard: "/employer/dashboard",
   onboarding: "/employer/onboarding",
   company: "/employer/company",
+  profile: "/employer/profile",
+  team: "/employer/team",
   postJob: "/employer/jobs/new",
   jobsNew: "/employer/jobs/new",
   jobs: "/employer/jobs",
@@ -24,6 +26,7 @@ export const EMPLOYER_ROUTES = {
   subscription: "/employer/subscription",
   settings: "/employer/settings",
   login: "/employer/login",
+  landing: "/employer",
   forgotPassword: "/employer/forgot-password",
 } as const;
 
