@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import {
   Briefcase,
   CalendarDays,
-  FileText,
   PlusCircle,
   Search,
+  UserCheck,
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -18,9 +18,10 @@ import { Skeleton, SkeletonCard } from "@/components/dashboard/shared/Skeleton";
 import { LoadingSpinner } from "@/components/dashboard/shared/LoadingSpinner";
 import { EMPLOYER_ROUTES } from "@/features/employer-company/constants";
 import { useCompanySetupStatus } from "@/features/employer-company/hooks/useCompanySetupStatus";
+import { DashboardJobPerformance } from "../components/DashboardJobPerformance";
 import { QuickActionCard } from "../components/QuickActionCard";
 import { RecentApplicantsTable } from "../components/RecentApplicantsTable";
-import { RecentJobsTable } from "../components/RecentJobsTable";
+import { RecentMessages } from "../components/RecentMessages";
 import { UpcomingInterviews } from "../components/UpcomingInterviews";
 import { useEmployerDashboard } from "../hooks/useEmployerDashboard";
 
@@ -117,19 +118,17 @@ export function EmployerDashboardPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Active Jobs"
-          value={data.stats.activeJobs}
-          icon={Briefcase}
-          hint={data.stats.activeJobsDelta}
-        />
-        <StatCard
-          label="Draft Jobs"
-          value={data.stats.draftJobs}
-          icon={FileText}
-          tone="info"
-          hint={data.stats.draftJobsDelta}
-        />
+        <Link
+          href={EMPLOYER_ROUTES.jobs}
+          className="block rounded-[var(--radius-card)] transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+        >
+          <StatCard
+            label="Active Jobs"
+            value={data.stats.activeJobs}
+            icon={Briefcase}
+            hint={data.stats.activeJobsDelta}
+          />
+        </Link>
         <Link
           href={EMPLOYER_ROUTES.applicants}
           className="block rounded-[var(--radius-card)] transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
@@ -142,13 +141,30 @@ export function EmployerDashboardPage() {
             hint={data.stats.applicationsDelta}
           />
         </Link>
-        <StatCard
-          label="Upcoming Interviews"
-          value={data.stats.upcomingInterviews}
-          icon={CalendarDays}
-          tone="warning"
-          hint={data.stats.interviewsDelta}
-        />
+        <Link
+          href={EMPLOYER_ROUTES.interviews}
+          className="block rounded-[var(--radius-card)] transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+        >
+          <StatCard
+            label="Interviews"
+            value={data.stats.upcomingInterviews}
+            icon={CalendarDays}
+            tone="warning"
+            hint={data.stats.interviewsDelta}
+          />
+        </Link>
+        <Link
+          href={`${EMPLOYER_ROUTES.applicants}?status=hired`}
+          className="block rounded-[var(--radius-card)] transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+        >
+          <StatCard
+            label="Hires"
+            value={data.stats.hires}
+            icon={UserCheck}
+            tone="info"
+            hint={data.stats.hiresDelta}
+          />
+        </Link>
       </div>
 
       <section>
@@ -184,12 +200,12 @@ export function EmployerDashboardPage() {
       <div className="grid gap-4 xl:grid-cols-3">
         <section className="rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft xl:col-span-2">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold text-text">Recent Jobs</h2>
-            <Button href={EMPLOYER_ROUTES.jobs} variant="ghost" className="!px-3 !py-2 text-xs">
-              Manage Jobs
+            <h2 className="text-lg font-semibold text-text">Job Performance</h2>
+            <Button href={EMPLOYER_ROUTES.analytics} variant="ghost" className="!px-3 !py-2 text-xs">
+              View Analytics
             </Button>
           </div>
-          <RecentJobsTable jobs={data.recentJobs} />
+          <DashboardJobPerformance jobs={data.jobPerformance} />
         </section>
 
         <section className="rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft">
@@ -198,10 +214,17 @@ export function EmployerDashboardPage() {
         </section>
       </div>
 
-      <section className="rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft">
-        <h2 className="mb-4 text-lg font-semibold text-text">Recent Applicants</h2>
-        <RecentApplicantsTable applicants={data.recentApplicants} />
-      </section>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className="rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft">
+          <h2 className="mb-4 text-lg font-semibold text-text">Recent Applications</h2>
+          <RecentApplicantsTable applicants={data.recentApplicants} />
+        </section>
+
+        <section className="rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft">
+          <h2 className="mb-4 text-lg font-semibold text-text">Recent Messages</h2>
+          <RecentMessages messages={data.recentMessages} />
+        </section>
+      </div>
     </div>
   );
 }

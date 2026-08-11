@@ -1,11 +1,7 @@
-import { PlaceholderPage } from "@/components/dashboard/shared/PlaceholderPage";
+"use client";
+
+import { TalentSearchPage } from "@/features/employer-talent-search";
 
 export default function Page() {
-  return (
-    <PlaceholderPage
-      title="Talent Search"
-      description="Discover SAP talent beyond applications."
-      backHref="/employer/dashboard"
-    />
-  );
+  return <TalentSearchPage />;
 }

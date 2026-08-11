@@ -32,10 +32,20 @@ export function ApplicantsPage({
 }) {
   const searchParams = useSearchParams();
   const initialJobId = searchParams.get("job") ?? "";
+  const statusParam = searchParams.get("status");
+  const initialStatusFromQuery: ApplicationStatusFilter =
+    statusParam === "new" ||
+    statusParam === "reviewing" ||
+    statusParam === "shortlisted" ||
+    statusParam === "interview" ||
+    statusParam === "hired" ||
+    statusParam === "rejected"
+      ? statusParam
+      : "all";
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<ApplicationStatusFilter>(
-    lockedStatus ?? "all",
+    lockedStatus ?? initialStatusFromQuery,
   );
   const [sort, setSort] = useState<ApplicationSortOption>("newest");
   const [jobId, setJobId] = useState(initialJobId);
@@ -50,7 +60,21 @@ export function ApplicantsPage({
 
   useEffect(() => {
     setJobId(searchParams.get("job") ?? "");
-  }, [searchParams]);
+    if (lockedStatus) return;
+    const nextStatus = searchParams.get("status");
+    if (
+      nextStatus === "new" ||
+      nextStatus === "reviewing" ||
+      nextStatus === "shortlisted" ||
+      nextStatus === "interview" ||
+      nextStatus === "hired" ||
+      nextStatus === "rejected" ||
+      nextStatus === "all" ||
+      nextStatus === null
+    ) {
+      setStatus(nextStatus === null ? "all" : nextStatus);
+    }
+  }, [searchParams, lockedStatus]);
 
   const query = useMemo(
     () => ({

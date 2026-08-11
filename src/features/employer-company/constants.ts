@@ -17,8 +17,14 @@ export const EMPLOYER_ROUTES = {
   interviewDetails: (id: string) => `/employer/interviews/${id}` as const,
   messages: "/employer/messages",
   talentSearch: "/employer/talent-search",
+  talentSearchSaved: "/employer/talent-search/saved",
+  talentCandidate: (id: string) =>
+    `/employer/talent-search/candidates/${id}` as const,
+  analytics: "/employer/analytics",
+  subscription: "/employer/subscription",
   settings: "/employer/settings",
   login: "/employer/login",
+  forgotPassword: "/employer/forgot-password",
 } as const;
 
 export const ONBOARDING_STEPS = [

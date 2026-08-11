@@ -2,13 +2,13 @@ import type { EmployerJobStatus } from "@/types/employer";
 
 export type EmployerDashboardStats = {
   activeJobs: number;
-  draftJobs: number;
   totalApplications: number;
   upcomingInterviews: number;
+  hires: number;
   activeJobsDelta: string;
-  draftJobsDelta: string;
   applicationsDelta: string;
   interviewsDelta: string;
+  hiresDelta: string;
 };
 
 export type EmployerJobSummary = {
@@ -18,6 +18,14 @@ export type EmployerJobSummary = {
   applications: number;
   status: EmployerJobStatus;
   postedAt: string;
+};
+
+export type EmployerJobPerformanceSummary = {
+  jobId: string;
+  title: string;
+  applications: number;
+  interviews: number;
+  hires: number;
 };
 
 export type EmployerApplicantSummary = {
@@ -45,12 +53,23 @@ export type EmployerInterviewSummary = {
   type: "Video" | "Phone" | "Onsite" | "In-person";
 };
 
+export type EmployerMessageSummary = {
+  id: string;
+  candidate: string;
+  job: string;
+  preview: string;
+  unreadCount: number;
+  lastMessageAt: string;
+};
+
 export type EmployerDashboardData = {
   companyName: string;
   stats: EmployerDashboardStats;
   recentJobs: EmployerJobSummary[];
+  jobPerformance: EmployerJobPerformanceSummary[];
   recentApplicants: EmployerApplicantSummary[];
   upcomingInterviews: EmployerInterviewSummary[];
+  recentMessages: EmployerMessageSummary[];
 };
 
 export type DashboardServiceResult<T> =

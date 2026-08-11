@@ -1,11 +1,7 @@
-import { PlaceholderPage } from "@/components/dashboard/shared/PlaceholderPage";
+"use client";
+
+import { SettingsPage } from "@/features/employer-settings";
 
 export default function Page() {
-  return (
-    <PlaceholderPage
-      title="Settings"
-      description="Employer account and notification settings."
-      backHref="/employer/dashboard"
-    />
-  );
+  return <SettingsPage />;
 }

@@ -1,11 +1,7 @@
-import { PlaceholderPage } from "@/components/dashboard/shared/PlaceholderPage";
+"use client";
+
+import { AnalyticsPage } from "@/features/employer-analytics";
 
 export default function Page() {
-  return (
-    <PlaceholderPage
-      title="Analytics"
-      description="Hiring funnel and performance insights."
-      backHref="/employer/dashboard"
-    />
-  );
+  return <AnalyticsPage />;
 }

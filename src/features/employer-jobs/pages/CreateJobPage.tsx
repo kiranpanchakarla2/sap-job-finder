@@ -2,23 +2,41 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Skeleton, SkeletonCard } from "@/components/dashboard/shared/Skeleton";
 import { EMPLOYER_ROUTES } from "@/features/employer-company/constants";
+import {
+  canCreateJob,
+  JobLimitReachedPanel,
+  subscriptionService,
+  type EmployerSubscription,
+} from "@/features/employer-subscription";
 import { JobForm } from "../components/JobForm";
 import { jobService } from "../services/jobService";
 
 export function CreateJobPage() {
+  const router = useRouter();
   const [checking, setChecking] = useState(true);
   const [profileReady, setProfileReady] = useState(false);
+  const [subscription, setSubscription] = useState<EmployerSubscription | null>(
+    null,
+  );
 
   useEffect(() => {
     let active = true;
-    void jobService.getCompanyProfileStatus().then((result) => {
+    void (async () => {
+      const [profileResult, subscriptionResult] = await Promise.all([
+        jobService.getCompanyProfileStatus(),
+        subscriptionService.getSubscription(),
+      ]);
       if (!active) return;
-      setProfileReady(result.success && result.data.ready);
+      setProfileReady(profileResult.success && profileResult.data.ready);
+      setSubscription(
+        subscriptionResult.success ? subscriptionResult.data : null,
+      );
       setChecking(false);
-    });
+    })();
     return () => {
       active = false;
     };
@@ -51,6 +69,25 @@ export function CreateJobPage() {
             Review company profile
           </Link>
         </p>
+      </div>
+    );
+  }
+
+  if (subscription && !canCreateJob(subscription)) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-text sm:text-3xl">
+            Post a Job
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            Create a new opportunity and connect with qualified SAP professionals.
+          </p>
+        </div>
+        <JobLimitReachedPanel
+          subscription={subscription}
+          onUpgrade={() => router.push(EMPLOYER_ROUTES.subscription)}
+        />
       </div>
     );
   }

@@ -98,8 +98,61 @@ type CandidateProfileRow = {
   education: Json;
   work_experience: Json;
   languages: string[];
+  is_searchable: boolean;
+  work_modes: string[];
+  employment_types: string[];
+  discovery_status: "open_to_opportunities" | "available" | "not_available";
   created_at: string;
   updated_at: string;
+};
+
+type SavedCandidateRow = {
+  id: string;
+  company_id: string;
+  candidate_id: string;
+  created_at: string;
+};
+
+type EmployerShortlistedCandidateRow = {
+  id: string;
+  company_id: string;
+  candidate_id: string;
+  created_at: string;
+};
+
+type SubscriptionPlanRow = {
+  id: string;
+  name: string;
+  price_monthly: number;
+  max_active_jobs: number | null;
+  max_applications: number | null;
+  max_talent_search: number | null;
+  max_team_members: number | null;
+  features: string[];
+  created_at: string;
+};
+
+type SubscriptionRow = {
+  id: string;
+  company_id: string;
+  plan_id: string;
+  status: "active" | "trialing" | "past_due" | "cancelled";
+  billing_cycle: "monthly" | "yearly";
+  current_period_start: string;
+  current_period_end: string;
+  trial_ends_at: string | null;
+  renewal_date: string | null;
+  next_billing_date: string | null;
+  payment_method_configured: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+type TalentSearchUsageRow = {
+  id: string;
+  company_id: string;
+  candidate_id: string;
+  created_at: string;
 };
 
 type EmployerProfileRow = {
@@ -382,6 +435,42 @@ export type Database = {
         job_id: string;
         created_at: string;
       }>;
+      saved_candidates: GenericTable<
+        SavedCandidateRow,
+        {
+          company_id: string;
+          candidate_id: string;
+          id?: string;
+          created_at?: string;
+        }
+      >;
+      employer_shortlisted_candidates: GenericTable<
+        EmployerShortlistedCandidateRow,
+        {
+          company_id: string;
+          candidate_id: string;
+          id?: string;
+          created_at?: string;
+        }
+      >;
+      subscription_plans: GenericTable<SubscriptionPlanRow>;
+      subscriptions: GenericTable<
+        SubscriptionRow,
+        {
+          company_id: string;
+          plan_id: string;
+          id?: string;
+          status?: SubscriptionRow["status"];
+          billing_cycle?: SubscriptionRow["billing_cycle"];
+          current_period_start?: string;
+          current_period_end?: string;
+          trial_ends_at?: string | null;
+          renewal_date?: string | null;
+          next_billing_date?: string | null;
+          payment_method_configured?: boolean;
+        }
+      >;
+      talent_search_usage: GenericTable<TalentSearchUsageRow>;
       job_alerts: GenericTable<Record<string, unknown>>;
       notifications: GenericTable<{
         id: string;
@@ -409,6 +498,59 @@ export type Database = {
         Returns: boolean;
       };
       map_experience_band: { Args: { band: string }; Returns: number };
+      search_talent_candidates: {
+        Args: {
+          p_keyword?: string | null;
+          p_modules?: string[] | null;
+          p_skills?: string[] | null;
+          p_experience_bands?: string[] | null;
+          p_experience_min?: number | null;
+          p_countries?: string[] | null;
+          p_location_query?: string | null;
+          p_work_modes?: string[] | null;
+          p_employment_types?: string[] | null;
+          p_availability?: string[] | null;
+          p_candidate_status?: string[] | null;
+          p_certifications?: string[] | null;
+          p_languages?: string[] | null;
+          p_sort?: string | null;
+          p_page?: number | null;
+          p_page_size?: number | null;
+        };
+        Returns: Json;
+      };
+      get_talent_candidate: {
+        Args: { p_candidate_id: string };
+        Returns: Json;
+      };
+      save_talent_candidate: {
+        Args: { p_candidate_id: string };
+        Returns: Json;
+      };
+      remove_saved_talent_candidate: {
+        Args: { p_candidate_id: string };
+        Returns: Json;
+      };
+      list_saved_talent_candidates: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      shortlist_talent_candidate: {
+        Args: { p_candidate_id: string };
+        Returns: Json;
+      };
+      remove_shortlisted_talent_candidate: {
+        Args: { p_candidate_id: string };
+        Returns: Json;
+      };
+      list_shortlisted_talent_candidate_ids: {
+        Args: Record<string, never>;
+        Returns: string[];
+      };
+      get_talent_search_usage: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
       schedule_interview: {
         Args: {
           p_application_id: string;

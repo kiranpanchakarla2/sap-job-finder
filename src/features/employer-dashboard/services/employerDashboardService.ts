@@ -5,6 +5,7 @@ import type {
   EmployerDashboardData,
   EmployerInterviewSummary,
   EmployerJobSummary,
+  EmployerMessageSummary,
 } from "../types/dashboard.types";
 import { companyService } from "@/features/employer-company/services/companyService";
 import {
@@ -20,6 +21,9 @@ import {
 import { interviewService } from "@/features/employer-interviews";
 import { jobService } from "@/features/employer-jobs/services/jobService";
 import { formatDisplayDate } from "@/features/employer-jobs/lib/format";
+import { analyticsService } from "@/features/employer-analytics";
+import { messageService } from "@/features/employer-messages";
+import { getLastMessagePreview } from "@/features/employer-messages/lib/format";
 
 function toJobSummary(job: {
   id: string;
@@ -42,9 +46,8 @@ function toJobSummary(job: {
 
 /**
  * Employer dashboard service.
- * Company name + jobs from Supabase.
- * Applications from real job_applications (Sprint 4B).
- * Interviews from Sprint 5A mock service (Supabase in 5B).
+ * Company/jobs/applicants/interviews/messages from existing feature services.
+ * Job performance KPIs enriched via analyticsService (Sprint 6A mock-ready).
  */
 export const employerDashboardService = {
   async getDashboard(employerId: string): Promise<DashboardServiceResult<EmployerDashboardData>> {
@@ -65,12 +68,16 @@ export const employerDashboardService = {
         statsResult,
         interviewsResult,
         interviewStatsResult,
+        analyticsResult,
+        messagesResult,
       ] = await Promise.all([
         jobService.getDashboardJobStats(),
         applicationService.listApplications({ sort: "newest" }),
         applicationService.getStats(),
         interviewService.getUpcoming(3),
         interviewService.getStats(),
+        analyticsService.getAnalytics({ dateRange: "30d", jobId: "all" }, employerId),
+        messageService.listConversations(),
       ]);
 
       if (!jobStatsResult.success) {
@@ -126,7 +133,6 @@ export const employerDashboardService = {
               status: getStatusLabel(app.status) as EmployerApplicantSummary["status"],
             }));
 
-      // Overlay real application counts onto recent jobs by job id
       const countByJob = new Map<string, number>();
       if (applicationsResult.success) {
         for (const app of applicationsResult.data) {
@@ -146,26 +152,62 @@ export const employerDashboardService = {
             }),
           );
 
+      const jobPerformance =
+        analyticsResult.success
+          ? analyticsResult.data.jobPerformance
+              .filter((row) => row.status === "Active")
+              .slice(0, 3)
+              .map((row) => ({
+                jobId: row.jobId,
+                title: row.title,
+                applications: row.applications,
+                interviews: row.interviews,
+                hires: row.hires,
+              }))
+          : [];
+
+      const recentMessages: EmployerMessageSummary[] =
+        !messagesResult.success
+          ? []
+          : messagesResult.data.slice(0, 5).map((conversation) => {
+              const lastContent =
+                conversation.messages[conversation.messages.length - 1]
+                  ?.content ?? "No messages yet.";
+              return {
+                id: conversation.id,
+                candidate: conversation.candidateName,
+                job: conversation.jobTitle,
+                preview: getLastMessagePreview(lastContent),
+                unreadCount: conversation.unreadCount,
+                lastMessageAt: conversation.lastMessageAt,
+              };
+            });
+
       return {
         success: true,
         data: {
           companyName,
           stats: {
             activeJobs: jobStats.activeJobs,
-            draftJobs: jobStats.draftJobs,
             totalApplications: applicationStats.total,
             upcomingInterviews: upcomingInterviewCount,
+            hires: applicationStats.hired,
             activeJobsDelta: `${jobStats.activeJobs} open now`,
-            draftJobsDelta: `${jobStats.draftJobs} in progress`,
             applicationsDelta: `${applicationStats.new} new`,
             interviewsDelta:
               upcomingInterviewCount > 0
                 ? `${upcomingInterviewCount} scheduled`
                 : "None scheduled",
+            hiresDelta:
+              applicationStats.hired > 0
+                ? `${applicationStats.hired} total`
+                : "None yet",
           },
           recentJobs,
+          jobPerformance,
           recentApplicants,
           upcomingInterviews,
+          recentMessages,
         },
       };
     } catch {
