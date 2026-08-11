@@ -106,7 +106,7 @@ export function ChangeRoleDialog({
             <div className="mt-4">
               <label
                 htmlFor="change-role"
-                className="mb-1.5 block text-sm font-medium text-text"
+                className="mb-2.5 block text-sm font-medium text-text"
               >
                 New role
               </label>

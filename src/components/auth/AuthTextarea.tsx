@@ -53,7 +53,7 @@ export const AuthTextarea = forwardRef<HTMLTextAreaElement, AuthTextareaProps>(
             placeholder=" "
             aria-invalid={Boolean(error)}
             aria-describedby={error ? errorId : undefined}
-            className={`peer w-full resize-y rounded-2xl bg-transparent px-4 pb-3 pt-6 text-sm font-medium text-input-fg outline-none ${
+            className={`peer w-full resize-y rounded-2xl bg-transparent px-4 pb-3 pt-7 text-sm font-medium text-input-fg outline-none ${
               icon ? "pl-11" : ""
             }`}
             {...props}
@@ -61,7 +61,7 @@ export const AuthTextarea = forwardRef<HTMLTextAreaElement, AuthTextareaProps>(
 
           <label
             htmlFor={id}
-            className={`pointer-events-none absolute top-4 origin-left text-sm text-muted transition-all duration-200 peer-focus:top-2.5 peer-focus:text-[11px] peer-focus:font-semibold peer-focus:text-primary peer-[:not(:placeholder-shown)]:top-2.5 peer-[:not(:placeholder-shown)]:text-[11px] peer-[:not(:placeholder-shown)]:font-semibold ${
+            className={`pointer-events-none absolute top-4 origin-left text-sm text-muted transition-all duration-200 peer-focus:top-2 peer-focus:text-[11px] peer-focus:font-semibold peer-focus:text-primary peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-[11px] peer-[:not(:placeholder-shown)]:font-semibold ${
               icon ? "left-11" : "left-4"
             }`}
           >

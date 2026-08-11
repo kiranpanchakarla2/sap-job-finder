@@ -27,7 +27,7 @@ export function AnalyticsFiltersBar({
   return (
     <div className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-border bg-card p-4 shadow-soft sm:flex-row sm:flex-wrap sm:items-end">
       <div className="min-w-[10rem] flex-1">
-        <label htmlFor="analytics-date-range" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
+        <label htmlFor="analytics-date-range" className="mb-2.5 block text-xs font-semibold uppercase tracking-wide text-muted">
           Date Range
         </label>
         <NativeSelect
@@ -49,7 +49,7 @@ export function AnalyticsFiltersBar({
       {filters.dateRange === "custom" ? (
         <>
           <div className="min-w-[10rem] flex-1">
-            <label htmlFor="analytics-start" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
+            <label htmlFor="analytics-start" className="mb-2.5 block text-xs font-semibold uppercase tracking-wide text-muted">
               Start Date
             </label>
             <input
@@ -61,7 +61,7 @@ export function AnalyticsFiltersBar({
             />
           </div>
           <div className="min-w-[10rem] flex-1">
-            <label htmlFor="analytics-end" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
+            <label htmlFor="analytics-end" className="mb-2.5 block text-xs font-semibold uppercase tracking-wide text-muted">
               End Date
             </label>
             <input
@@ -76,7 +76,7 @@ export function AnalyticsFiltersBar({
       ) : null}
 
       <div className="min-w-[12rem] flex-1">
-        <label htmlFor="analytics-job" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
+        <label htmlFor="analytics-job" className="mb-2.5 block text-xs font-semibold uppercase tracking-wide text-muted">
           Job
         </label>
         <NativeSelect

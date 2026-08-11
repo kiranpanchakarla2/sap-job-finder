@@ -122,7 +122,7 @@ export function ContactUsSection() {
               id="contact-topic"
               name="topic"
               required
-              wrapperClassName="mt-1.5"
+              wrapperClassName="mt-2.5"
               className="rounded-[var(--radius-control)] border border-border bg-background px-4 py-2.5 text-sm text-text outline-none ring-primary/20 focus:ring-2"
             >
               {contactSection.topics.map((topic) => (

@@ -169,7 +169,7 @@ export function JobFilters({
                   onChange={(event) =>
                     onSortChange(event.target.value as JobSortOption)
                   }
-                  wrapperClassName="mt-2"
+                  wrapperClassName="mt-2.5"
                   className="h-11 rounded-2xl border border-border bg-input px-3 text-sm font-medium text-input-fg outline-none focus:border-primary"
                 >
                   {JOB_SORT_OPTIONS.map((option) => (

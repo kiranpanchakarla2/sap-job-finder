@@ -128,7 +128,7 @@ export function ChangeApplicationStatusDialog({
                   onChange={(event) =>
                     setNextStatus(event.target.value as ApplicationStatus)
                   }
-                  wrapperClassName="mt-2"
+                  wrapperClassName="mt-2.5"
                   className="h-11 rounded-2xl border border-border bg-input px-3 text-sm font-medium text-input-fg outline-none focus:border-primary"
                 >
                   {options.map((status) => (

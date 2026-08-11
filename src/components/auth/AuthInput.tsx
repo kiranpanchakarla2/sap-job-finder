@@ -29,7 +29,7 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
         transition={{ duration: 0.4 }}
       >
         <div
-          className={`group relative flex h-14 items-center rounded-2xl border bg-input transition-all duration-300 ${
+          className={`group relative flex h-16 items-center rounded-2xl border bg-input transition-all duration-300 ${
             error
               ? "border-red-400 shadow-[0_0_0_4px_rgba(248,113,113,0.15)]"
               : "border-border focus-within:border-primary focus-within:shadow-[0_0_0_4px_rgba(79,70,229,0.12)] hover:border-muted"
@@ -53,7 +53,7 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
             placeholder=" "
             aria-invalid={Boolean(error)}
             aria-describedby={error ? errorId : undefined}
-            className={`peer h-full w-full rounded-2xl bg-transparent px-4 pb-2 pt-5 text-sm font-medium text-input-fg outline-none ${
+            className={`peer h-full w-full rounded-2xl bg-transparent px-4 pb-2.5 pt-7 text-sm font-medium text-input-fg outline-none ${
               icon ? "pl-11" : ""
             }`}
             {...props}
@@ -61,7 +61,7 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
 
           <label
             htmlFor={id}
-            className={`pointer-events-none absolute top-1/2 origin-left -translate-y-1/2 text-sm text-muted transition-all duration-200 peer-focus:top-3 peer-focus:translate-y-0 peer-focus:text-[11px] peer-focus:font-semibold peer-focus:text-primary peer-[:not(:placeholder-shown)]:top-3 peer-[:not(:placeholder-shown)]:translate-y-0 peer-[:not(:placeholder-shown)]:text-[11px] peer-[:not(:placeholder-shown)]:font-semibold ${
+            className={`pointer-events-none absolute top-1/2 origin-left -translate-y-1/2 text-sm text-muted transition-all duration-200 peer-focus:top-2 peer-focus:translate-y-0 peer-focus:text-[11px] peer-focus:font-semibold peer-focus:text-primary peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:translate-y-0 peer-[:not(:placeholder-shown)]:text-[11px] peer-[:not(:placeholder-shown)]:font-semibold ${
               icon ? "left-11" : "left-4"
             }`}
           >

@@ -20,7 +20,7 @@ import type {
 const inputClass =
   "w-full rounded-[var(--radius-control)] border border-border bg-input px-3 py-2.5 text-sm text-input-fg placeholder:text-muted focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20";
 
-const labelClass = "mb-1.5 block text-sm font-semibold text-text";
+const labelClass = "mb-2.5 block text-sm font-semibold text-text";
 
 function RatingField({
   id,

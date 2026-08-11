@@ -148,7 +148,7 @@ export function ApplicantFilters({
           id={`${prefix}-${jobSelectId}`}
           value={jobId}
           onChange={(event) => onJobChange(event.target.value)}
-          wrapperClassName="mt-1.5"
+          wrapperClassName="mt-2.5"
           className={selectClassName}
         >
           <option value="">All jobs</option>
@@ -168,7 +168,7 @@ export function ApplicantFilters({
           id={`${prefix}-${experienceSelectId}`}
           value={experience}
           onChange={(event) => onExperienceChange(event.target.value)}
-          wrapperClassName="mt-1.5"
+          wrapperClassName="mt-2.5"
           className={selectClassName}
         >
           {EXPERIENCE_FILTER_OPTIONS.map((option) => (
@@ -187,7 +187,7 @@ export function ApplicantFilters({
           id={`${prefix}-${locationSelectId}`}
           value={location}
           onChange={(event) => onLocationChange(event.target.value)}
-          wrapperClassName="mt-1.5"
+          wrapperClassName="mt-2.5"
           className={selectClassName}
         >
           <option value="">All locations</option>
@@ -207,7 +207,7 @@ export function ApplicantFilters({
           onChange={(event) =>
             onSortChange(event.target.value as ApplicationSortOption)
           }
-          wrapperClassName="mt-1.5"
+          wrapperClassName="mt-2.5"
           className={selectClassName}
         >
           {APPLICATION_SORT_OPTIONS.map((option) => (

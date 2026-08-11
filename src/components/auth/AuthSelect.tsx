@@ -17,6 +17,12 @@ type AuthSelectProps = {
   placeholder?: string;
 } & Omit<SelectHTMLAttributes<HTMLSelectElement>, "className" | "id">;
 
+/**
+ * Floating-label select.
+ * Native <select> ignores vertical padding for the displayed value, so the
+ * control is split: label in the top band, select in the lower band.
+ * Height matches AuthInput / PasswordInput (h-16).
+ */
 export const AuthSelect = forwardRef<HTMLSelectElement, AuthSelectProps>(
   function AuthSelect(
     { label, icon, error, options, placeholder = "Select an option", ...props },
@@ -35,7 +41,7 @@ export const AuthSelect = forwardRef<HTMLSelectElement, AuthSelectProps>(
         transition={{ duration: 0.4 }}
       >
         <div
-          className={`group relative flex h-14 items-center rounded-2xl border bg-input transition-all duration-300 ${
+          className={`group relative h-16 rounded-2xl border bg-input transition-all duration-300 ${
             error
               ? "border-red-400 shadow-[0_0_0_4px_rgba(248,113,113,0.15)]"
               : "border-border focus-within:border-primary focus-within:shadow-[0_0_0_4px_rgba(79,70,229,0.12)] hover:border-muted"
@@ -43,7 +49,7 @@ export const AuthSelect = forwardRef<HTMLSelectElement, AuthSelectProps>(
         >
           {icon ? (
             <span
-              className={`pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 transition-colors duration-300 ${
+              className={`pointer-events-none absolute left-4 top-[2.125rem] z-10 -translate-y-1/2 transition-colors duration-300 ${
                 error ? "text-red-400" : "text-muted group-focus-within:text-primary"
               }`}
               aria-hidden="true"
@@ -52,13 +58,22 @@ export const AuthSelect = forwardRef<HTMLSelectElement, AuthSelectProps>(
             </span>
           ) : null}
 
+          <label
+            htmlFor={id}
+            className={`pointer-events-none absolute top-2 origin-left text-[11px] font-semibold transition-colors duration-200 ${
+              icon ? "left-11" : "left-4"
+            } ${error ? "text-red-400" : "text-muted group-focus-within:text-primary"}`}
+          >
+            {label}
+          </label>
+
           <select
             ref={ref}
             id={id}
             data-chevron="custom"
             aria-invalid={Boolean(error)}
             aria-describedby={error ? errorId : undefined}
-            className={`peer h-full w-full appearance-none rounded-2xl bg-transparent px-4 pb-2 pt-5 text-sm font-medium text-input-fg outline-none ${
+            className={`peer absolute inset-x-0 bottom-0 top-6 w-full appearance-none bg-transparent px-4 text-sm font-medium text-input-fg outline-none ${
               icon ? "pl-11" : ""
             } pr-10`}
             {...props}
@@ -77,17 +92,8 @@ export const AuthSelect = forwardRef<HTMLSelectElement, AuthSelectProps>(
             ))}
           </select>
 
-          <label
-            htmlFor={id}
-            className={`pointer-events-none absolute top-3 origin-left text-[11px] font-semibold transition-colors duration-200 ${
-              icon ? "left-11" : "left-4"
-            } ${error ? "text-red-400" : "text-muted peer-focus:text-primary"}`}
-          >
-            {label}
-          </label>
-
           <ChevronDown
-            className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+            className="pointer-events-none absolute right-4 top-[2.125rem] h-4 w-4 -translate-y-1/2 text-muted"
             aria-hidden="true"
           />
         </div>

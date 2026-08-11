@@ -97,7 +97,7 @@ export function EmployerDashboardPage() {
     "there";
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
+    <div className="mx-auto w-full min-w-0 max-w-7xl space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-primary">
@@ -214,13 +214,13 @@ export function EmployerDashboardPage() {
         </section>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+        <section className="min-w-0 overflow-hidden rounded-[var(--radius-card)] border border-border bg-card p-4 shadow-soft sm:p-5">
           <h2 className="mb-4 text-lg font-semibold text-text">Recent Applications</h2>
           <RecentApplicantsTable applicants={data.recentApplicants} />
         </section>
 
-        <section className="rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft">
+        <section className="min-w-0 overflow-hidden rounded-[var(--radius-card)] border border-border bg-card p-4 shadow-soft sm:p-5">
           <h2 className="mb-4 text-lg font-semibold text-text">Recent Messages</h2>
           <RecentMessages messages={data.recentMessages} />
         </section>

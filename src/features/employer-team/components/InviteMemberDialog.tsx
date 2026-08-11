@@ -110,7 +110,7 @@ export function InviteMemberDialog({
               <div>
                 <label
                   htmlFor="invite-email"
-                  className="mb-1.5 block text-sm font-medium text-text"
+                  className="mb-2.5 block text-sm font-medium text-text"
                 >
                   Email *
                 </label>
@@ -128,7 +128,7 @@ export function InviteMemberDialog({
               <div>
                 <label
                   htmlFor="invite-role"
-                  className="mb-1.5 block text-sm font-medium text-text"
+                  className="mb-2.5 block text-sm font-medium text-text"
                 >
                   Role *
                 </label>
