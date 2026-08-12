@@ -263,13 +263,18 @@
   }
 
   html[data-atmosphere="fiori"] .theme-atmosphere__orb {
-    filter: blur(56px);
-    opacity: 0.22;
+    filter: blur(64px);
+    opacity: 0.14;
   }
 
   html[data-atmosphere="fiori"] .theme-atmosphere__particles {
-    background-size: 96px 96px;
-    opacity: 0.3;
+    background-image: radial-gradient(
+      circle at 20% 30%,
+      color-mix(in srgb, #9CA3AF 16%, transparent) 0 1px,
+      transparent 2px
+    );
+    background-size: 88px 88px;
+    opacity: 0.22;
   }
 
   /* Floating animation — only when data-animate=true */

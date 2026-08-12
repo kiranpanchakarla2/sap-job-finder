@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 
 /**
- * Registry key for a named palette (e.g. `"default"`, `"btp"`).
+ * Registry key for a named palette (e.g. `"fiori"`, `"btp"`).
  * Open string so new theme files do not require type updates.
  */
 export type ThemeId = string;
 
-/** Built-in theme registered by `themes/default.ts`. */
-export const DEFAULT_THEME_ID: ThemeId = "default";
+/** Built-in fallback palette when none is saved / registered. */
+export const DEFAULT_THEME_ID: ThemeId = "fiori";
 
 /**
  * User-selectable appearance preference.

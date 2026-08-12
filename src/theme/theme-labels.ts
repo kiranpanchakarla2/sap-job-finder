@@ -7,10 +7,6 @@ export type ThemeLabelMeta = {
 
 /** User-facing SAP ecosystem theme names (not element names). */
 export const THEME_LABELS: Record<ThemeId, ThemeLabelMeta> = {
-  default: {
-    title: "SAP Jobs Finder",
-    tagline: "Horizon blue baseline",
-  },
   btp: {
     title: "BTP Cloud",
     tagline: "Cyan & violet cloud platform",
@@ -25,12 +21,16 @@ export const THEME_LABELS: Record<ThemeId, ThemeLabelMeta> = {
   },
   fiori: {
     title: "Fiori UX",
-    tagline: "Horizon blue & periwinkle",
+    tagline: "Clean enterprise neutral palette",
   },
 };
 
-/** Maps retired element-based theme ids to SAP palette ids. */
+/**
+ * Maps retired theme ids to current palette ids.
+ * Includes legacy element names and the removed "default" (SAP Jobs Finder) palette.
+ */
 export const LEGACY_THEME_ID_MAP: Record<string, ThemeId> = {
+  default: "fiori",
   water: "btp",
   earth: "s4hana",
   fire: "analytics",

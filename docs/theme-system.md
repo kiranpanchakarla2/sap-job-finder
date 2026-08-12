@@ -118,11 +118,10 @@ src/theme/
 │   └── …
 └── themes/                  # ★ Experience plugins
     ├── index.ts             # Side-effect imports
-    ├── default.ts
-    ├── water.ts             # Calm / fluid / glass / ripple
-    ├── earth.ts             # Warm / Lora / organic lift
-    ├── fire.ts              # Bold / glow / Space Grotesk
-    └── air.ts               # Minimal / frosted / Outfit
+    ├── analytics.ts
+    ├── btp.ts
+    ├── fiori.ts
+    └── s4hana.ts
 
 src/components/theme/
 ├── ThemeAtmosphere.tsx      # Token-driven decorations (distraction-free on /builder)

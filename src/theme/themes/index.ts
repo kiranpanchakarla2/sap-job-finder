@@ -5,7 +5,6 @@
  * The Theme Switcher reads `listThemeIds()` — no UI changes needed when adding themes.
  */
 
-import "./default";
 import "./btp";
 import "./s4hana";
 import "./analytics";
