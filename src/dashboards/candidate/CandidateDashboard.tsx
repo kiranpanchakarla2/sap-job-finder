@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
   Bookmark,
   Briefcase,
@@ -8,7 +9,6 @@ import {
   PhoneCall,
   Sparkles,
 } from "lucide-react";
-import { toast } from "sonner";
 import { useAuth } from "@/auth/AuthContext";
 import { DashboardJobCard } from "@/components/dashboard/shared/JobCard";
 import { EmptyState } from "@/components/dashboard/shared/EmptyState";
@@ -17,13 +17,53 @@ import { StatCard } from "@/components/dashboard/shared/StatCard";
 import {
   candidateDashboardStats,
   learningCourses,
-  recommendedJobs,
   upcomingInterviews,
 } from "@/data/mockData";
+import {
+  computeApplicationStats,
+  useApplications,
+} from "@/features/candidate-applications";
+import { useCandidateProfileCompletion } from "@/features/candidate-profile/hooks/useCandidateProfileCompletion";
+import { MOCK_RESUME_SCORE } from "@/features/candidate-resume";
+import { useSavedJobs } from "@/features/candidate-jobs";
+import { loadCandidateMatchProfile } from "@/features/candidate-jobs/lib/loadCandidateMatchProfile";
+import { formatPostedShort } from "@/features/candidate-jobs/lib/formatPosted";
+import { candidateJobService } from "@/features/candidate-jobs/services/candidateJobService";
+import type { RecommendedJob } from "@/types/job";
 
 export function CandidateDashboard() {
   const { user } = useAuth();
+  const { savedCount, toggleSave } = useSavedJobs();
+  const { applications } = useApplications();
+  const applicationStats = computeApplicationStats(applications);
   const firstName = user?.name?.split(" ")[0] || "Candidate";
+  const { percent: profileCompletion } = useCandidateProfileCompletion();
+  const [recommendedJobs, setRecommendedJobs] = useState<RecommendedJob[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const profile = await loadCandidateMatchProfile();
+      const result = await candidateJobService.getRecommendedJobs(profile, 4);
+      if (cancelled || !result.success) return;
+      setRecommendedJobs(
+        result.data.map((job) => ({
+          id: job.id,
+          title: job.title,
+          company: job.companyName,
+          location: job.location,
+          experience: job.experienceLabel,
+          sapModule: job.sapModules[0] ?? "SAP",
+          salary: job.salaryLabel,
+          postedAt: formatPostedShort(job.postedAt),
+          workMode: job.workMode === "On-site" ? "Onsite" : job.workMode,
+        })),
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="mx-auto max-w-7xl space-y-8">
@@ -48,30 +88,37 @@ export function CandidateDashboard() {
         <div className="lg:col-span-1">
           <ProgressCard
             title="Profile Completion"
-            description="Add resume, skills, and certifications to improve matches."
-            progress={85}
+            description="Add skills and certifications to improve matches. Resume comes in Sprint 2."
+            progress={profileCompletion}
             href="/candidate/profile"
             ctaLabel="Complete Profile"
           />
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:col-span-2">
-          <StatCard
-            label="Applied Jobs"
-            value={candidateDashboardStats.appliedJobs}
-            icon={Briefcase}
-          />
-          <StatCard
-            label="Saved Jobs"
-            value={candidateDashboardStats.savedJobs}
-            icon={Bookmark}
-            tone="info"
-          />
-          <StatCard
-            label="Interview Calls"
-            value={candidateDashboardStats.interviewCalls}
-            icon={PhoneCall}
-            tone="success"
-          />
+          <Link href="/candidate/applications" className="block">
+            <StatCard
+              label="Applications"
+              value={applicationStats.total}
+              icon={Briefcase}
+              hint={`${applicationStats.underReview} under review`}
+            />
+          </Link>
+          <Link href="/candidate/saved-jobs" className="block">
+            <StatCard
+              label="Saved Jobs"
+              value={savedCount}
+              icon={Bookmark}
+              tone="info"
+            />
+          </Link>
+          <Link href="/candidate/applications" className="block">
+            <StatCard
+              label="Interview Calls"
+              value={applicationStats.interviews}
+              icon={PhoneCall}
+              tone="success"
+            />
+          </Link>
           <StatCard
             label="Profile Views"
             value={candidateDashboardStats.profileViews}
@@ -85,7 +132,7 @@ export function CandidateDashboard() {
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-text">Recommended Jobs</h2>
           <Link
-            href="/jobs"
+            href="/candidate/jobs"
             className="text-sm font-semibold text-primary hover:text-accent"
           >
             Browse all
@@ -97,14 +144,14 @@ export function CandidateDashboard() {
               <DashboardJobCard
                 key={job.id}
                 job={job}
-                onSave={() => toast.success("Job saved to your list")}
+                onSave={(jobId) => toggleSave(jobId)}
               />
             ))}
           </div>
         ) : (
           <EmptyState
             title="No recommendations yet"
-            description="Complete your profile to get personalized SAP job matches."
+            description="Complete your profile to get more personalized recommendations."
           />
         )}
       </section>
@@ -136,8 +183,8 @@ export function CandidateDashboard() {
         <div className="grid gap-4 sm:grid-cols-2">
           <ProgressCard
             title="Resume Score"
-            description="Strong foundation — add certifications for a higher score."
-            progress={78}
+            description={`${MOCK_RESUME_SCORE.label} — add certifications for a higher score.`}
+            progress={MOCK_RESUME_SCORE.score}
             href="/candidate/resume"
             ctaLabel="Improve Resume"
           />

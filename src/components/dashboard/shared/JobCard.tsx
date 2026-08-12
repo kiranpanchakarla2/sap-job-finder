@@ -32,7 +32,7 @@ export function DashboardJobCard({
 
       <div className="mt-4 flex flex-wrap gap-2">
         <Link
-          href={`/jobs/${job.id}`}
+          href={`/candidate/jobs/${job.id}`}
           className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-3.5 text-sm font-semibold text-white transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
         >
           View Job

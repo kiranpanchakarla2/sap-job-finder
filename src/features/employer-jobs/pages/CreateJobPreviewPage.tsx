@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { JobPreviewView } from "../components/JobPreviewView";
@@ -11,23 +11,26 @@ import type { EmployerJobRecord } from "../types/job.types";
 
 export function CreateJobPreviewPage() {
   const router = useRouter();
+  const initialized = useRef(false);
   const [job, setJob] = useState<EmployerJobRecord | null>(null);
 
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+
     const draft = loadPreviewDraft();
     if (!draft) {
       router.replace(EMPLOYER_JOB_ROUTES.create);
       return;
     }
+
     setJob(
       formValuesToPreviewJob(draft.values, {
         companyName: draft.companyName,
         logoUrl: draft.logoUrl,
       }),
     );
-    return () => {
-      clearPreviewDraft();
-    };
+    clearPreviewDraft();
   }, [router]);
 
   if (!job) {

@@ -1,11 +1,7 @@
-import { PlaceholderPage } from "@/components/dashboard/shared/PlaceholderPage";
+"use client";
+
+import { CandidateProfilePage } from "@/features/candidate-profile";
 
 export default function Page() {
-  return (
-    <PlaceholderPage
-      title="My Profile"
-      description="Manage your candidate profile details."
-      backHref="/candidate/dashboard"
-    />
-  );
+  return <CandidateProfilePage />;
 }

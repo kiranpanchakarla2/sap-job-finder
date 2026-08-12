@@ -12,6 +12,8 @@ import { AppToaster } from "@/components/providers/AppToaster";
 import { GoogleAnalytics } from "@/components/providers/GoogleAnalytics";
 import { ThemeAtmosphere } from "@/components/theme/ThemeAtmosphere";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
+import { ApplicationsProvider } from "@/features/candidate-applications";
+import { SavedJobsProvider } from "@/features/candidate-jobs";
 import { siteConfig } from "@/lib/constants";
 import { ThemeProvider } from "@/theme/theme-provider";
 
@@ -73,10 +75,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="relative min-h-screen font-sans">
         <ThemeProvider>
           <AuthProvider>
-            <ThemeAtmosphere />
-            <div className="relative z-[1]">{children}</div>
-            <ThemeSwitcher />
-            <AppToaster />
+            <SavedJobsProvider>
+              <ApplicationsProvider>
+                <ThemeAtmosphere />
+                <div className="relative z-[1]">{children}</div>
+                <ThemeSwitcher />
+                <AppToaster />
+              </ApplicationsProvider>
+            </SavedJobsProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

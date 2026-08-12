@@ -9,9 +9,14 @@ export type JobFilters = {
 };
 
 /**
- * Lists active jobs from Supabase when available; falls back to mock data.
+ * Lists active jobs from Supabase when available.
+ * Homepage marketing cards may use an explicit mock fallback only when
+ * NEXT_PUBLIC_USE_MOCK_JOBS_FALLBACK=true — never silently mask DB failures.
  */
 export async function listJobs(filters: JobFilters = {}): Promise<MockJob[]> {
+  const allowMockFallback =
+    process.env.NEXT_PUBLIC_USE_MOCK_JOBS_FALLBACK === "true";
+
   try {
     const supabase = createClient();
     let query = supabase
@@ -30,8 +35,13 @@ export async function listJobs(filters: JobFilters = {}): Promise<MockJob[]> {
     }
 
     const { data, error } = await query;
-    if (error || !data?.length) {
-      return filterJobs(filters);
+    if (error) {
+      if (allowMockFallback) return filterJobs(filters);
+      return [];
+    }
+
+    if (!data?.length) {
+      return allowMockFallback ? filterJobs(filters) : [];
     }
 
     const companyIds = [...new Set(data.map((row) => row.company_id).filter(Boolean))];
@@ -46,11 +56,14 @@ export async function listJobs(filters: JobFilters = {}): Promise<MockJob[]> {
 
     return data.map((row) => mapRowToJob(row, companyMap.get(row.company_id) ?? null));
   } catch {
-    return filterJobs(filters);
+    return allowMockFallback ? filterJobs(filters) : [];
   }
 }
 
 export async function getJob(id: string): Promise<MockJob | null> {
+  const allowMockFallback =
+    process.env.NEXT_PUBLIC_USE_MOCK_JOBS_FALLBACK === "true";
+
   try {
     const supabase = createClient();
     const { data, error } = await supabase
@@ -62,7 +75,7 @@ export async function getJob(id: string): Promise<MockJob | null> {
       .maybeSingle();
 
     if (error || !data) {
-      return getJobById(id) ?? null;
+      return allowMockFallback ? getJobById(id) ?? null : null;
     }
 
     const { data: company } = await supabase
@@ -73,7 +86,7 @@ export async function getJob(id: string): Promise<MockJob | null> {
 
     return mapRowToJob(data, company);
   } catch {
-    return getJobById(id) ?? null;
+    return allowMockFallback ? getJobById(id) ?? null : null;
   }
 }
 

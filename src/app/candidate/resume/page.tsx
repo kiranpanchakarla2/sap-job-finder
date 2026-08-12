@@ -1,11 +1,7 @@
-import { PlaceholderPage } from "@/components/dashboard/shared/PlaceholderPage";
+"use client";
+
+import { CandidateResumePage } from "@/features/candidate-resume";
 
 export default function Page() {
-  return (
-    <PlaceholderPage
-      title="Resume"
-      description="Upload and optimize your SAP resume."
-      backHref="/candidate/dashboard"
-    />
-  );
+  return <CandidateResumePage />;
 }

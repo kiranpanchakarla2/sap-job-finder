@@ -350,9 +350,10 @@ export const candidateNavSections: SidebarNavSection[] = [
   {
     items: [
       { label: "Dashboard", href: "/candidate/dashboard", icon: LayoutDashboard },
+      { label: "Find Jobs", href: "/candidate/jobs", icon: Search },
       { label: "My Profile", href: "/candidate/profile", icon: UserRound },
       { label: "Resume", href: "/candidate/resume", icon: FileText },
-      { label: "Applied Jobs", href: "/candidate/applied-jobs", icon: Briefcase },
+      { label: "Applications", href: "/candidate/applications", icon: Briefcase },
       { label: "Saved Jobs", href: "/candidate/saved-jobs", icon: Heart },
       { label: "Job Alerts", href: "/candidate/job-alerts", icon: Bell },
     ],

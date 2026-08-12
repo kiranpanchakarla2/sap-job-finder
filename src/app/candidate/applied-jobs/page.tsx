@@ -1,11 +1,6 @@
-import { PlaceholderPage } from "@/components/dashboard/shared/PlaceholderPage";
+import { redirect } from "next/navigation";
 
+/** Legacy Applied Jobs route — Sprint 4 uses /candidate/applications. */
 export default function Page() {
-  return (
-    <PlaceholderPage
-      title="Applied Jobs"
-      description="Track applications you have submitted."
-      backHref="/candidate/dashboard"
-    />
-  );
+  redirect("/candidate/applications");
 }

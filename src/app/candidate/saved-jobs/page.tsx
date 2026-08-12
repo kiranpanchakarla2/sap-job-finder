@@ -1,11 +1,7 @@
-import { PlaceholderPage } from "@/components/dashboard/shared/PlaceholderPage";
+"use client";
+
+import { SavedJobsPage } from "@/features/candidate-jobs";
 
 export default function Page() {
-  return (
-    <PlaceholderPage
-      title="Saved Jobs"
-      description="Jobs you bookmarked for later."
-      backHref="/candidate/dashboard"
-    />
-  );
+  return <SavedJobsPage />;
 }

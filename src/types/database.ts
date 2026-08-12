@@ -108,6 +108,20 @@ type CandidateProfileRow = {
   work_modes: string[];
   employment_types: string[];
   discovery_status: "open_to_opportunities" | "available" | "not_available";
+  employment_status: string | null;
+  experience_band: string | null;
+  sap_experience_band: string | null;
+  current_salary_label: string | null;
+  expected_salary_label: string | null;
+  preferred_job_roles: string[];
+  preferred_sap_modules: string[];
+  preferred_locations: string[];
+  preferred_salary_range: string | null;
+  career_level: string | null;
+  open_to_work_job_roles: string[];
+  open_to_work_locations: string[];
+  open_to_work_modes: string[];
+  module_experience: Json;
   created_at: string;
   updated_at: string;
 };
@@ -352,6 +366,8 @@ export type Database = {
         candidate_id: string;
         company: string;
         designation: string;
+        location: string | null;
+        employment_type: string | null;
         start_date: string;
         end_date: string | null;
         currently_working: boolean;
@@ -365,8 +381,13 @@ export type Database = {
         degree: string;
         college: string;
         university: string | null;
+        field_of_study: string | null;
+        location: string | null;
+        grade: string | null;
         start_year: number | null;
         end_year: number | null;
+        start_date: string | null;
+        end_date: string | null;
         percentage: number | null;
         created_at: string;
         updated_at: string;
@@ -379,6 +400,8 @@ export type Database = {
         issued_date: string | null;
         expiry_date: string | null;
         certificate_url: string | null;
+        credential_id: string | null;
+        status: string;
         created_at: string;
         updated_at: string;
       }>;
@@ -387,8 +410,22 @@ export type Database = {
         candidate_id: string;
         resume_name: string;
         resume_url: string;
+        storage_path: string | null;
+        file_size: number | null;
+        mime_type: string | null;
+        file_type: string | null;
+        original_file_name: string | null;
+        version_number: number | null;
         is_primary: boolean;
         ats_score: number | null;
+        created_at: string;
+        updated_at: string;
+      }>;
+      candidate_career_highlights: GenericTable<{
+        id: string;
+        candidate_id: string;
+        content: string;
+        display_order: number;
         created_at: string;
         updated_at: string;
       }>;
@@ -427,6 +464,31 @@ export type Database = {
         interviewed_at: string | null;
         hired_at: string | null;
         rejected_at: string | null;
+        withdrawn_at: string | null;
+      }>;
+      job_application_questions: GenericTable<{
+        id: string;
+        job_id: string;
+        question: string;
+        question_type: "text" | "textarea" | "number" | "yes_no" | "single_select" | "multiple_select";
+        required: boolean;
+        options: Json | null;
+        display_order: number;
+        created_at: string;
+      }>;
+      application_answers: GenericTable<{
+        id: string;
+        application_id: string;
+        question_id: string;
+        answer: string | null;
+        created_at: string;
+        updated_at: string;
+      }>;
+      application_status_history: GenericTable<{
+        id: string;
+        application_id: string;
+        status: string;
+        created_at: string;
       }>;
       interviews: GenericTable<{
         id: string;
@@ -543,6 +605,30 @@ export type Database = {
       current_app_role: { Args: Record<string, never>; Returns: AppRole };
       current_company_id: { Args: Record<string, never>; Returns: string };
       current_candidate_id: { Args: Record<string, never>; Returns: string };
+      submit_candidate_application: {
+        Args: { p_job_id: string; p_resume_id: string | null; p_cover_letter: string; p_answers?: Json };
+        Returns: string;
+      };
+      withdraw_candidate_application: { Args: { p_application_id: string }; Returns: undefined };
+      set_candidate_resume_primary: {
+        Args: { p_resume_id: string };
+        Returns: {
+          id: string;
+          candidate_id: string;
+          resume_name: string;
+          resume_url: string;
+          storage_path: string | null;
+          file_size: number | null;
+          mime_type: string | null;
+          file_type: string | null;
+          original_file_name: string | null;
+          version_number: number | null;
+          is_primary: boolean;
+          ats_score: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+      };
       current_employer_id: { Args: Record<string, never>; Returns: string };
       get_current_employer_account_id: {
         Args: Record<string, never>;
