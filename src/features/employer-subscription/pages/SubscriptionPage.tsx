@@ -61,7 +61,7 @@ export function SubscriptionPage() {
         onChoosePlan={scrollToPlans}
         onUpdateBilling={() =>
           toast.message("Payment integration coming soon.", {
-            description: "Billing updates will be available in Sprint 6B.",
+            description: "Online payment options will be available soon.",
           })
         }
       />

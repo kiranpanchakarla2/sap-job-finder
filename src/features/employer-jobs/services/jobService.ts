@@ -46,6 +46,22 @@ function logError(context: string, error: unknown) {
   }
 }
 
+function mapDbJobError(error: unknown, fallback: string): string {
+  const message =
+    typeof error === "object" &&
+    error &&
+    "message" in error &&
+    typeof (error as { message: unknown }).message === "string"
+      ? (error as { message: string }).message
+      : "";
+
+  if (message.includes("ACTIVE_JOB_LIMIT_REACHED")) {
+    return "Your active job limit has been reached. Upgrade your plan to post more jobs.";
+  }
+
+  return fallback;
+}
+
 async function requireOwnershipContext(): Promise<
   JobServiceResult<OwnershipContext>
 > {
@@ -157,7 +173,10 @@ async function transitionStatus(
 
   if (error || !data) {
     logError(`transitionStatus ${target}`, error);
-    return { success: false, error: errorMessage };
+    return {
+      success: false,
+      error: mapDbJobError(error, errorMessage),
+    };
   }
 
   const brand = await getCompanyBrandById((data as JobRow).company_id);
@@ -252,7 +271,7 @@ export const jobService = {
 
     if (error || !data) {
       logError("createJob", error);
-      return { success: false, error: ERR.create };
+      return { success: false, error: mapDbJobError(error, ERR.create) };
     }
 
     return {
@@ -315,7 +334,7 @@ export const jobService = {
 
     if (error || !data) {
       logError("publishJob", error);
-      return { success: false, error: ERR.publish };
+      return { success: false, error: mapDbJobError(error, ERR.publish) };
     }
 
     const brand = await getCompanyBrandById((data as JobRow).company_id);

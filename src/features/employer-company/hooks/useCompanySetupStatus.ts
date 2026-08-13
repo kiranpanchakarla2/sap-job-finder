@@ -7,7 +7,7 @@ import { EMPLOYER_ROUTES } from "../constants";
 
 /**
  * Resolves whether the authenticated employer has completed company setup.
- * Backed by the mock company service (localStorage) for Sprint 2.
+ * Backed by the Supabase company profile service.
  */
 export function useCompanySetupStatus() {
   const { employer, isLoading: authLoading, isAuthenticated } = useEmployerAuth();

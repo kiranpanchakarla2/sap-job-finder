@@ -12,31 +12,6 @@ import { Skeleton, SkeletonCard } from "@/components/dashboard/shared/Skeleton";
 import { EMPLOYER_ROUTES } from "@/features/employer-company/constants";
 import { useEmployerAuth } from "@/features/employer-auth";
 import { EMPLOYER_LOGOUT_LANDING_PATH } from "@/features/employer-auth/config/employerSession";
-import { SettingsToggle } from "../components/SettingsToggle";
-
-type NotificationPrefs = {
-  newApplications: boolean;
-  interviewReminders: boolean;
-  candidateMessages: boolean;
-  jobPerformanceUpdates: boolean;
-};
-
-type PreferencePrefs = {
-  emailDigest: boolean;
-  compactTables: boolean;
-};
-
-const DEFAULT_NOTIFICATIONS: NotificationPrefs = {
-  newApplications: true,
-  interviewReminders: true,
-  candidateMessages: true,
-  jobPerformanceUpdates: false,
-};
-
-const DEFAULT_PREFERENCES: PreferencePrefs = {
-  emailDigest: true,
-  compactTables: false,
-};
 
 function SettingsSection({
   id,
@@ -155,7 +130,7 @@ function DeleteAccountDialog({
                 onClick={() => {
                   toast.message("Account deletion requires additional confirmation.", {
                     description:
-                      "No data was deleted. Backend deletion arrives in Sprint 6B.",
+                      "Please confirm your request before your account can be permanently deleted.",
                   });
                   onClose();
                 }}
@@ -173,10 +148,6 @@ function DeleteAccountDialog({
 export function SettingsPage() {
   const { employer, isLoading, signOut } = useEmployerAuth();
   const router = useRouter();
-  const [notifications, setNotifications] =
-    useState<NotificationPrefs>(DEFAULT_NOTIFICATIONS);
-  const [preferences, setPreferences] =
-    useState<PreferencePrefs>(DEFAULT_PREFERENCES);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   if (isLoading) {
@@ -243,61 +214,6 @@ export function SettingsPage() {
       </SettingsSection>
 
       <SettingsSection
-        id="notifications"
-        title="Notifications"
-        description="Email notifications for hiring activity. Delivery is mock-only in Sprint 6A."
-      >
-        <div className="space-y-1">
-          <p className="mb-3 text-sm font-medium text-text">Email Notifications</p>
-          <SettingsToggle
-            label="New Applications"
-            description="Get notified when candidates apply to your jobs."
-            checked={notifications.newApplications}
-            onChange={(checked) => {
-              setNotifications((prev) => ({ ...prev, newApplications: checked }));
-              toast.success("Preferences saved.");
-            }}
-          />
-          <SettingsToggle
-            label="Interview Reminders"
-            description="Reminders before upcoming interviews."
-            checked={notifications.interviewReminders}
-            onChange={(checked) => {
-              setNotifications((prev) => ({
-                ...prev,
-                interviewReminders: checked,
-              }));
-              toast.success("Preferences saved.");
-            }}
-          />
-          <SettingsToggle
-            label="Candidate Messages"
-            description="Alerts when candidates send new messages."
-            checked={notifications.candidateMessages}
-            onChange={(checked) => {
-              setNotifications((prev) => ({
-                ...prev,
-                candidateMessages: checked,
-              }));
-              toast.success("Preferences saved.");
-            }}
-          />
-          <SettingsToggle
-            label="Job Performance Updates"
-            description="Weekly summaries of job and hiring performance."
-            checked={notifications.jobPerformanceUpdates}
-            onChange={(checked) => {
-              setNotifications((prev) => ({
-                ...prev,
-                jobPerformanceUpdates: checked,
-              }));
-              toast.success("Preferences saved.");
-            }}
-          />
-        </div>
-      </SettingsSection>
-
-      <SettingsSection
         id="security"
         title="Security"
         description="Password and session controls for your employer account."
@@ -347,35 +263,6 @@ export function SettingsPage() {
             </Button>
           </div>
         </div>
-      </SettingsSection>
-
-      <SettingsSection
-        id="preferences"
-        title="Preferences"
-        description="Workspace preferences for this employer account. Theme controls remain in the existing bottom theme switcher."
-      >
-        <SettingsToggle
-          label="Email digest"
-          description="Receive a weekly hiring digest email."
-          checked={preferences.emailDigest}
-          onChange={(checked) => {
-            setPreferences((prev) => ({ ...prev, emailDigest: checked }));
-            toast.success("Preferences saved.");
-          }}
-        />
-        <SettingsToggle
-          label="Compact tables"
-          description="Prefer denser table layouts on larger screens."
-          checked={preferences.compactTables}
-          onChange={(checked) => {
-            setPreferences((prev) => ({ ...prev, compactTables: checked }));
-            toast.success("Preferences saved.");
-          }}
-        />
-        <p className="mt-4 text-sm text-muted">
-          Appearance (Light / Dark / System) is controlled by the existing theme
-          switcher at the bottom of the screen.
-        </p>
       </SettingsSection>
 
       <SettingsSection

@@ -11,7 +11,7 @@ export type AnalyticsKpi = {
   key: string;
   label: string;
   value: number;
-  /** e.g. "+18.4%" — sourced from mock trend data */
+  /** e.g. "+18.4%" compared with the previous selected period */
   trend: string | null;
   /** e.g. "vs previous period" */
   trendLabel: string | null;

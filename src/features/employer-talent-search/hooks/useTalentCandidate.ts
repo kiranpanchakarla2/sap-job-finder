@@ -9,7 +9,11 @@ type LoadState = "idle" | "loading" | "success" | "error";
 /**
  * Loads a single employer-safe Talent Search candidate via RPC.
  */
-export function useTalentCandidate(candidateId: string) {
+export function useTalentCandidate(
+  candidateId: string,
+  options?: { enabled?: boolean },
+) {
+  const enabled = options?.enabled ?? true;
   const [candidate, setCandidate] = useState<TalentCandidate | null>(null);
   const [status, setStatus] = useState<LoadState>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -32,8 +36,15 @@ export function useTalentCandidate(candidateId: string) {
   }, [candidateId]);
 
   useEffect(() => {
+    if (!enabled) {
+      setCandidate(null);
+      setError(null);
+      setCode(null);
+      setStatus("idle");
+      return;
+    }
     void load();
-  }, [load]);
+  }, [enabled, load]);
 
   return {
     candidate,

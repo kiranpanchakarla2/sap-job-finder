@@ -36,7 +36,7 @@ export function CurrentPlanCard({
             {plan.name.toUpperCase()}
           </h2>
           <p className="mt-1 text-sm text-muted">
-            {formatPlanPrice(plan.priceMonthly)}/{plan.billingPeriod}
+            {formatPlanPrice(plan.priceMonthly, plan.currency)}/{plan.billingPeriod}
           </p>
         </div>
         <PlanStatusBadge status={subscription.status} />

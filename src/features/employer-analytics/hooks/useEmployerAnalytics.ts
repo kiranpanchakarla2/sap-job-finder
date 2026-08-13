@@ -16,25 +16,32 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
 
 export function useEmployerAnalytics(
   initialFilters: AnalyticsFilters = DEFAULT_FILTERS,
+  options?: { includeAdvanced?: boolean },
 ) {
+  const includeAdvanced = options?.includeAdvanced ?? true;
   const [filters, setFilters] = useState<AnalyticsFilters>(initialFilters);
   const [data, setData] = useState<EmployerAnalyticsData | null>(null);
   const [status, setStatus] = useState<LoadState>("idle");
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (nextFilters: AnalyticsFilters) => {
-    setStatus("loading");
-    setError(null);
-    const result = await analyticsService.getAnalytics(nextFilters);
-    if (!result.success) {
-      setData(null);
-      setError(result.error);
-      setStatus("error");
-      return;
-    }
-    setData(result.data);
-    setStatus("success");
-  }, []);
+  const load = useCallback(
+    async (nextFilters: AnalyticsFilters) => {
+      setStatus("loading");
+      setError(null);
+      const result = await analyticsService.getAnalytics(nextFilters, {
+        includeAdvanced,
+      });
+      if (!result.success) {
+        setData(null);
+        setError(result.error);
+        setStatus("error");
+        return;
+      }
+      setData(result.data);
+      setStatus("success");
+    },
+    [includeAdvanced],
+  );
 
   useEffect(() => {
     void load(filters);

@@ -53,7 +53,7 @@ export function UpgradeModal({
 
   const onContinue = () => {
     toast.message("Payment integration coming soon.", {
-      description: "Upgrade flow started. Billing will be available in Sprint 6B.",
+      description: "Online payment options will be available soon.",
     });
     onClose();
   };
@@ -91,7 +91,7 @@ export function UpgradeModal({
             </p>
 
             <p className="mt-4 text-3xl font-bold text-text">
-              {formatPlanPrice(plan.priceMonthly)}
+              {formatPlanPrice(plan.priceMonthly, plan.currency)}
               <span className="text-sm font-medium text-muted">
                 /{plan.billingPeriod}
               </span>

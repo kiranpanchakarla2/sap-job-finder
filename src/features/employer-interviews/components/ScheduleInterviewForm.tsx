@@ -76,7 +76,7 @@ export function ScheduleInterviewForm({
   onSubmitEdit,
 }: ScheduleInterviewFormProps) {
   const formId = useId();
-  const suggested = useMemo(() => interviewService.getInterviewers(), []);
+  const [suggested, setSuggested] = useState<Interviewer[]>([]);
 
   const [applicationId, setApplicationId] = useState(
     initialApplicationId ?? "",
@@ -103,6 +103,16 @@ export function ScheduleInterviewForm({
     initialValues?.interviewers ?? [],
   );
   const [notes, setNotes] = useState(initialValues?.notes ?? "");
+
+  useEffect(() => {
+    let active = true;
+    void interviewService.getInterviewers().then((members) => {
+      if (active) setSuggested(members);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   const [errors, setErrors] = useState<InterviewFormErrors>({});
   const [addName, setAddName] = useState("");
   const [suggestedId, setSuggestedId] = useState("");

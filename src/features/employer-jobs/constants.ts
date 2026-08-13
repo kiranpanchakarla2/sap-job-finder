@@ -125,7 +125,3 @@ export const JOB_SORT_OPTIONS: { value: JobSortOption; label: string }[] = [
   { value: "most_applications", label: "Most Applications" },
   { value: "deadline", label: "Deadline" },
 ];
-
-export const DEFAULT_COMPANY_NAME = "Apex SAP Solutions";
-export const DEFAULT_RECRUITER_NAME = "Priya Sharma";
-export const DEFAULT_APPLICATION_EMAIL = "careers@apexsap.com";

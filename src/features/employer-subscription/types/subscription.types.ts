@@ -1,5 +1,7 @@
 export type PlanId = "free" | "pro" | "business";
 
+export type PlanCurrency = "INR" | "USD";
+
 export type SubscriptionStatus =
   | "active"
   | "trialing"
@@ -15,6 +17,12 @@ export type PlanFeature =
   | "team_members"
   | "priority_support";
 
+/** UI/service entitlement keys mapped to plan features. */
+export type PlanEntitlement =
+  | "talentSearch"
+  | "advancedAnalytics"
+  | "teamManagement";
+
 export type PlanLimits = {
   /** null = unlimited */
   activeJobs: number | null;
@@ -27,6 +35,7 @@ export type PlanDefinition = {
   id: PlanId;
   name: string;
   priceMonthly: number;
+  currency: PlanCurrency;
   billingPeriod: "month";
   description: string;
   features: string[];

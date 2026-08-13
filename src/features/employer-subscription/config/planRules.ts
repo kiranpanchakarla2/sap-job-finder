@@ -1,6 +1,7 @@
 import type {
   EmployerSubscription,
   PlanDefinition,
+  PlanEntitlement,
   PlanFeature,
   PlanId,
   PlanLimits,
@@ -8,15 +9,21 @@ import type {
   UsageMetricKey,
 } from "../types/subscription.types";
 
+const ENTITLEMENT_TO_FEATURE: Record<PlanEntitlement, PlanFeature> = {
+  talentSearch: "talent_search",
+  advancedAnalytics: "advanced_analytics",
+  teamManagement: "team_members",
+};
+
 export const PLAN_LIMITS: Record<PlanId, PlanLimits> = {
   free: {
-    activeJobs: 3,
+    activeJobs: 5,
     applications: 50,
     talentSearch: 10,
     teamMembers: 1,
   },
   pro: {
-    activeJobs: 15,
+    activeJobs: 25,
     applications: 500,
     talentSearch: 100,
     teamMembers: 5,
@@ -58,10 +65,11 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     id: "free",
     name: "Free",
     priceMonthly: 0,
+    currency: "INR",
     billingPeriod: "month",
     description: "Get started with essential hiring tools.",
     features: [
-      "3 active jobs",
+      "5 active jobs",
       "Basic applicant management",
       "Basic analytics",
       "Interview scheduling",
@@ -73,11 +81,12 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
   {
     id: "pro",
     name: "Pro",
-    priceMonthly: 29,
+    priceMonthly: 1999,
+    currency: "INR",
     billingPeriod: "month",
     description: "Scale hiring with advanced insights and Talent Search.",
     features: [
-      "15 active jobs",
+      "25 active jobs",
       "Advanced analytics",
       "Talent Search",
       "Candidate messaging",
@@ -91,7 +100,8 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
   {
     id: "business",
     name: "Business",
-    priceMonthly: 99,
+    priceMonthly: 5999,
+    currency: "INR",
     billingPeriod: "month",
     description: "Unlimited hiring capacity for growing teams.",
     features: [
@@ -131,6 +141,20 @@ export function canUseFeature(
   feature: PlanFeature,
 ): boolean {
   return PLAN_FEATURES[planId].includes(feature);
+}
+
+export function hasPlanEntitlement(
+  planId: PlanId,
+  entitlement: PlanEntitlement,
+): boolean {
+  return canUseFeature(planId, ENTITLEMENT_TO_FEATURE[entitlement]);
+}
+
+export function getPlanLimit(
+  planId: PlanId,
+  key: UsageMetricKey,
+): number | null {
+  return PLAN_LIMITS[planId][key];
 }
 
 export function getUsagePercentage(
@@ -188,7 +212,14 @@ export function daysUntil(dateIso: string | null, now = new Date()): number | nu
   return Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
 }
 
-export function formatPlanPrice(priceMonthly: number): string {
+export function formatPlanPrice(
+  priceMonthly: number,
+  currency: PlanDefinition["currency"] = "INR",
+): string {
+  if (currency === "INR") {
+    if (priceMonthly === 0) return "₹0";
+    return `₹${priceMonthly.toLocaleString("en-IN")}`;
+  }
   if (priceMonthly === 0) return "$0";
   return `$${priceMonthly}`;
 }

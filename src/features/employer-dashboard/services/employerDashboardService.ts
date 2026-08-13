@@ -1,4 +1,3 @@
-import { DASHBOARD_EMPTY_OVERRIDES } from "../data/employerDashboard.mock";
 import type {
   DashboardServiceResult,
   EmployerApplicantSummary,
@@ -47,7 +46,7 @@ function toJobSummary(job: {
 /**
  * Employer dashboard service.
  * Company/jobs/applicants/interviews/messages from existing feature services.
- * Job performance KPIs enriched via analyticsService (Sprint 6A mock-ready).
+ * Job performance KPIs are enriched via analyticsService.
  */
 export const employerDashboardService = {
   async getDashboard(employerId: string): Promise<DashboardServiceResult<EmployerDashboardData>> {
@@ -76,7 +75,7 @@ export const employerDashboardService = {
         applicationService.getStats(),
         interviewService.getUpcoming(3),
         interviewService.getStats(),
-        analyticsService.getAnalytics({ dateRange: "30d", jobId: "all" }, employerId),
+        analyticsService.getAnalytics({ dateRange: "30d", jobId: "all" }),
         messageService.listConversations(),
       ]);
 
@@ -86,7 +85,7 @@ export const employerDashboardService = {
 
       const jobStats = jobStatsResult.data;
       const upcomingInterviews: EmployerInterviewSummary[] =
-        DASHBOARD_EMPTY_OVERRIDES.interviews || !interviewsResult.success
+        !interviewsResult.success
           ? []
           : interviewsResult.data.map((interview) => ({
               id: interview.id,
@@ -102,9 +101,7 @@ export const employerDashboardService = {
                     : ("Onsite" as const),
             }));
 
-      const upcomingInterviewCount = DASHBOARD_EMPTY_OVERRIDES.interviews
-        ? 0
-        : interviewStatsResult.success
+      const upcomingInterviewCount = interviewStatsResult.success
           ? interviewStatsResult.data.upcoming
           : upcomingInterviews.length;
 
@@ -121,7 +118,7 @@ export const employerDashboardService = {
           };
 
       const recentApplicants: EmployerApplicantSummary[] =
-        DASHBOARD_EMPTY_OVERRIDES.applicants || !applicationsResult.success
+        !applicationsResult.success
           ? []
           : applicationsResult.data.slice(0, 5).map((app) => ({
               id: app.id,
@@ -143,9 +140,7 @@ export const employerDashboardService = {
         }
       }
 
-      const recentJobs = DASHBOARD_EMPTY_OVERRIDES.jobs
-        ? []
-        : jobStats.recentJobs.map((job) =>
+      const recentJobs = jobStats.recentJobs.map((job) =>
             toJobSummary({
               ...job,
               applications: countByJob.get(job.id) ?? job.applications,

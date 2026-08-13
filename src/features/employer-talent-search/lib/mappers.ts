@@ -171,6 +171,9 @@ export function mapTalentError(error: unknown): string {
         ? error
         : "";
 
+  if (message.includes("TALENT_SEARCH_NOT_AVAILABLE")) {
+    return "TALENT_SEARCH_NOT_AVAILABLE";
+  }
   if (message.includes("TALENT_SEARCH_LIMIT_REACHED")) {
     return "TALENT_SEARCH_LIMIT_REACHED";
   }
@@ -185,6 +188,8 @@ export function mapTalentError(error: unknown): string {
 
 export function talentErrorMessage(code: string): string {
   switch (code) {
+    case "TALENT_SEARCH_NOT_AVAILABLE":
+      return "Talent Search is available with Pro and Business plans.";
     case "TALENT_SEARCH_LIMIT_REACHED":
       return "You've reached your Talent Search limit for this period.";
     case "CANDIDATE_NOT_AVAILABLE":

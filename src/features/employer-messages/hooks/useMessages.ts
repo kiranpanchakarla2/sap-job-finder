@@ -39,23 +39,33 @@ export function useConversations(search: string) {
   };
 }
 
-export function useUnreadMessageCount() {
+export function useUnreadMessageCount(enabled = true) {
   const [count, setCount] = useState(0);
 
   const reload = useCallback(async () => {
+    if (!enabled) {
+      setCount(0);
+      return;
+    }
+
     const result = await messageService.getUnreadCount();
     if (result.success) {
       setCount(result.data);
     }
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
+    if (!enabled) {
+      setCount(0);
+      return;
+    }
+
     void reload();
     const interval = window.setInterval(() => {
       void reload();
     }, 30_000);
     return () => window.clearInterval(interval);
-  }, [reload]);
+  }, [enabled, reload]);
 
   return { unreadCount: count, reload };
 }

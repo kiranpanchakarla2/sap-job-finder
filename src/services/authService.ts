@@ -310,8 +310,32 @@ export async function logout(): Promise<void> {
 
 export async function getSession(): Promise<Session | null> {
   const supabase = createClient();
-  const { data } = await supabase.auth.getSession();
-  return data.session;
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError || !session) return null;
+
+  // A stored session can be stale. Validate it with Auth before protected
+  // routes mount their data loaders.
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    if (
+      !userError ||
+      userError.name === "AuthSessionMissingError" ||
+      userError.status === 401 ||
+      userError.status === 403
+    ) {
+      await supabase.auth.signOut({ scope: "local" });
+    }
+    return null;
+  }
+  return { ...session, user };
 }
 
 export async function getCurrentUser(): Promise<AuthUser | null> {

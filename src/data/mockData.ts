@@ -8,10 +8,8 @@ import type {
   CandidateInterview,
   LearningCourse,
 } from "@/types/candidate";
-import type { EmployerApplicant, EmployerJob } from "@/types/employer";
 import type {
   CandidateDashboardStats,
-  EmployerDashboardStats,
   RecommendedJob,
 } from "@/types/job";
 
@@ -20,14 +18,6 @@ export const candidateDashboardStats: CandidateDashboardStats = {
   savedJobs: 8,
   interviewCalls: 3,
   profileViews: 146,
-};
-
-export const employerDashboardStats: EmployerDashboardStats = {
-  activeJobs: 6,
-  totalApplications: 84,
-  shortlisted: 18,
-  interviews: 7,
-  hired: 2,
 };
 
 export const recommendedJobs: RecommendedJob[] = [
@@ -159,98 +149,3 @@ export const learningCourses: LearningCourse[] = [
   },
 ];
 
-export const employerJobs: EmployerJob[] = [
-  {
-    id: "ejob_1",
-    title: "SAP FICO Senior Consultant",
-    applications: 24,
-    views: 312,
-    status: "Active",
-    postedAt: "Aug 2, 2026",
-    location: "Bengaluru",
-    sapModule: "SAP FICO",
-  },
-  {
-    id: "ejob_2",
-    title: "SAP SD Functional Consultant",
-    applications: 18,
-    views: 245,
-    status: "Active",
-    postedAt: "Jul 28, 2026",
-    location: "Hyderabad",
-    sapModule: "SAP SD",
-  },
-  {
-    id: "ejob_3",
-    title: "SAP Basis Administrator",
-    applications: 11,
-    views: 189,
-    status: "Paused",
-    postedAt: "Jul 15, 2026",
-    location: "Remote",
-    sapModule: "SAP Basis",
-  },
-  {
-    id: "ejob_4",
-    title: "SAP SuccessFactors Analyst",
-    applications: 31,
-    views: 401,
-    status: "Active",
-    postedAt: "Aug 5, 2026",
-    location: "Pune",
-    sapModule: "SAP SuccessFactors",
-  },
-];
-
-export const employerApplicants: EmployerApplicant[] = [
-  {
-    id: "eapp_1",
-    name: "Ananya Iyer",
-    sapModule: "SAP FICO",
-    experience: "6 years",
-    location: "Bengaluru",
-    appliedAt: "Aug 7, 2026",
-    status: "New",
-    jobTitle: "SAP FICO Senior Consultant",
-  },
-  {
-    id: "eapp_2",
-    name: "Vikram Singh",
-    sapModule: "SAP SD",
-    experience: "8 years",
-    location: "Hyderabad",
-    appliedAt: "Aug 6, 2026",
-    status: "Shortlisted",
-    jobTitle: "SAP SD Functional Consultant",
-  },
-  {
-    id: "eapp_3",
-    name: "Sneha Reddy",
-    sapModule: "SAP SuccessFactors",
-    experience: "5 years",
-    location: "Pune",
-    appliedAt: "Aug 5, 2026",
-    status: "Interview",
-    jobTitle: "SAP SuccessFactors Analyst",
-  },
-  {
-    id: "eapp_4",
-    name: "Arjun Mehta",
-    sapModule: "SAP FICO",
-    experience: "4 years",
-    location: "Chennai",
-    appliedAt: "Aug 4, 2026",
-    status: "Under Review",
-    jobTitle: "SAP FICO Senior Consultant",
-  },
-];
-
-export const hiringOverview = [
-  { label: "Mon", applications: 8 },
-  { label: "Tue", applications: 12 },
-  { label: "Wed", applications: 9 },
-  { label: "Thu", applications: 15 },
-  { label: "Fri", applications: 11 },
-  { label: "Sat", applications: 4 },
-  { label: "Sun", applications: 3 },
-];

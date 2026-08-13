@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ErrorState } from "@/components/dashboard/shared/ErrorState";
+import {
+  FeatureLockCard,
+  useEmployerPlan,
+} from "@/features/employer-subscription";
 import { CandidateResults } from "../components/CandidateCard";
 import { SavedCandidatesEmptyState } from "../components/TalentSearchEmptyState";
 import { TalentSearchSkeleton } from "../components/TalentSearchSkeleton";
@@ -12,7 +16,40 @@ import { useTalentCollections } from "../hooks/useTalentCollections";
 import { talentSearchService } from "../services/talentSearchService";
 import type { TalentCandidate } from "../types/talentSearch.types";
 
-export function SavedCandidatesPage() {
+function SavedCandidatesLocked() {
+  return (
+    <div className="mx-auto max-w-7xl space-y-6">
+      <div>
+        <nav className="mb-2 text-sm text-muted" aria-label="Breadcrumb">
+          <ol className="flex flex-wrap items-center gap-2">
+            <li>
+              <Link
+                href={EMPLOYER_TALENT_SEARCH_ROUTES.root}
+                className="font-medium text-primary hover:underline"
+              >
+                Talent Search
+              </Link>
+            </li>
+            <li aria-hidden="true">›</li>
+            <li className="text-text">Saved Candidates</li>
+          </ol>
+        </nav>
+        <h1 className="text-2xl font-bold tracking-tight text-text sm:text-3xl">
+          Saved Candidates
+        </h1>
+        <p className="mt-1 text-sm text-muted">
+          Candidates you saved to revisit later.
+        </p>
+      </div>
+      <FeatureLockCard
+        title="Talent Search"
+        description="Talent Search is available with Pro and Business plans."
+      />
+    </div>
+  );
+}
+
+function SavedCandidatesContent() {
   const { isReady, reloadCollections } = useTalentCollections();
   const [candidates, setCandidates] = useState<TalentCandidate[]>([]);
   const [unavailableCount, setUnavailableCount] = useState(0);
@@ -100,4 +137,22 @@ export function SavedCandidatesPage() {
       )}
     </div>
   );
+}
+
+export function SavedCandidatesPage() {
+  const { hasFeature, isLoading } = useEmployerPlan();
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-7xl space-y-6">
+        <TalentSearchSkeleton />
+      </div>
+    );
+  }
+
+  if (!hasFeature("talentSearch")) {
+    return <SavedCandidatesLocked />;
+  }
+
+  return <SavedCandidatesContent />;
 }

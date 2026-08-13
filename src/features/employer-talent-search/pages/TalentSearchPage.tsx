@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ErrorState } from "@/components/dashboard/shared/ErrorState";
+import {
+  FeatureLockCard,
+  useEmployerPlan,
+} from "@/features/employer-subscription";
 import { DEFAULT_PAGE_SIZE } from "../config/talentSearchFilters";
 import { ActiveFilterChips } from "../components/ActiveFilterChips";
 import { CandidateResults } from "../components/CandidateCard";
@@ -19,6 +23,25 @@ import { TalentSearchToolbar } from "../components/TalentSearchToolbar";
 import { useTalentSearch } from "../hooks/useTalentSearch";
 import { talentSearchService } from "../services/talentSearchService";
 import type { TalentUsage } from "../services/talentSearchService";
+
+function TalentSearchLocked() {
+  return (
+    <div className="mx-auto max-w-7xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-text sm:text-3xl">
+          Talent Search
+        </h1>
+        <p className="mt-1 text-sm text-muted">
+          Find qualified SAP professionals faster.
+        </p>
+      </div>
+      <FeatureLockCard
+        title="Talent Search"
+        description="Talent Search is available with Pro and Business plans."
+      />
+    </div>
+  );
+}
 
 function TalentUsageBanner({ usage }: { usage: TalentUsage }) {
   if (usage.limit === null) {
@@ -58,7 +81,7 @@ function TalentUsageBanner({ usage }: { usage: TalentUsage }) {
   );
 }
 
-export function TalentSearchPage() {
+function TalentSearchContent() {
   const {
     filters,
     keywordDraft,
@@ -124,7 +147,7 @@ export function TalentSearchPage() {
             error?.includes("Talent Search limit") ? (
               <Link
                 href="/employer/subscription"
-                className="text-sm font-medium text-primary hover:underline"
+                className="font-medium text-primary hover:underline"
               >
                 View Plans
               </Link>
@@ -185,4 +208,22 @@ export function TalentSearchPage() {
       )}
     </div>
   );
+}
+
+export function TalentSearchPage() {
+  const { hasFeature, isLoading } = useEmployerPlan();
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-7xl space-y-6">
+        <TalentSearchSkeleton />
+      </div>
+    );
+  }
+
+  if (!hasFeature("talentSearch")) {
+    return <TalentSearchLocked />;
+  }
+
+  return <TalentSearchContent />;
 }

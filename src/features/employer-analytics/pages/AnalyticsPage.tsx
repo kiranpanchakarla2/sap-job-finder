@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/dashboard/shared/EmptyState";
 import { ErrorState } from "@/components/dashboard/shared/ErrorState";
 import { EMPLOYER_ROUTES } from "@/features/employer-company/constants";
+import {
+  FeatureLockCard,
+  useEmployerPlan,
+} from "@/features/employer-subscription";
 import { AnalyticsExportMenu } from "../components/AnalyticsExportMenu";
 import { AnalyticsFiltersBar } from "../components/AnalyticsFilters";
 import { AnalyticsKpiCard } from "../components/AnalyticsKpiCard";
@@ -18,6 +22,8 @@ import { InterviewAnalyticsCard } from "../components/InterviewAnalytics";
 import { JobPerformanceTable } from "../components/JobPerformanceTable";
 import { TopPerformingJobs } from "../components/TopPerformingJobs";
 import { useEmployerAnalytics } from "../hooks/useEmployerAnalytics";
+
+const BASIC_KPI_KEYS = new Set(["totalJobs", "activeJobs", "applications"]);
 
 function SectionCard({
   title,
@@ -35,10 +41,12 @@ function SectionCard({
 }
 
 export function AnalyticsPage() {
+  const { hasFeature, isLoading: planLoading } = useEmployerPlan();
+  const includeAdvanced = hasFeature("advancedAnalytics");
   const { filters, updateFilters, data, isLoading, isError, error, reload } =
-    useEmployerAnalytics();
+    useEmployerAnalytics(undefined, { includeAdvanced });
 
-  if (isLoading) {
+  if (planLoading || isLoading) {
     return <AnalyticsSkeleton />;
   }
 
@@ -75,6 +83,9 @@ export function AnalyticsPage() {
     );
   }
 
+  const basicKpis = data.kpis.filter((kpi) => BASIC_KPI_KEYS.has(kpi.key));
+  const advancedKpis = data.kpis.filter((kpi) => !BASIC_KPI_KEYS.has(kpi.key));
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -86,7 +97,7 @@ export function AnalyticsPage() {
             Track your hiring performance and job activity.
           </p>
         </div>
-        <AnalyticsExportMenu />
+        {includeAdvanced ? <AnalyticsExportMenu /> : null}
       </div>
 
       <AnalyticsFiltersBar
@@ -96,7 +107,7 @@ export function AnalyticsPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {data.kpis.map((kpi) => (
+        {basicKpis.map((kpi) => (
           <AnalyticsKpiCard key={kpi.key} kpi={kpi} />
         ))}
       </div>
@@ -106,30 +117,47 @@ export function AnalyticsPage() {
       </SectionCard>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <SectionCard title="Application Funnel">
-          <ApplicationFunnel stages={data.funnel} />
-        </SectionCard>
         <SectionCard title="Application Overview">
           <ApplicationStatusBreakdown items={data.statusBreakdown} />
         </SectionCard>
-      </div>
-
-      <SectionCard title="Applications Over Time">
-        <ApplicationTrend points={data.trend} />
-      </SectionCard>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <SectionCard title="Interview Performance">
-          <InterviewAnalyticsCard data={data.interviews} />
-        </SectionCard>
-        <SectionCard title="Hiring Overview">
-          <HiringOverviewCard data={data.hiring} />
+        <SectionCard title="Applications Over Time">
+          <ApplicationTrend points={data.trend} />
         </SectionCard>
       </div>
 
-      <SectionCard title="Top Performing Jobs">
-        <TopPerformingJobs jobs={data.topJobs} />
-      </SectionCard>
+      {includeAdvanced ? (
+        <>
+          {advancedKpis.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {advancedKpis.map((kpi) => (
+                <AnalyticsKpiCard key={kpi.key} kpi={kpi} />
+              ))}
+            </div>
+          ) : null}
+
+          <SectionCard title="Application Funnel">
+            <ApplicationFunnel stages={data.funnel} />
+          </SectionCard>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <SectionCard title="Interview Performance">
+              <InterviewAnalyticsCard data={data.interviews} />
+            </SectionCard>
+            <SectionCard title="Hiring Overview">
+              <HiringOverviewCard data={data.hiring} />
+            </SectionCard>
+          </div>
+
+          <SectionCard title="Top Performing Jobs">
+            <TopPerformingJobs jobs={data.topJobs} />
+          </SectionCard>
+        </>
+      ) : (
+        <FeatureLockCard
+          title="Advanced Analytics"
+          description="Get deeper insights into your hiring performance. Advanced analytics are available with Pro and Business plans."
+        />
+      )}
     </div>
   );
 }

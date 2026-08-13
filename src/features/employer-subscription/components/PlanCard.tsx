@@ -42,7 +42,7 @@ export function PlanCard({
       <h3 className="text-xl font-bold text-text">{plan.name}</h3>
       <p className="mt-1 text-sm text-muted">{plan.description}</p>
       <p className="mt-4 text-3xl font-bold tracking-tight text-text">
-        {formatPlanPrice(plan.priceMonthly)}
+        {formatPlanPrice(plan.priceMonthly, plan.currency)}
         <span className="text-sm font-medium text-muted">/{plan.billingPeriod}</span>
       </p>
 

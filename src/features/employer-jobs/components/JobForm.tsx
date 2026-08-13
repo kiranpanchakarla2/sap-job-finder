@@ -7,11 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
-import {
-  DEFAULT_APPLICATION_EMAIL,
-  DEFAULT_RECRUITER_NAME,
-  EMPLOYER_JOB_ROUTES,
-} from "../constants";
+import { useEmployerAuth } from "@/features/employer-auth";
+import { EMPLOYER_JOB_ROUTES } from "../constants";
 import { emptyJobFormValues, jobToFormValues } from "../lib/format";
 import { savePreviewDraft } from "../lib/previewDraft";
 import { jobFormSchema, type JobFormValues } from "../lib/validation";
@@ -61,6 +58,7 @@ function ActionButton({
 
 export function JobForm(props: JobFormProps) {
   const router = useRouter();
+  const { employer } = useEmployerAuth();
   const [pending, setPending] = useState<PendingAction>(null);
 
   const form = useForm<JobFormValues>({
@@ -69,8 +67,11 @@ export function JobForm(props: JobFormProps) {
       props.mode === "edit"
         ? jobToFormValues(props.initialData)
         : emptyJobFormValues({
-            recruiter: DEFAULT_RECRUITER_NAME,
-            applicationEmail: DEFAULT_APPLICATION_EMAIL,
+            recruiter:
+              [employer?.firstName, employer?.lastName]
+                .filter(Boolean)
+                .join(" ") || "",
+            applicationEmail: employer?.email ?? "",
           }),
     mode: "onSubmit",
   });

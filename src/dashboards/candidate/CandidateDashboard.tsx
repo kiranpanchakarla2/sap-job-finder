@@ -88,7 +88,7 @@ export function CandidateDashboard() {
         <div className="lg:col-span-1">
           <ProgressCard
             title="Profile Completion"
-            description="Add skills and certifications to improve matches. Resume comes in Sprint 2."
+            description="Add skills and certifications to improve matches."
             progress={profileCompletion}
             href="/candidate/profile"
             ctaLabel="Complete Profile"

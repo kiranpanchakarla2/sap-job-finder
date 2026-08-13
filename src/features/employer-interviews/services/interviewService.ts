@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { applicationService } from "@/features/employer-applicants";
 import type { ApplicationStatus } from "@/features/employer-applicants";
+import { teamService } from "@/features/employer-team/services/teamService";
 import {
   computeInterviewStats,
   filterInterviewsByTab,
@@ -41,12 +42,6 @@ const ERR = {
   status: "Unable to update application status.",
   conflict: "Interviewer is unavailable at this time.",
 } as const;
-
-const SUGGESTED_INTERVIEWERS: Interviewer[] = [
-  { id: "ivw_hiring_manager", name: "Hiring Manager" },
-  { id: "ivw_tech_lead", name: "Technical Lead" },
-  { id: "ivw_hr", name: "HR Partner" },
-];
 
 function logError(context: string, error: unknown) {
   if (process.env.NODE_ENV !== "production") {
@@ -159,8 +154,19 @@ async function findInterviewerConflict(
 }
 
 export const interviewService = {
-  getInterviewers() {
-    return [...SUGGESTED_INTERVIEWERS];
+  async getInterviewers(): Promise<Interviewer[]> {
+    const result = await teamService.listMembers();
+    if (!result.success) return [];
+
+    return result.data
+      .filter((member) => member.status === "active")
+      .map((member) => ({
+        id: member.id,
+        name:
+          [member.firstName, member.lastName].filter(Boolean).join(" ") ||
+          member.email,
+        email: member.email,
+      }));
   },
 
   async listInterviews(

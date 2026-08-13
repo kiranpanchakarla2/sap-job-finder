@@ -1,7 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { ErrorState } from "@/components/dashboard/shared/ErrorState";
 import { Button } from "@/components/ui/Button";
+import {
+  FeatureLockCard,
+  useEmployerPlan,
+} from "@/features/employer-subscription";
 import { CandidateProfileView } from "../components/CandidateProfileView";
 import { CandidateProfileSkeleton } from "../components/TalentSearchSkeleton";
 import { EMPLOYER_TALENT_SEARCH_ROUTES } from "../constants";
@@ -12,11 +17,54 @@ export function CandidateProfilePage({
 }: {
   candidateId: string;
 }) {
+  const { hasFeature, isLoading: planLoading } = useEmployerPlan();
   const { candidate, isLoading, isError, error, code, reload } =
-    useTalentCandidate(candidateId);
+    useTalentCandidate(candidateId, { enabled: hasFeature("talentSearch") });
+
+  if (planLoading) {
+    return <CandidateProfileSkeleton />;
+  }
+
+  if (!hasFeature("talentSearch")) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <FeatureLockCard
+          title="Talent Search"
+          description="Talent Search is available with Pro and Business plans."
+        />
+        <div className="text-center">
+          <Button
+            href={EMPLOYER_TALENT_SEARCH_ROUTES.root}
+            variant="secondary"
+          >
+            Back to Talent Search
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return <CandidateProfileSkeleton />;
+  }
+
+  if (code === "TALENT_SEARCH_NOT_AVAILABLE") {
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <FeatureLockCard
+          title="Talent Search"
+          description="Talent Search is available with Pro and Business plans."
+        />
+        <div className="text-center">
+          <Button
+            href={EMPLOYER_TALENT_SEARCH_ROUTES.root}
+            variant="secondary"
+          >
+            Back to Talent Search
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   if (code === "TALENT_SEARCH_LIMIT_REACHED") {

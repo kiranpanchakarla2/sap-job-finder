@@ -87,7 +87,7 @@ export function BillingSection({
               variant="secondary"
               onClick={() =>
                 toast.message("Payment integration coming soon.", {
-                  description: "Add Payment Method is UI-only in Sprint 6A.",
+                  description: "Online payment options will be available soon.",
                 })
               }
             >

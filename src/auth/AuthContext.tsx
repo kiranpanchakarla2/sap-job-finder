@@ -89,10 +89,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     })();
 
-    const unsubscribe = subscribeToAuthChanges(async (_event, nextSession) => {
+    const unsubscribe = subscribeToAuthChanges((event, nextSession) => {
       if (!mounted) return;
-      await applySession(nextSession);
-      setIsLoading(false);
+
+      // Initial state is handled by the validated getSession() call above.
+      // Applying Supabase's storage-backed INITIAL_SESSION directly can briefly
+      // mount protected data loaders with a stale token.
+      if (event === "INITIAL_SESSION") return;
+
+      window.setTimeout(() => {
+        if (!mounted) return;
+        void applySession(nextSession).finally(() => {
+          if (mounted) setIsLoading(false);
+        });
+      }, 0);
     });
 
     return () => {

@@ -300,7 +300,7 @@ export const mainNavMenus: NavMenuConfig[] = [
 ];
 
 export const authNav = {
-  signIn: { label: "Sign in", href: "/login" },
+  signIn: { label: "Sign in", href: "/login/candidate" },
   employers: {
     label: "Employers / Post a Job",
     href: "/employer/login",

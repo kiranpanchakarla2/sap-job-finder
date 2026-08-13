@@ -89,9 +89,6 @@ export type JobFilterOption = {
   workArrangement: string;
 };
 
-/** @deprecated use JobFilterOption */
-export type MockJobOption = JobFilterOption;
-
 export type ApplicationSummaryStats = {
   total: number;
   new: number;
