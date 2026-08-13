@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Footer } from "@/components/Footer";
 import { BrandLogo } from "@/components/layout/BrandLogo";
 import { OnboardingProgress, OnboardingStepIndicator } from "./OnboardingProgress";
 import { ONBOARDING_STEPS } from "../constants";
@@ -15,14 +16,14 @@ export function OnboardingLayout({
   const step = ONBOARDING_STEPS[currentStep - 1];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <header className="border-b border-border bg-card/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center px-4 sm:px-6">
           <BrandLogo href="/employer/onboarding" />
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:py-12">
+      <div className="mx-auto grid w-full max-w-6xl flex-1 gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:py-12">
         <aside className="space-y-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-primary">
@@ -65,6 +66,7 @@ export function OnboardingLayout({
           {children}
         </section>
       </div>
+      <Footer />
     </div>
   );
 }

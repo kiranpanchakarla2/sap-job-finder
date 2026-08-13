@@ -9,6 +9,7 @@ import {
 import { TopHeader } from "@/components/dashboard/shared/TopHeader";
 import { useApplications } from "@/features/candidate-applications";
 import { useSavedJobs } from "@/features/candidate-jobs";
+import { Footer } from "@/components/Footer";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import type { AuthRole } from "@/types/auth";
 
@@ -48,13 +49,14 @@ export function CandidateLayout({ children }: { children: ReactNode }) {
           onClose={() => setSidebarOpen(false)}
           ariaLabel="Candidate navigation"
         />
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col">
           <TopHeader
             onMenuClick={() => setSidebarOpen(true)}
             searchPlaceholder="Search SAP jobs, companies…"
             notificationsHref="/candidate/notifications"
           />
           <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+          <Footer />
         </div>
       </div>
     </ProtectedRoute>

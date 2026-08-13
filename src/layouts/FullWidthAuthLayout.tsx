@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
+import { Footer } from "@/components/Footer";
 import { siteConfig } from "@/lib/constants";
 
 type FullWidthAuthLayoutProps = {
@@ -17,7 +18,7 @@ export function FullWidthAuthLayout({ children }: FullWidthAuthLayoutProps) {
   const reduceMotion = useReducedMotion();
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-surface">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-surface">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(79,70,229,0.12),_transparent_55%),radial-gradient(ellipse_at_bottom_right,_rgba(124,58,237,0.10),_transparent_50%)]" />
       <div className="pointer-events-none absolute inset-0 bg-gradient-soft opacity-70" />
       <div className="pointer-events-none absolute inset-0 opacity-35 grid-pattern" />
@@ -48,7 +49,7 @@ export function FullWidthAuthLayout({ children }: FullWidthAuthLayoutProps) {
           ))
         : null}
 
-      <div className="relative flex min-h-screen flex-col items-center justify-start px-5 pb-12 pt-8 sm:px-8 sm:pb-16 sm:pt-10">
+      <div className="relative flex min-h-0 flex-1 flex-col items-center justify-start px-5 pb-12 pt-8 sm:px-8 sm:pb-16 sm:pt-10">
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
@@ -73,6 +74,7 @@ export function FullWidthAuthLayout({ children }: FullWidthAuthLayoutProps) {
           {children}
         </motion.div>
       </div>
+      <Footer />
     </div>
   );
 }

@@ -8,11 +8,11 @@ import { TopCompanies } from "@/components/TopCompanies";
 import { LatestJobs } from "@/components/LatestJobs";
 import { Testimonials } from "@/components/Testimonials";
 import { DualCtaBanners } from "@/components/DualCtaBanners";
-import { Footer } from "@/components/Footer";
+import { PublicLayout } from "@/layouts/PublicLayout";
 
 export default function HomePage() {
   return (
-    <>
+    <PublicLayout>
       <Navbar />
       <main>
         <Hero />
@@ -25,7 +25,6 @@ export default function HomePage() {
         <Testimonials />
         <DualCtaBanners />
       </main>
-      <Footer />
-    </>
+    </PublicLayout>
   );
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
+import { PublicLayout } from "@/layouts/PublicLayout";
 import { JobCard } from "@/components/jobs/JobCard";
 import { getCompanyById, mockJobs } from "@/lib/mock-data";
 
@@ -15,9 +15,9 @@ export default async function CompanyDetailPage({ params }: { params: Params }) 
   const jobs = mockJobs.filter((j) => j.companyId === company.id);
 
   return (
-    <>
+    <PublicLayout>
       <Navbar />
-      <main className="mx-auto min-h-screen max-w-6xl px-5 pb-16 pt-28 sm:px-8">
+      <main className="mx-auto max-w-6xl px-5 pb-16 pt-28 sm:px-8">
         <Link href="/companies" className="text-sm font-medium text-primary">
           ← All companies
         </Link>
@@ -52,7 +52,6 @@ export default async function CompanyDetailPage({ params }: { params: Params }) 
           ) : null}
         </div>
       </main>
-      <Footer />
-    </>
+    </PublicLayout>
   );
 }

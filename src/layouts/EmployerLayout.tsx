@@ -14,6 +14,7 @@ import { resolveEmployerMembership } from "@/features/employer-auth/services/emp
 import { useEmployerPlan } from "@/features/employer-subscription";
 import { EMPLOYER_ROUTES } from "@/features/employer-company/constants";
 import { canManageEmployerAccounts } from "@/lib/auth/employerPermissions";
+import { Footer } from "@/components/Footer";
 import { useUnreadMessageCount } from "@/features/employer-messages";
 
 export function EmployerLayout({ children }: { children: ReactNode }) {
@@ -88,7 +89,7 @@ export function EmployerLayout({ children }: { children: ReactNode }) {
             ariaLabel="Employer navigation"
             collapsible
           />
-          <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex min-h-screen min-w-0 flex-1 flex-col">
             <TopHeader
               onMenuClick={() => setSidebarOpen(true)}
               searchPlaceholder="Search applicants, jobs…"
@@ -96,6 +97,7 @@ export function EmployerLayout({ children }: { children: ReactNode }) {
               notificationCount={unreadCount}
             />
             <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+            <Footer />
           </div>
         </div>
       </EmployerSessionProvider>

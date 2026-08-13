@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { Footer } from "@/components/Footer";
 import { EmployerAuthBrandPanel } from "./EmployerAuthBrandPanel";
 import { EmployerAuthHeader } from "./EmployerAuthHeader";
 
@@ -28,8 +29,8 @@ export function EmployerAuthLayout({
   const reduceMotion = useReducedMotion();
 
   return (
-    <div className="relative min-h-screen bg-surface text-text">
-      <div className="relative flex min-h-screen">
+    <div className="relative flex min-h-screen flex-col bg-surface text-text">
+      <div className="relative flex min-h-0 flex-1">
         <EmployerAuthBrandPanel />
 
         <div className="relative flex w-full flex-1 items-center justify-center px-5 py-10 sm:px-8 lg:w-[48%] xl:w-[45%]">
@@ -56,6 +57,7 @@ export function EmployerAuthLayout({
           </motion.div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

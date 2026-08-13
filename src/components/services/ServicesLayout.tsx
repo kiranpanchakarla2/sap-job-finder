@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
+import { PublicLayout } from "@/layouts/PublicLayout";
 import { getServiceHref, serviceGroups } from "@/lib/services-nav";
 
 type ServicesLayoutProps = {
@@ -20,9 +20,9 @@ export function ServicesLayout({
   children,
 }: ServicesLayoutProps) {
   return (
-    <>
+    <PublicLayout>
       <Navbar />
-      <main className="mx-auto min-h-screen max-w-6xl px-5 pb-16 pt-28 sm:px-8">
+      <main className="mx-auto max-w-6xl px-5 pb-16 pt-28 sm:px-8">
         <nav className="text-sm text-muted" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-primary">
             Home
@@ -76,7 +76,6 @@ export function ServicesLayout({
           </div>
         </div>
       </main>
-      <Footer />
-    </>
+    </PublicLayout>
   );
 }

@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
+import { Footer } from "@/components/Footer";
 import { AuthBrandPanel } from "@/components/auth/AuthBrandPanel";
 import { siteConfig } from "@/lib/constants";
 
@@ -14,13 +15,13 @@ export function AuthLayout({ children }: AuthLayoutProps) {
   const reduceMotion = useReducedMotion();
 
   return (
-    <div className="relative min-h-screen bg-surface">
+    <div className="relative flex min-h-screen flex-col bg-surface">
       <div className="pointer-events-none absolute inset-0 bg-gradient-soft opacity-90" />
       <div className="pointer-events-none absolute inset-0 opacity-50 grid-pattern" />
       <div className="pointer-events-none absolute left-[-8%] top-16 h-72 w-72 rounded-full bg-primary/10 blur-3xl lg:hidden" />
       <div className="pointer-events-none absolute bottom-10 right-[-10%] h-72 w-72 rounded-full bg-accent/10 blur-3xl lg:hidden" />
 
-      <div className="relative flex min-h-screen">
+      <div className="relative flex min-h-0 flex-1">
         <AuthBrandPanel />
 
         <div className="flex w-full flex-1 items-center justify-center px-5 py-10 sm:px-8 lg:w-[45%]">
@@ -54,6 +55,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           </motion.div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
