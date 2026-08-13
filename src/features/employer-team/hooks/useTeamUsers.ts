@@ -3,11 +3,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { resolveEmployerMembership } from "@/features/employer-auth/services/employerMembershipService";
+import { useEmployerPlan } from "@/features/employer-subscription";
 import {
   canManageEmployerAccounts,
   type EmployerCompanyRole,
 } from "@/lib/auth/employerPermissions";
-import { teamService } from "../services/teamService";
+import {
+  TEAM_MEMBER_LIMIT_REACHED,
+  teamService,
+} from "../services/teamService";
 import type {
   InvitationRole,
   TeamInvitation,
@@ -20,6 +24,7 @@ import { memberDisplayName } from "../types/team.types";
 type LoadState = "idle" | "loading" | "success" | "error";
 
 export function useTeamUsers() {
+  const { plan } = useEmployerPlan();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [invitations, setInvitations] = useState<TeamInvitation[]>([]);
   const [status, setStatus] = useState<LoadState>("idle");
@@ -105,6 +110,15 @@ export function useTeamUsers() {
     async (email: string, role: InvitationRole) => {
       const result = await teamService.createInvitation({ email, role });
       if (!result.success) {
+        if (result.error === TEAM_MEMBER_LIMIT_REACHED) {
+          toast.error("Team member limit reached", {
+            description:
+              plan === "free"
+                ? "Your Free plan includes 1 team member. Upgrade to Pro or Business to add more team members."
+                : "Your current plan has reached its team member limit. Upgrade your plan to add more team members.",
+          });
+          return false;
+        }
         toast.error(result.error);
         return false;
       }
@@ -114,7 +128,7 @@ export function useTeamUsers() {
       await load();
       return true;
     },
-    [load],
+    [load, plan],
   );
 
   const resendInvitation = useCallback(

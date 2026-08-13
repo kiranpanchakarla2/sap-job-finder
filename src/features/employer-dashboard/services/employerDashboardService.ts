@@ -21,6 +21,10 @@ import { interviewService } from "@/features/employer-interviews";
 import { jobService } from "@/features/employer-jobs/services/jobService";
 import { formatDisplayDate } from "@/features/employer-jobs/lib/format";
 import { analyticsService } from "@/features/employer-analytics";
+import {
+  hasPlanEntitlement,
+  subscriptionService,
+} from "@/features/employer-subscription";
 import { messageService } from "@/features/employer-messages";
 import { getLastMessagePreview } from "@/features/employer-messages/lib/format";
 
@@ -61,6 +65,12 @@ export const employerDashboardService = {
           ? companyResult.data.companyName
           : "Your company";
 
+      const subscriptionResult = await subscriptionService.getSubscription();
+      const planId = subscriptionResult.success
+        ? subscriptionResult.data.planId
+        : "free";
+      const includeAdvanced = hasPlanEntitlement(planId, "advancedAnalytics");
+
       const [
         jobStatsResult,
         applicationsResult,
@@ -75,7 +85,10 @@ export const employerDashboardService = {
         applicationService.getStats(),
         interviewService.getUpcoming(3),
         interviewService.getStats(),
-        analyticsService.getAnalytics({ dateRange: "30d", jobId: "all" }),
+        analyticsService.getAnalytics(
+          { dateRange: "30d", jobId: "all" },
+          { includeAdvanced },
+        ),
         messageService.listConversations(),
       ]);
 

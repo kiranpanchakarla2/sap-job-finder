@@ -5,6 +5,7 @@ import {
   type EmployerCompanyRole,
 } from "@/lib/auth/employerPermissions";
 import { resolveEmployerMembership } from "@/features/employer-auth/services/employerMembershipService";
+import { getPlanLimit, subscriptionService } from "@/features/employer-subscription";
 import type {
   InvitationRole,
   TeamInvitation,
@@ -89,6 +90,8 @@ function countActiveOwners(members: TeamMember[]): number {
   return members.filter((m) => m.role === "owner" && m.status === "active").length;
 }
 
+export const TEAM_MEMBER_LIMIT_REACHED = "TEAM_MEMBER_LIMIT_REACHED";
+
 export const teamService = {
   async listMembers(): Promise<TeamServiceResult<TeamMember[]>> {
     try {
@@ -159,6 +162,26 @@ export const teamService = {
       const email = input.email.trim().toLowerCase();
       if (!email || !email.includes("@")) {
         return { success: false, error: "Enter a valid email address." };
+      }
+
+      const subscriptionResult = await subscriptionService.getSubscription();
+      const planId = subscriptionResult.success
+        ? subscriptionResult.data.planId
+        : "free";
+      const teamLimit = getPlanLimit(planId, "teamMembers");
+      if (teamLimit !== null) {
+        const [membersResult, invitesResult] = await Promise.all([
+          teamService.listMembers(),
+          teamService.listPendingInvitations(),
+        ]);
+        if (membersResult.success && invitesResult.success) {
+          const seatsUsed =
+            membersResult.data.filter((member) => member.status === "active").length +
+            invitesResult.data.length;
+          if (seatsUsed >= teamLimit) {
+            return { success: false, error: TEAM_MEMBER_LIMIT_REACHED };
+          }
+        }
       }
 
       const supabase = createClient();

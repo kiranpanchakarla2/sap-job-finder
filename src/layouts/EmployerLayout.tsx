@@ -11,6 +11,7 @@ import { EmployerProtectedRoute } from "@/features/employer-auth/components/Empl
 import { EmployerSessionProvider } from "@/features/employer-auth/components/EmployerSessionProvider";
 import { useEmployerAuth } from "@/features/employer-auth/hooks/useEmployerAuth";
 import { resolveEmployerMembership } from "@/features/employer-auth/services/employerMembershipService";
+import { useEmployerPlan } from "@/features/employer-subscription";
 import { EMPLOYER_ROUTES } from "@/features/employer-company/constants";
 import { canManageEmployerAccounts } from "@/lib/auth/employerPermissions";
 import { useUnreadMessageCount } from "@/features/employer-messages";
@@ -20,6 +21,7 @@ export function EmployerLayout({ children }: { children: ReactNode }) {
   const [canManageTeam, setCanManageTeam] = useState(false);
   const { isEmployer, isLoading: authLoading } = useEmployerAuth();
   const canLoadEmployerData = !authLoading && isEmployer;
+  const { hasFeature, getLimit, isLoading: planLoading } = useEmployerPlan();
   const { unreadCount } = useUnreadMessageCount(canLoadEmployerData);
 
   useEffect(() => {
@@ -50,13 +52,28 @@ export function EmployerLayout({ children }: { children: ReactNode }) {
           .filter((item) =>
             canManageTeam ? true : item.href !== EMPLOYER_ROUTES.team,
           )
-          .map((item) =>
-            item.href === "/employer/messages"
-              ? { ...item, badgeCount: unreadCount }
-              : item,
-          ),
+          .map((item) => {
+            let navItem = item;
+            if (item.href === "/employer/messages") {
+              navItem = { ...item, badgeCount: unreadCount };
+            }
+            if (!planLoading) {
+              if (item.href === EMPLOYER_ROUTES.talentSearch) {
+                navItem = {
+                  ...navItem,
+                  locked: !hasFeature("talentSearch"),
+                };
+              } else if (item.href === EMPLOYER_ROUTES.team) {
+                navItem = {
+                  ...navItem,
+                  locked: getLimit("teamMembers") === 1,
+                };
+              }
+            }
+            return navItem;
+          }),
       })),
-    [canManageTeam, unreadCount],
+    [canManageTeam, unreadCount, planLoading, hasFeature, getLimit],
   );
 
   return (

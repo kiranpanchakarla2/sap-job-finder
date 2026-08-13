@@ -16,6 +16,7 @@ import {
   FileText,
   Heart,
   LayoutDashboard,
+  Lock,
   LogOut,
   MessageSquare,
   PlusCircle,
@@ -37,6 +38,8 @@ export type SidebarNavItem = {
   icon: LucideIcon;
   /** Optional unread / count badge (e.g. Messages). */
   badgeCount?: number;
+  /** Subtle plan-restriction indicator (navigation remains accessible). */
+  locked?: boolean;
 };
 
 export type SidebarNavSection = {
@@ -184,6 +187,13 @@ function SidebarNav({
                       {!collapsed ? (
                         <>
                           <span className="flex-1">{item.label}</span>
+                          {item.locked ? (
+                            <Lock
+                              size={14}
+                              className="shrink-0 text-muted"
+                              aria-hidden="true"
+                            />
+                          ) : null}
                           {badge ? (
                             <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-bold text-white">
                               {badge}
