@@ -29,11 +29,11 @@ export function EmployerAuthLayout({
   const reduceMotion = useReducedMotion();
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-surface text-text">
-      <div className="relative flex min-h-0 flex-1">
+    <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-surface text-text">
+      <div className="relative flex min-h-0 w-full min-w-0 flex-1">
         <EmployerAuthBrandPanel />
 
-        <div className="relative flex w-full flex-1 items-center justify-center px-5 py-10 sm:px-8 lg:w-[48%] xl:w-[45%]">
+        <div className="relative flex w-full min-w-0 flex-1 items-center justify-center overflow-hidden px-5 py-10 sm:px-8 lg:w-[48%] xl:w-[45%]">
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--card)_55%,transparent)_0%,color-mix(in_srgb,var(--primary)_8%,var(--surface))_48%,color-mix(in_srgb,var(--card)_40%,transparent)_100%)]" />
           <div className="pointer-events-none absolute inset-0 opacity-30 grid-pattern" />
           <div className="pointer-events-none absolute left-[-8%] top-16 h-72 w-72 rounded-full bg-primary/10 blur-3xl lg:hidden" />
@@ -43,7 +43,7 @@ export function EmployerAuthLayout({
             initial={reduceMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className={`relative z-10 w-full ${maxWidthClassName}`}
+            className={`relative z-10 w-full min-w-0 ${maxWidthClassName}`}
           >
             <EmployerAuthHeader title={title} subtitle={subtitle} />
 
