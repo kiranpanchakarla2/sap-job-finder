@@ -13,6 +13,7 @@ export type TeamMember = {
   lastName: string | null;
   email: string;
   avatarUrl: string | null;
+  canBulkUpload?: boolean;
   createdAt: string;
   updatedAt: string;
 };

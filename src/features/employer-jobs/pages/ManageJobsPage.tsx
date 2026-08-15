@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { PlusCircle } from "lucide-react";
+import { FileSpreadsheet, History, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/dashboard/shared/ErrorState";
 import { Skeleton, SkeletonCard } from "@/components/dashboard/shared/Skeleton";
@@ -49,11 +49,22 @@ export function ManageJobsPage() {
             Create, manage and track your SAP job postings.
           </p>
         </div>
-        <Button href={EMPLOYER_JOB_ROUTES.create}>
-          <PlusCircle size={16} aria-hidden="true" />
-          Post a Job
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button variant="secondary" href={EMPLOYER_JOB_ROUTES.bulkUploadHistory}>
+            <History size={16} aria-hidden="true" />
+            Upload History
+          </Button>
+          <Button variant="secondary" href={EMPLOYER_JOB_ROUTES.bulkUpload}>
+            <FileSpreadsheet size={16} aria-hidden="true" />
+            Bulk Upload Jobs
+          </Button>
+          <Button href={EMPLOYER_JOB_ROUTES.create}>
+            <PlusCircle size={16} aria-hidden="true" />
+            Post a Job
+          </Button>
+        </div>
       </div>
+
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <JobSearch value={search} onChange={setSearch} />

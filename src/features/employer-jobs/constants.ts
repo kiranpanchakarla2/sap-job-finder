@@ -15,10 +15,44 @@ export const EMPLOYER_JOB_ROUTES = {
   list: "/employer/jobs",
   create: "/employer/jobs/new",
   createPreview: "/employer/jobs/new/preview",
+  bulkUpload: "/employer/jobs/bulk-upload",
+  bulkUploadHistory: "/employer/jobs/bulk-upload/history",
+  bulkUploadDetails: (id: string) => `/employer/jobs/bulk-upload/history/${id}`,
   details: (id: string) => `/employer/jobs/${id}`,
   edit: (id: string) => `/employer/jobs/${id}/edit`,
   preview: (id: string) => `/employer/jobs/${id}/preview`,
 } as const;
+
+export const BULK_UPLOAD_CONFIG = {
+  templateVersion: "1.0",
+  maxFileSizeBytes: 10 * 1024 * 1024, // 10 MB
+  maxFileSizeLabel: "10 MB",
+  maxRows: 1000,
+  allowedExtensions: [".xlsx"] as const,
+  allowedMimeTypes: [
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/octet-stream",
+  ] as const,
+  fieldLimits: {
+    title: 200,
+    description: 10000,
+    location: 200,
+    education: 200,
+    noticePeriod: 100,
+    contactEmail: 255,
+    maxSkillsTotalLength: 1000,
+    maxExperience: 50,
+    maxSalary: 1_000_000_000,
+    maxOpenings: 10_000,
+  },
+} as const;
+
+export const BULK_UPLOAD_MAX_FILE_SIZE_BYTES = BULK_UPLOAD_CONFIG.maxFileSizeBytes;
+export const BULK_UPLOAD_MAX_FILE_SIZE_LABEL = BULK_UPLOAD_CONFIG.maxFileSizeLabel;
+export const BULK_UPLOAD_MAX_ROWS = BULK_UPLOAD_CONFIG.maxRows;
+export const ALLOWED_EXCEL_EXTENSIONS = BULK_UPLOAD_CONFIG.allowedExtensions;
+export const ALLOWED_EXCEL_MIME_TYPES = BULK_UPLOAD_CONFIG.allowedMimeTypes;
+
 
 export const EMPLOYMENT_TYPE_OPTIONS: { value: EmploymentType; label: string }[] = [
   { value: "Full-time", label: "Full-time" },
@@ -125,3 +159,16 @@ export const JOB_SORT_OPTIONS: { value: JobSortOption; label: string }[] = [
   { value: "most_applications", label: "Most Applications" },
   { value: "deadline", label: "Deadline" },
 ];
+
+export const COUNTRY_OPTIONS = [
+  { value: "India", label: "India" },
+  { value: "United States", label: "United States" },
+  { value: "United Kingdom", label: "United Kingdom" },
+  { value: "Germany", label: "Germany" },
+  { value: "Singapore", label: "Singapore" },
+  { value: "Australia", label: "Australia" },
+  { value: "Canada", label: "Canada" },
+  { value: "United Arab Emirates", label: "United Arab Emirates" },
+  { value: "Netherlands", label: "Netherlands" },
+  { value: "Other", label: "Other" },
+] as const;

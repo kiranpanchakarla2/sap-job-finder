@@ -665,4 +665,74 @@ export const candidateSettingsService = {
       };
     }
   },
+
+  /**
+   * Delete candidate account permanently.
+   * Performs clean removal of all candidate data, resumes, applications, and auth user.
+   */
+  async deleteAccount(): Promise<CandidateSettingsServiceResult<boolean>> {
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        return {
+          success: false,
+          error: "You must be signed in to delete your account.",
+          code: "UNAUTHENTICATED",
+        };
+      }
+
+      // 1. Fetch resume storage paths to clean up from storage bucket
+      const { data: resumes } = await supabase
+        .from("candidate_resumes")
+        .select("storage_path");
+
+      const storagePaths = (resumes || [])
+        .map((r: { storage_path?: string | null }) => r.storage_path)
+        .filter(Boolean) as string[];
+
+      // 2. Call secure PostgreSQL RPC to delete candidate data and auth user
+      const { error: rpcError } = await supabase.rpc("delete_candidate_account");
+
+      if (rpcError) {
+        logError("deleteAccount RPC error", rpcError);
+        return {
+          success: false,
+          error: "Failed to delete account. Please try again or contact support.",
+        };
+      }
+
+      // 3. Clean up storage files if any exist
+      if (storagePaths.length > 0) {
+        try {
+          await supabase.storage.from("resumes").remove(storagePaths);
+        } catch (storageErr) {
+          logError("deleteAccount storage cleanup", storageErr);
+        }
+      }
+
+      // 4. Sign out locally
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+      } catch {
+        // Safe to ignore if session is already invalidated by user deletion
+      }
+
+      return {
+        success: true,
+        data: true,
+      };
+    } catch (err) {
+      logError("deleteAccount", err);
+      return {
+        success: false,
+        error: "An unexpected error occurred while deleting your account.",
+      };
+    }
+  },
 };
+

@@ -227,6 +227,27 @@ export function useTeamUsers() {
     [load, members],
   );
 
+  const updateBulkUploadPermission = useCallback(
+    async (memberId: string, canBulkUpload: boolean) => {
+      const result = await teamService.updateBulkUploadPermission({
+        memberId,
+        canBulkUpload,
+      });
+      if (!result.success) {
+        toast.error(result.error);
+        return false;
+      }
+      toast.success(
+        canBulkUpload
+          ? "Bulk Job Upload permission granted."
+          : "Bulk Job Upload permission revoked."
+      );
+      await load();
+      return true;
+    },
+    [load],
+  );
+
   return {
     members,
     filteredMembers,
@@ -248,6 +269,7 @@ export function useTeamUsers() {
     resendInvitation,
     cancelInvitation,
     changeRole,
+    updateBulkUploadPermission,
     suspendMember,
     activateMember,
     removeMember,

@@ -40,6 +40,7 @@ function mapMember(raw: Record<string, unknown>): TeamMember | null {
     lastName: typeof raw.lastName === "string" ? raw.lastName : null,
     email: typeof raw.email === "string" ? raw.email : "",
     avatarUrl: typeof raw.avatarUrl === "string" ? raw.avatarUrl : null,
+    canBulkUpload: raw.canBulkUpload === false ? false : true,
     createdAt:
       typeof raw.createdAt === "string" ? raw.createdAt : new Date().toISOString(),
     updatedAt:
@@ -366,6 +367,37 @@ export const teamService = {
     } catch (error) {
       logError("removeMember", error);
       return { success: false, error: "Unable to remove member. Please try again." };
+    }
+  },
+
+  async updateBulkUploadPermission(input: {
+    memberId: string;
+    canBulkUpload: boolean;
+  }): Promise<TeamServiceResult<null>> {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.rpc(
+        "update_team_member_bulk_upload_permission",
+        {
+          p_account_id: input.memberId,
+          p_can_bulk_upload: input.canBulkUpload,
+        }
+      );
+
+      if (error) {
+        logError("updateBulkUploadPermission", error);
+        return {
+          success: false,
+          error: "Unable to update bulk upload permission. Please verify you are a Company Admin.",
+        };
+      }
+      return { success: true, data: null };
+    } catch (error) {
+      logError("updateBulkUploadPermission", error);
+      return {
+        success: false,
+        error: "An unexpected error occurred while updating permissions.",
+      };
     }
   },
 };

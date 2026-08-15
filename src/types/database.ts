@@ -148,8 +148,38 @@ type EmployerAccountRow = {
   company_id: string;
   role: EmployerCompanyRole;
   status: EmployerAccountStatus;
+  can_bulk_upload?: boolean;
   created_at: string;
   updated_at: string;
+};
+
+type BulkImportDbRow = {
+  id: string;
+  company_id: string;
+  uploaded_by: string;
+  file_name: string;
+  file_size: number | null;
+  file_type: string;
+  total_rows: number;
+  selected_rows: number;
+  created_count: number;
+  skipped_count: number;
+  failed_count: number;
+  status: "processing" | "completed" | "completed_with_warnings" | "failed";
+  created_at: string;
+  completed_at: string | null;
+  updated_at: string;
+};
+
+type BulkImportRowDbRow = {
+  id: string;
+  bulk_import_id: string;
+  row_number: number;
+  job_title: string;
+  status: "created" | "skipped" | "failed";
+  reason: string | null;
+  job_id: string | null;
+  created_at: string;
 };
 
 type SubscriptionPlanRow = {
@@ -357,6 +387,36 @@ export type Database = {
           company_id: string;
           role?: EmployerCompanyRole;
           status?: EmployerAccountStatus;
+          can_bulk_upload?: boolean;
+          id?: string;
+        }
+      >;
+      bulk_imports: GenericTable<
+        BulkImportDbRow,
+        {
+          company_id: string;
+          uploaded_by: string;
+          file_name: string;
+          file_size?: number | null;
+          file_type?: string;
+          total_rows?: number;
+          selected_rows?: number;
+          created_count?: number;
+          skipped_count?: number;
+          failed_count?: number;
+          status?: "processing" | "completed" | "completed_with_warnings" | "failed";
+          id?: string;
+        }
+      >;
+      bulk_import_rows: GenericTable<
+        BulkImportRowDbRow,
+        {
+          bulk_import_id: string;
+          row_number: number;
+          job_title: string;
+          status: "created" | "skipped" | "failed";
+          reason?: string | null;
+          job_id?: string | null;
           id?: string;
         }
       >;
@@ -766,6 +826,14 @@ export type Database = {
         Args: { p_job_id: string; p_resume_id: string | null; p_cover_letter: string; p_answers?: Json };
         Returns: string;
       };
+      bulk_import_jobs: {
+        Args: { p_jobs: Json; p_metadata?: Json };
+        Returns: Json;
+      };
+      update_team_member_bulk_upload_permission: {
+        Args: { p_account_id: string; p_can_bulk_upload: boolean };
+        Returns: Json;
+      };
       withdraw_candidate_application: { Args: { p_application_id: string }; Returns: undefined };
       set_candidate_resume_primary: {
         Args: { p_resume_id: string };
@@ -930,6 +998,14 @@ export type Database = {
           p_cancel_at_period_end?: boolean;
           p_days_remaining?: number;
         };
+        Returns: Json;
+      };
+      delete_candidate_account: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      delete_employer_account: {
+        Args: Record<string, never>;
         Returns: Json;
       };
     };

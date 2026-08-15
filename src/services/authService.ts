@@ -18,16 +18,7 @@ import {
 } from "@/types/auth";
 import type { CandidateRegisterInput } from "@/types/candidate";
 import type { EmployerRegisterInput } from "@/types/employer";
-
-function getEmailRedirectTo(next: string) {
-  const origin =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const url = new URL("/auth/callback", origin);
-  url.searchParams.set("next", next);
-  return url.toString();
-}
+import { getEmailRedirectTo } from "@/lib/auth/origin";
 
 export function mapAuthError(error: { message?: string; status?: number } | null | undefined): string {
   const message = (error?.message || "").toLowerCase();

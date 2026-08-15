@@ -15,13 +15,15 @@ export type PlanFeature =
   | "candidate_messaging"
   | "interview_management"
   | "team_members"
-  | "priority_support";
+  | "priority_support"
+  | "bulk_upload";
 
 /** UI/service entitlement keys mapped to plan features. */
 export type PlanEntitlement =
   | "talentSearch"
   | "advancedAnalytics"
-  | "teamManagement";
+  | "teamManagement"
+  | "bulkUpload";
 
 export type PlanLimits = {
   /** null = unlimited */

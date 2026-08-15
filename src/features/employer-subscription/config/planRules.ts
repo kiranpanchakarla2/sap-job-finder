@@ -13,6 +13,7 @@ const ENTITLEMENT_TO_FEATURE: Record<PlanEntitlement, PlanFeature> = {
   talentSearch: "talent_search",
   advancedAnalytics: "advanced_analytics",
   teamManagement: "team_members",
+  bulkUpload: "bulk_upload",
 };
 
 export const PLAN_LIMITS: Record<PlanId, PlanLimits> = {
@@ -48,6 +49,7 @@ export const PLAN_FEATURES: Record<PlanId, PlanFeature[]> = {
     "talent_search",
     "candidate_messaging",
     "interview_management",
+    "bulk_upload",
   ],
   business: [
     "basic_analytics",
@@ -57,6 +59,7 @@ export const PLAN_FEATURES: Record<PlanId, PlanFeature[]> = {
     "interview_management",
     "team_members",
     "priority_support",
+    "bulk_upload",
   ],
 };
 
@@ -87,6 +90,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     description: "Scale hiring with advanced insights and Talent Search.",
     features: [
       "25 active jobs",
+      "Bulk Job Upload (Excel)",
       "Advanced analytics",
       "Talent Search",
       "Candidate messaging",
@@ -106,6 +110,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     description: "Unlimited hiring capacity for growing teams.",
     features: [
       "Unlimited active jobs",
+      "Bulk Job Upload (Excel)",
       "Advanced analytics",
       "Talent Search",
       "Team capabilities",

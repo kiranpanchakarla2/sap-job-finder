@@ -101,7 +101,22 @@ export function TeamMembersTable({
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  <RoleBadge role={member.role} />
+                  <div className="flex flex-col gap-1 items-start">
+                    <RoleBadge role={member.role} />
+                    {member.role === "recruiter" && (
+                      <span
+                        className={`inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                          member.canBulkUpload !== false
+                            ? "bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                            : "bg-muted/40 text-muted"
+                        }`}
+                      >
+                        {member.canBulkUpload !== false
+                          ? "Bulk Upload: ON"
+                          : "Bulk Upload: OFF"}
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-4 py-3">
                   <MemberStatusBadge status={member.status} />
@@ -147,6 +162,19 @@ export function TeamMembersTable({
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <RoleBadge role={member.role} />
+              {member.role === "recruiter" && (
+                <span
+                  className={`inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                    member.canBulkUpload !== false
+                      ? "bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                      : "bg-muted/40 text-muted"
+                  }`}
+                >
+                  {member.canBulkUpload !== false
+                    ? "Bulk Upload: ON"
+                    : "Bulk Upload: OFF"}
+                </span>
+              )}
               <MemberStatusBadge status={member.status} />
               <span className="text-xs text-muted">
                 Joined {formatJoined(member.createdAt)}

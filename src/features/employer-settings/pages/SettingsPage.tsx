@@ -36,12 +36,17 @@ function SettingsSection({
   );
 }
 
+import { AlertTriangle, Loader2, X } from "lucide-react";
+import { employerSettingsService } from "../services/employerSettingsService";
+
 function DeleteAccountDialog({
   open,
   onClose,
+  onDeleted,
 }: {
   open: boolean;
   onClose: () => void;
+  onDeleted: () => Promise<void>;
 }) {
   const reduceMotion = useReducedMotion();
   const titleId = useId();
@@ -49,10 +54,12 @@ function DeleteAccountDialog({
   const panelRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
   const [confirmText, setConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setConfirmText("");
+    setIsDeleting(false);
     previouslyFocused.current = document.activeElement as HTMLElement | null;
     const panel = panelRef.current;
     const focusables = panel ? getFocusableElements(panel) : [];
@@ -62,6 +69,7 @@ function DeleteAccountDialog({
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (isDeleting) return;
         event.preventDefault();
         onClose();
         return;
@@ -74,9 +82,34 @@ function DeleteAccountDialog({
       window.removeEventListener("keydown", onKeyDown);
       previouslyFocused.current?.focus({ preventScroll: true });
     };
-  }, [open, onClose]);
+  }, [open, onClose, isDeleting]);
 
   const confirmed = confirmText.trim().toUpperCase() === "DELETE";
+
+  const handleDelete = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!confirmed || isDeleting) return;
+
+    setIsDeleting(true);
+    try {
+      const res = await employerSettingsService.deleteAccount();
+      if (!res.success) {
+        toast.error(res.error || "Failed to delete account. Please try again.");
+        setIsDeleting(false);
+        return;
+      }
+
+      toast.success("Your employer account has been permanently deleted.");
+      onClose();
+      if (onDeleted) {
+        await onDeleted();
+      }
+      window.location.href = "/register/employer";
+    } catch {
+      toast.error("An unexpected error occurred while deleting your account.");
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -85,11 +118,13 @@ function DeleteAccountDialog({
           <motion.button
             type="button"
             aria-label="Dismiss dialog"
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-black/60 backdrop-blur-xs"
             initial={reduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={reduceMotion ? undefined : { opacity: 0 }}
-            onClick={onClose}
+            onClick={() => {
+              if (!isDeleting) onClose();
+            }}
           />
           <motion.div
             ref={panelRef}
@@ -98,46 +133,89 @@ function DeleteAccountDialog({
             aria-labelledby={titleId}
             aria-describedby={descriptionId}
             tabIndex={-1}
-            initial={reduceMotion ? false : { opacity: 0, y: 12, scale: 0.98 }}
+            initial={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduceMotion ? undefined : { opacity: 0, y: 8, scale: 0.98 }}
-            className="relative z-10 w-full max-w-md rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-lift sm:p-6"
+            exit={reduceMotion ? undefined : { opacity: 0, y: 12, scale: 0.96 }}
+            className="relative z-10 w-full max-w-md rounded-[var(--radius-card)] border border-error/30 bg-card p-6 shadow-lift"
           >
-            <h2 id={titleId} className="text-lg font-semibold text-text">
-              Delete Employer Account
-            </h2>
-            <p id={descriptionId} className="mt-2 text-sm text-muted">
-              This action requires confirmation and will not permanently delete
-              data in Sprint 6A. Account deletion will be connected in a future
-              release.
-            </p>
-            <label htmlFor="delete-confirm" className="mt-4 block text-sm text-text">
-              Type <span className="font-semibold">DELETE</span> to confirm
-            </label>
-            <input
-              id="delete-confirm"
-              value={confirmText}
-              onChange={(event) => setConfirmText(event.target.value)}
-              className="mt-2 w-full rounded-[var(--radius-control)] border border-border bg-input px-3 py-2.5 text-sm text-input-fg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
-            />
-            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <Button type="button" variant="secondary" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-error/10 text-error">
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 id={titleId} className="text-lg font-bold text-text">
+                    Delete Employer Account?
+                  </h2>
+                  <p id={descriptionId} className="text-xs font-medium text-error">
+                    This action is permanent and cannot be undone.
+                  </p>
+                </div>
+              </div>
+              <button
                 type="button"
-                disabled={!confirmed}
-                onClick={() => {
-                  toast.message("Account deletion requires additional confirmation.", {
-                    description:
-                      "Please confirm your request before your account can be permanently deleted.",
-                  });
-                  onClose();
-                }}
+                aria-label="Close dialog"
+                onClick={onClose}
+                disabled={isDeleting}
+                className="rounded-lg p-1.5 text-muted hover:bg-surface hover:text-text cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Confirm Delete Request
-              </Button>
+                <X className="h-4 w-4" />
+              </button>
             </div>
+
+            {/* Content */}
+            <p className="mt-4 text-xs text-muted leading-relaxed">
+              Deleting your account will permanently remove your employer profile,
+              company jobs, candidate applications, team accounts, and all related recruitment data.
+            </p>
+
+            <form onSubmit={handleDelete} className="mt-4 space-y-4">
+              <div>
+                <label htmlFor="delete-confirm" className="block text-xs font-semibold text-text mb-1.5">
+                  Type <span className="font-mono font-bold text-error">DELETE</span> to confirm:
+                </label>
+                <input
+                  id="delete-confirm"
+                  type="text"
+                  value={confirmText}
+                  onChange={(event) => setConfirmText(event.target.value)}
+                  placeholder="DELETE"
+                  disabled={isDeleting}
+                  className="w-full rounded-[var(--radius-control)] border border-border bg-input px-3.5 py-2.5 text-sm font-mono text-text focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-error/20 disabled:opacity-60 disabled:cursor-not-allowed"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end pt-3 border-t border-border/60">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={onClose}
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </Button>
+                <button
+                  type="submit"
+                  disabled={!confirmed || isDeleting}
+                  className={`inline-flex items-center justify-center rounded-[var(--radius-control)] px-4 py-2.5 text-sm font-semibold transition-all ${
+                    confirmed && !isDeleting
+                      ? "bg-error text-white shadow-soft hover:bg-error/90 cursor-pointer"
+                      : "bg-error/30 text-white/60 cursor-not-allowed"
+                  }`}
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Deleting Account...
+                    </>
+                  ) : (
+                    "Delete Account"
+                  )}
+                </button>
+              </div>
+            </form>
           </motion.div>
         </div>
       ) : null}
@@ -291,7 +369,14 @@ export function SettingsPage() {
         .
       </p>
 
-      <DeleteAccountDialog open={deleteOpen} onClose={() => setDeleteOpen(false)} />
+      <DeleteAccountDialog
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={async () => {
+          await signOut();
+          router.replace("/register/employer");
+        }}
+      />
     </div>
   );
 }

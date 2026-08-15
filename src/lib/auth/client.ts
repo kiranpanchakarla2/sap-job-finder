@@ -5,16 +5,7 @@ import {
   type UserRole,
 } from "@/lib/auth/roles";
 
-function getEmailRedirectTo(next = "/dashboard") {
-  const origin =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : process.env.NEXT_PUBLIC_SITE_URL ?? "";
-
-  const url = new URL("/auth/callback", origin || "http://localhost:3000");
-  url.searchParams.set("next", next);
-  return url.toString();
-}
+import { getEmailRedirectTo } from "@/lib/auth/origin";
 
 export async function signInWithEmail(email: string, password: string) {
   const supabase = createClient();

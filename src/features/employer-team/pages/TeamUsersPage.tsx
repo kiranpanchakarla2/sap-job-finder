@@ -255,7 +255,20 @@ export function TeamUsersPage() {
         open={Boolean(changeRoleMember)}
         member={changeRoleMember}
         onClose={() => setChangeRoleMember(null)}
-        onSubmit={team.changeRole}
+        onSubmit={async (memberId, role, canBulkUpload) => {
+          let ok = true;
+          if (changeRoleMember && changeRoleMember.role !== role) {
+            ok = await team.changeRole(memberId, role);
+          }
+          if (
+            ok &&
+            canBulkUpload !== undefined &&
+            (changeRoleMember?.canBulkUpload !== canBulkUpload || role === "recruiter")
+          ) {
+            await team.updateBulkUploadPermission(memberId, canBulkUpload);
+          }
+          return ok;
+        }}
       />
 
       <JobConfirmationDialog

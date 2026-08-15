@@ -10,6 +10,12 @@ import {
 } from "../lib/mappers";
 import { assertTransition } from "../lib/statusTransitions";
 import type { EmployerJobRecord, JobStatus } from "../types/job.types";
+import type {
+  BulkImportJobPayloadItem,
+  BulkImportResult,
+  BulkJobValidationRow,
+  ImportResultRow,
+} from "../types/bulkUpload.types";
 
 export type JobServiceResult<T> =
   | { success: true; data: T }
@@ -41,7 +47,7 @@ const ERR = {
 } as const;
 
 function logError(context: string, error: unknown) {
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV !== "production" && error !== null && error !== undefined) {
     console.error(`[jobService] ${context}`, error);
   }
 }
@@ -59,6 +65,14 @@ function mapDbJobError(error: unknown, fallback: string): string {
     return "Your active job limit has been reached. Upgrade your plan to post more jobs.";
   }
 
+  if (message.includes("FORBIDDEN_PLAN_UPGRADE_REQUIRED")) {
+    return "Bulk Job Upload requires a Pro or Business subscription. Please upgrade your plan to import jobs via Excel.";
+  }
+
+  if (message.includes("FORBIDDEN_BULK_UPLOAD_PERMISSION_DENIED")) {
+    return "You do not have permission to bulk upload jobs for this company. Please contact your company administrator.";
+  }
+
   return fallback;
 }
 
@@ -72,44 +86,138 @@ async function requireOwnershipContext(): Promise<
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    logError("auth", authError);
+    if (authError) logError("auth", authError);
     return { success: false, error: ERR.auth };
   }
 
-  const { data: company, error: companyError } = await supabase
+  // 1. Resolve Company Profile (supports direct company owners & invited team members)
+  let companyId: string | null = null;
+  let companyName = "Your company";
+  let logoUrl: string | null = null;
+  let setupComplete = false;
+  let companyOwnerUserId: string | null = null;
+
+  // First check if user directly owns a company profile
+  const { data: directCompany, error: directCompanyError } = await supabase
     .from("company_profiles")
-    .select("id, company_name, logo_url, setup_complete")
+    .select("id, user_id, company_name, logo_url, setup_complete")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (companyError) {
-    logError("company profile", companyError);
+  if (directCompany?.id) {
+    companyId = directCompany.id;
+    companyOwnerUserId = directCompany.user_id;
+    companyName = directCompany.company_name ?? companyName;
+    logoUrl = directCompany.logo_url ?? null;
+    setupComplete = Boolean(directCompany.setup_complete);
+  } else {
+    // Check employer_accounts (for recruiters / team members)
+    const { data: account, error: accountError } = await supabase
+      .from("employer_accounts")
+      .select("company_id, status")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (account?.company_id) {
+      const { data: accountCompany, error: accountCompError } = await supabase
+        .from("company_profiles")
+        .select("id, user_id, company_name, logo_url, setup_complete")
+        .eq("id", account.company_id)
+        .maybeSingle();
+
+      if (accountCompany?.id) {
+        companyId = accountCompany.id;
+        companyOwnerUserId = accountCompany.user_id;
+        companyName = accountCompany.company_name ?? companyName;
+        logoUrl = accountCompany.logo_url ?? null;
+        setupComplete = Boolean(accountCompany.setup_complete);
+      } else if (accountCompError) {
+        logError("account company profile", accountCompError);
+      }
+    } else if (accountError) {
+      logError("employer account lookup", accountError);
+    }
+  }
+
+  if (directCompanyError && !companyId) {
+    logError("company profile", directCompanyError);
     return { success: false, error: ERR.companyProfile };
   }
 
-  if (!company?.id || !company.setup_complete) {
+  if (!companyId || !setupComplete) {
     return { success: false, error: ERR.companyProfile };
   }
 
+  // 2. Resolve Employer Profile
+  let employerId: string | null = null;
+
+  // Try user's own employer_profile
   const { data: employer, error: employerError } = await supabase
     .from("employer_profiles")
     .select("id")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (employerError || !employer?.id) {
-    logError("employer profile", employerError);
-    return { success: false, error: ERR.auth };
+  if (employer?.id) {
+    employerId = employer.id;
+  } else if (employerError) {
+    logError("employer profile fetch", employerError);
+  }
+
+  // If missing, check if company owner has an employer_profile
+  if (!employerId && companyOwnerUserId && companyOwnerUserId !== user.id) {
+    const { data: ownerEmployer } = await supabase
+      .from("employer_profiles")
+      .select("id")
+      .eq("user_id", companyOwnerUserId)
+      .maybeSingle();
+
+    if (ownerEmployer?.id) {
+      employerId = ownerEmployer.id;
+    }
+  }
+
+  // If still missing, attempt to self-heal and insert employer_profile for user
+  if (!employerId) {
+    const { data: createdEmployer, error: createError } = await supabase
+      .from("employer_profiles")
+      .insert({
+        user_id: user.id,
+        company_name: companyName,
+      })
+      .select("id")
+      .maybeSingle();
+
+    if (createdEmployer?.id) {
+      employerId = createdEmployer.id;
+    } else if (createError) {
+      // Check fallback to company owner employer profile
+      if (companyOwnerUserId) {
+        const { data: fallbackOwner } = await supabase
+          .from("employer_profiles")
+          .select("id")
+          .eq("user_id", companyOwnerUserId)
+          .maybeSingle();
+        if (fallbackOwner?.id) {
+          employerId = fallbackOwner.id;
+        }
+      }
+    }
+  }
+
+  if (!employerId) {
+    return { success: false, error: ERR.companyProfile };
   }
 
   return {
     success: true,
     data: {
       userId: user.id,
-      companyId: company.id,
-      employerId: employer.id,
-      companyName: company.company_name,
-      logoUrl: company.logo_url,
+      companyId,
+      employerId,
+      companyName,
+      logoUrl,
     },
   };
 }
@@ -504,4 +612,90 @@ export const jobService = {
       },
     };
   },
+
+  bulkImportJobs: async (
+    rows: BulkJobValidationRow[],
+    metadata?: {
+      fileName?: string;
+      fileSize?: number | null;
+      fileType?: string;
+      totalRows?: number;
+    },
+  ): Promise<JobServiceResult<BulkImportResult>> => {
+    const ctx = await requireOwnershipContext();
+    if (!ctx.success) return ctx;
+
+    // Filter out invalid/error rows client-side before sending to server RPC
+    const eligibleRows = rows.filter((r) => r.status !== "error");
+    if (eligibleRows.length === 0) {
+      return {
+        success: false,
+        error: "No valid jobs selected for import.",
+      };
+    }
+
+    const payload: BulkImportJobPayloadItem[] = eligibleRows.map((r) => ({
+      rowNumber: r.rowNumber,
+      title: r.data.title,
+      description: r.data.description,
+      sapModule: r.data.sapModule,
+      jobType: r.data.jobType,
+      employmentType: r.data.employmentType,
+      minExperience: r.data.minExperience,
+      maxExperience: r.data.maxExperience,
+      location: r.data.location,
+      workMode: r.data.workMode,
+      country: r.data.country,
+      skills: r.data.skills,
+      minSalary: r.data.minSalary,
+      maxSalary: r.data.maxSalary,
+      currency: r.data.currency,
+      noticePeriod: r.data.noticePeriod,
+      education: r.data.education,
+      openings: r.data.openings,
+      deadline: r.data.deadline,
+      contactEmail: r.data.contactEmail,
+    }));
+
+    const supabase = createClient();
+    const { data, error } = await supabase.rpc("bulk_import_jobs", {
+      p_jobs: payload as never,
+      p_metadata: (metadata ?? null) as never,
+    });
+
+    if (error) {
+      logError("bulkImportJobs", error);
+      return {
+        success: false,
+        error: mapDbJobError(
+          error,
+          "Unable to complete bulk job import. Please check your company permissions and try again.",
+        ),
+      };
+    }
+
+    const raw = data as {
+      importId?: string;
+      status?: "processing" | "completed" | "completed_with_warnings" | "failed";
+      totalSelected?: number;
+      created?: ImportResultRow[];
+      skipped?: ImportResultRow[];
+      failed?: ImportResultRow[];
+    } | null;
+
+    const result: BulkImportResult = {
+      importId: raw?.importId,
+      status: raw?.status ?? "completed",
+      totalSelected: raw?.totalSelected ?? eligibleRows.length,
+      created: Array.isArray(raw?.created) ? raw.created : [],
+      skipped: Array.isArray(raw?.skipped) ? raw.skipped : [],
+      failed: Array.isArray(raw?.failed) ? raw.failed : [],
+    };
+
+    return {
+      success: true,
+      data: result,
+    };
+  },
 };
+

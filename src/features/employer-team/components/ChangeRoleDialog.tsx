@@ -20,6 +20,7 @@ type ChangeRoleDialogProps = {
   onSubmit: (
     memberId: string,
     role: Exclude<EmployerCompanyRole, "owner">,
+    canBulkUpload?: boolean,
   ) => Promise<boolean>;
 };
 
@@ -34,6 +35,7 @@ export function ChangeRoleDialog({
   const descriptionId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const [role, setRole] = useState<Exclude<EmployerCompanyRole, "owner">>("recruiter");
+  const [canBulkUpload, setCanBulkUpload] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -45,6 +47,7 @@ export function ChangeRoleDialog({
           : "recruiter"
         : member.role,
     );
+    setCanBulkUpload(member.canBulkUpload !== false);
     setSubmitting(false);
     const panel = panelRef.current;
     const focusables = panel ? getFocusableElements(panel) : [];
@@ -94,7 +97,7 @@ export function ChangeRoleDialog({
             className="relative z-10 w-full max-w-md rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-lift sm:p-6"
           >
             <h2 id={titleId} className="text-lg font-semibold text-text">
-              Change Role
+              Change Role & Permissions
             </h2>
             <p id={descriptionId} className="mt-2 text-sm text-muted">
               {memberDisplayName(member)}
@@ -103,6 +106,7 @@ export function ChangeRoleDialog({
               Current role:{" "}
               <span className="font-semibold">{teamRoleLabel(member.role)}</span>
             </p>
+
             <div className="mt-4">
               <label
                 htmlFor="change-role"
@@ -126,6 +130,29 @@ export function ChangeRoleDialog({
                 ))}
               </NativeSelect>
             </div>
+
+            {/* Permission controls for Recruiter */}
+            {role === "recruiter" && (
+              <div className="mt-4 rounded-xl border border-border bg-card-secondary/40 p-3.5 space-y-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted block">
+                  Permissions
+                </span>
+                <label className="flex items-center justify-between gap-3 text-sm cursor-pointer select-none">
+                  <span className="text-text font-medium">Bulk Job Upload</span>
+                  <input
+                    type="checkbox"
+                    checked={canBulkUpload}
+                    onChange={(e) => setCanBulkUpload(e.target.checked)}
+                    disabled={submitting || member.role === "owner"}
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                </label>
+                <p className="text-xs text-muted">
+                  Allow this recruiter to upload multiple SAP jobs simultaneously via Excel template.
+                </p>
+              </div>
+            )}
+
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button
                 type="button"
@@ -143,7 +170,11 @@ export function ChangeRoleDialog({
                 onClick={() => {
                   void (async () => {
                     setSubmitting(true);
-                    const ok = await onSubmit(member.id, role);
+                    const ok = await onSubmit(
+                      member.id,
+                      role,
+                      role === "recruiter" ? canBulkUpload : true
+                    );
                     setSubmitting(false);
                     if (ok) onClose();
                   })();

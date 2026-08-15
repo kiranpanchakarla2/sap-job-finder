@@ -22,23 +22,12 @@ import type {
 } from "../types/employerAuth.types";
 import { EMPLOYER_PENDING_EMAIL_KEY } from "../constants";
 
+import { getEmailRedirectTo, getAppOrigin } from "@/lib/auth/origin";
+
 export { EMPLOYER_PENDING_EMAIL_KEY };
 
 function canUseDom(): boolean {
   return typeof window !== "undefined";
-}
-
-function getAppOrigin(): string {
-  if (typeof window !== "undefined") {
-    return window.location.origin;
-  }
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-}
-
-function getEmailRedirectTo(next: string): string {
-  const url = new URL("/auth/callback", getAppOrigin());
-  url.searchParams.set("next", next);
-  return url.toString();
 }
 
 function toEmployer(

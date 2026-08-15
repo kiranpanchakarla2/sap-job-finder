@@ -7,6 +7,7 @@ export type EmployerMembershipRecord = {
   companyId: string;
   role: EmployerCompanyRole;
   status: EmployerAccountStatus;
+  canBulkUpload?: boolean;
 };
 
 export type EmployerMembershipResult =
@@ -32,7 +33,7 @@ export async function resolveEmployerMembership(): Promise<EmployerMembershipRes
 
   const { data, error } = await supabase
     .from("employer_accounts")
-    .select("id, company_id, role, status")
+    .select("id, company_id, role, status, can_bulk_upload")
     .eq("user_id", user.id)
     .order("created_at", { ascending: true })
     .limit(5);
@@ -53,6 +54,7 @@ export async function resolveEmployerMembership(): Promise<EmployerMembershipRes
         companyId: active.company_id,
         role: active.role,
         status: "active",
+        canBulkUpload: (active as { can_bulk_upload?: boolean }).can_bulk_upload ?? true,
       },
     };
   }

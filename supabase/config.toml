@@ -17,8 +17,12 @@ port = 54323
 
 [auth]
 enabled = true
-site_url = "http://localhost:3000"
-additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+site_url = "https://sapjobsfinder.com"
+additional_redirect_urls = [
+  "https://sapjobsfinder.com/auth/callback",
+  "http://sapjobsfinder.com/auth/callback",
+  "http://localhost:3000/auth/callback"
+]
 enable_signup = true
 
 [storage]

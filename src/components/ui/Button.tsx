@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "dark";
+type ButtonSize = "sm" | "md" | "lg";
 
 const variants: Record<ButtonVariant, string> = {
   primary:
@@ -12,9 +13,16 @@ const variants: Record<ButtonVariant, string> = {
   dark: "bg-button-secondary text-button-secondary-fg shadow-lift hover:bg-surface",
 };
 
+const sizes: Record<ButtonSize, string> = {
+  sm: "!px-3 !py-1.5 !text-xs",
+  md: "",
+  lg: "!px-6 !py-3.5 !text-base",
+};
+
 type SharedProps = {
   children: ReactNode;
   variant?: ButtonVariant;
+  size?: ButtonSize;
   className?: string;
 };
 
@@ -33,8 +41,14 @@ export type ButtonProps = ButtonAsButton | ButtonAsLink;
 const base =
   "theme-btn inline-flex items-center justify-center gap-2 rounded-[var(--radius-button)] px-5 py-3 text-sm font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50";
 
-export function Button({ children, variant = "primary", className = "", ...props }: ButtonProps) {
-  const classes = `${base} ${variants[variant]} ${className}`.trim();
+export function Button({
+  children,
+  variant = "primary",
+  size = "md",
+  className = "",
+  ...props
+}: ButtonProps) {
+  const classes = `${base} ${variants[variant]} ${sizes[size]} ${className}`.trim();
 
   if ("href" in props && props.href) {
     const { href, ...linkProps } = props;

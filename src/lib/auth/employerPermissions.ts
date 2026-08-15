@@ -95,6 +95,35 @@ export function canCreateJob(
   return role === "owner" || role === "admin" || role === "recruiter";
 }
 
+export function canBulkUploadJobs(
+  roleOrParams:
+    | EmployerCompanyRole
+    | null
+    | undefined
+    | {
+        role: EmployerCompanyRole | null | undefined;
+        canBulkUpload?: boolean | null;
+      },
+  canBulkUploadFlag?: boolean | null,
+): boolean {
+  let role: EmployerCompanyRole | null | undefined;
+  let canBulkUpload = true;
+
+  if (typeof roleOrParams === "object" && roleOrParams !== null) {
+    role = roleOrParams.role;
+    canBulkUpload = roleOrParams.canBulkUpload ?? true;
+  } else {
+    role = roleOrParams;
+    canBulkUpload = canBulkUploadFlag ?? true;
+  }
+
+  if (!role) return false;
+  if (role === "owner" || role === "admin") return true;
+  if (role === "recruiter") return canBulkUpload !== false;
+  return false;
+}
+
+
 export function canManageAllCompanyJobs(
   role: EmployerCompanyRole | null | undefined,
 ): boolean {

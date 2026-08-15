@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/auth/AuthContext";
 import { getFocusableElements, trapFocus } from "@/components/theme/theme-a11y";
 import { Button } from "@/components/ui/Button";
+import { candidateSettingsService } from "../services/candidateSettingsService";
 
 export function DeleteAccountDialog({
   open,
@@ -14,6 +17,8 @@ export function DeleteAccountDialog({
   open: boolean;
   onClose: () => void;
 }) {
+  const router = useRouter();
+  const { logout } = useAuth();
   const reduceMotion = useReducedMotion();
   const titleId = useId();
   const descriptionId = useId();
@@ -21,11 +26,13 @@ export function DeleteAccountDialog({
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
   const [confirmInput, setConfirmInput] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!open) return;
 
     setConfirmInput("");
+    setIsDeleting(false);
     previouslyFocused.current = document.activeElement as HTMLElement | null;
     const panel = panelRef.current;
     const focusables = panel ? getFocusableElements(panel) : [];
@@ -35,6 +42,7 @@ export function DeleteAccountDialog({
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (isDeleting) return;
         event.preventDefault();
         onClose();
         return;
@@ -47,18 +55,31 @@ export function DeleteAccountDialog({
       window.removeEventListener("keydown", onKeyDown);
       previouslyFocused.current?.focus({ preventScroll: true });
     };
-  }, [open, onClose]);
+  }, [open, onClose, isDeleting]);
 
   const isConfirmed = confirmInput.trim().toUpperCase() === "DELETE";
 
-  const handleDeleteSubmit = (e: FormEvent) => {
+  const handleDeleteSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!isConfirmed) return;
+    if (!isConfirmed || isDeleting) return;
 
-    // SPRINT 6G: UI-ONLY CONFIRMATION
-    // DO NOT make Supabase delete queries or call account deletion endpoints.
-    toast.info("Account deletion is simulated in UI mode. Data is preserved.");
-    onClose();
+    setIsDeleting(true);
+    try {
+      const res = await candidateSettingsService.deleteAccount();
+      if (!res.success) {
+        toast.error(res.error || "Failed to delete account. Please try again.");
+        setIsDeleting(false);
+        return;
+      }
+
+      toast.success("Your candidate account has been permanently deleted.");
+      onClose();
+      await logout();
+      router.push("/register/candidate");
+    } catch (err) {
+      toast.error("An unexpected error occurred while deleting your account.");
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -108,7 +129,8 @@ export function DeleteAccountDialog({
                 type="button"
                 aria-label="Close dialog"
                 onClick={onClose}
-                className="rounded-lg p-1.5 text-muted hover:bg-surface hover:text-text cursor-pointer"
+                disabled={isDeleting}
+                className="rounded-lg p-1.5 text-muted hover:bg-surface hover:text-text cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -134,25 +156,38 @@ export function DeleteAccountDialog({
                   value={confirmInput}
                   onChange={(e) => setConfirmInput(e.target.value)}
                   placeholder="DELETE"
-                  className="w-full rounded-[var(--radius-control)] border border-border bg-input px-3.5 py-2.5 text-sm font-mono text-text focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-error/20"
+                  disabled={isDeleting}
+                  className="w-full rounded-[var(--radius-control)] border border-border bg-input px-3.5 py-2.5 text-sm font-mono text-text focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-error/20 disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
 
               {/* Actions */}
               <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end pt-3 border-t border-border/60">
-                <Button type="button" variant="secondary" onClick={onClose}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={onClose}
+                  disabled={isDeleting}
+                >
                   Cancel
                 </Button>
                 <button
                   type="submit"
-                  disabled={!isConfirmed}
+                  disabled={!isConfirmed || isDeleting}
                   className={`inline-flex items-center justify-center rounded-[var(--radius-control)] px-4 py-2.5 text-sm font-semibold transition-all ${
-                    isConfirmed
+                    isConfirmed && !isDeleting
                       ? "bg-error text-white shadow-soft hover:bg-error/90 cursor-pointer"
                       : "bg-error/30 text-white/60 cursor-not-allowed"
                   }`}
                 >
-                  Delete Account
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Deleting Account...
+                    </>
+                  ) : (
+                    "Delete Account"
+                  )}
                 </button>
               </div>
             </form>
