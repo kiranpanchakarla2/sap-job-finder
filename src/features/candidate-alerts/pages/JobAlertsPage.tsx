@@ -1,13 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { Bell, Plus, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { AlertCircle, ArrowRight, Bell, Plus, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { useJobAlerts } from "../context/JobAlertsProvider";
 import { JobAlertCard } from "../components/JobAlertCard";
 import { JobAlertModal } from "../components/JobAlertModal";
 import { DeleteAlertModal } from "../components/DeleteAlertModal";
 import { AlertEmptyState, AlertListSkeleton } from "../components/AlertStates";
+import {
+  useCandidateSubscription,
+  type CandidateSubscription,
+} from "@/features/candidate-subscription";
 import type { JobAlert, JobAlertInput } from "../types/alert.types";
 
 export function JobAlertsPage() {
@@ -22,11 +28,27 @@ export function JobAlertsPage() {
     deleteAlert,
   } = useJobAlerts();
 
+  const { currentPlan, subscription } = useCandidateSubscription();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingAlert, setEditingAlert] = useState<JobAlert | null>(null);
   const [deletingAlert, setDeletingAlert] = useState<JobAlert | null>(null);
 
+  const planId = subscription?.planId ?? currentPlan.id ?? "free";
+  const alertLimit = currentPlan.limits.jobAlerts;
+  const isAtAlertLimit = alertLimit !== null && activeAlertsCount >= alertLimit;
+
   const handleOpenCreate = () => {
+    if (isAtAlertLimit) {
+      const description =
+        planId === "free"
+          ? "You've reached the Free plan limit of 5 active job alerts. Upgrade to Professional for more active job alerts."
+          : planId === "professional"
+          ? "You've reached the Professional plan limit of 20 active job alerts. Upgrade to Premium for additional access."
+          : `You've reached your ${currentPlan.name} plan limit of ${alertLimit} active job alerts.`;
+
+      toast.error("Alert Limit Reached", { description });
+      return;
+    }
     setEditingAlert(null);
     setModalOpen(true);
   };
@@ -59,7 +81,9 @@ export function JobAlertsPage() {
           </h1>
           <p className="mt-1 text-sm text-muted">
             Get notified when new SAP jobs match your preferences.
-            {totalAlertsCount > 0
+            {alertLimit !== null
+              ? ` · ${activeAlertsCount} of ${alertLimit} active (${totalAlertsCount} total)`
+              : totalAlertsCount > 0
               ? ` · ${activeAlertsCount} active (${totalAlertsCount} total)`
               : ""}
           </p>
@@ -73,6 +97,30 @@ export function JobAlertsPage() {
           Create Job Alert
         </button>
       </header>
+
+      {/* Plan limit warning banner */}
+      {isAtAlertLimit && (
+        <div className="flex flex-col gap-3 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <AlertCircle size={18} className="mt-0.5 shrink-0 text-rose-600 dark:text-rose-400" aria-hidden="true" />
+            <div>
+              <p className="text-xs font-bold text-rose-900 dark:text-rose-200">
+                You&apos;ve reached your {currentPlan.name} plan limit of {alertLimit} active job alerts.
+              </p>
+              <p className="mt-0.5 text-xs text-rose-800 dark:text-rose-300">
+                Upgrade your subscription to create more active alerts or pause existing ones.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/candidate/subscription"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white shadow-soft hover:opacity-95 transition self-start sm:self-auto shrink-0"
+          >
+            <span>Upgrade Plan</span>
+            <ArrowRight size={13} aria-hidden="true" />
+          </Link>
+        </div>
+      )}
 
       {loading ? (
         <AlertListSkeleton count={3} />

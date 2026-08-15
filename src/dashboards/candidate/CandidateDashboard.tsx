@@ -6,6 +6,7 @@ import {
   Bell,
   Bookmark,
   Briefcase,
+  CreditCard,
   Eye,
   PhoneCall,
   Sparkles,
@@ -31,10 +32,12 @@ import { useJobAlerts } from "@/features/candidate-alerts";
 import { loadCandidateMatchProfile } from "@/features/candidate-jobs/lib/loadCandidateMatchProfile";
 import { formatPostedShort } from "@/features/candidate-jobs/lib/formatPosted";
 import { candidateJobService } from "@/features/candidate-jobs/services/candidateJobService";
+import { useCandidateSubscription } from "@/features/candidate-subscription";
 import type { RecommendedJob } from "@/types/job";
 
 export function CandidateDashboard() {
   const { user } = useAuth();
+  const { currentPlan } = useCandidateSubscription();
   const { savedCount, toggleSave } = useSavedJobs();
   const { activeAlertsCount, totalAlertsCount } = useJobAlerts();
   const { applications } = useApplications();
@@ -72,19 +75,37 @@ export function CandidateDashboard() {
     <div className="mx-auto max-w-7xl space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text sm:text-3xl">
-            Welcome back, {firstName} 👋
-          </h1>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-2xl font-bold tracking-tight text-text sm:text-3xl">
+              Welcome back, {firstName} 👋
+            </h1>
+            <Link
+              href="/candidate/subscription"
+              className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary hover:bg-primary/20 transition"
+              title="Manage Candidate Plan"
+            >
+              <CreditCard size={12} aria-hidden="true" />
+              <span>{currentPlan.name} Plan</span>
+            </Link>
+          </div>
           <p className="mt-1 text-sm text-muted">
             Continue your SAP Jobs Finder career journey with tailored SAP opportunities.
           </p>
         </div>
-        <Link
-          href="/candidate/profile"
-          className="inline-flex h-10 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-soft transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
-        >
-          Complete Profile
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/candidate/subscription"
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-border bg-card px-3.5 text-xs font-semibold text-text shadow-soft transition hover:bg-surface focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+          >
+            Manage Subscription
+          </Link>
+          <Link
+            href="/candidate/profile"
+            className="inline-flex h-10 items-center justify-center rounded-xl bg-primary px-4 text-xs font-semibold text-white shadow-soft transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+          >
+            Complete Profile
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">

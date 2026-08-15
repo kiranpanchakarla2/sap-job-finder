@@ -114,6 +114,19 @@ function mapRowToJobAlert(row: JobAlertDbRow): JobAlert {
   };
 }
 
+function formatLimitReachedMessage(rawMessage?: string, planId?: string): string {
+  if (planId === "professional") {
+    return "You've reached the Professional plan limit of 20 active job alerts. Upgrade to Premium for additional access.";
+  }
+  if (planId === "free") {
+    return "You've reached the Free plan limit of 5 active job alerts. Upgrade to Professional for more active job alerts.";
+  }
+  if (rawMessage && rawMessage.includes("maximum active job alerts limit")) {
+    return rawMessage;
+  }
+  return "You've reached your active job alerts plan limit. Upgrade your plan to create more.";
+}
+
 export const candidateJobAlertService = {
   async getAlerts(): Promise<CandidateJobAlertServiceResult<JobAlert[]>> {
     try {
@@ -187,11 +200,32 @@ export const candidateJobAlertService = {
         .single();
 
       if (error || !data) {
-        return { success: false, error: "Failed to create job alert. Please try again." };
+        if (
+          error?.message?.includes("ACTIVE_JOB_ALERT_LIMIT_REACHED") ||
+          error?.code === "P0001"
+        ) {
+          const { data: planId } = await supabase.rpc("get_candidate_effective_plan", {
+            p_candidate_id: candidate.data,
+          });
+          return {
+            success: false,
+            error: formatLimitReachedMessage(error?.message, planId ?? "free"),
+            code: "LIMIT_REACHED",
+          };
+        }
+        return { success: false, error: error?.message || "Failed to create job alert. Please try again." };
       }
 
       return { success: true, data: mapRowToJobAlert(data as unknown as JobAlertDbRow) };
-    } catch {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("ACTIVE_JOB_ALERT_LIMIT_REACHED")) {
+        return {
+          success: false,
+          error: "You've reached the active job alerts limit for your plan.",
+          code: "LIMIT_REACHED",
+        };
+      }
       return { success: false, error: "Failed to create job alert. Please try again." };
     }
   },
@@ -286,11 +320,32 @@ export const candidateJobAlertService = {
         .single();
 
       if (error || !data) {
-        return { success: false, error: "Failed to change job alert status." };
+        if (
+          error?.message?.includes("ACTIVE_JOB_ALERT_LIMIT_REACHED") ||
+          error?.code === "P0001"
+        ) {
+          const { data: planId } = await supabase.rpc("get_candidate_effective_plan", {
+            p_candidate_id: candidate.data,
+          });
+          return {
+            success: false,
+            error: formatLimitReachedMessage(error?.message, planId ?? "free"),
+            code: "LIMIT_REACHED",
+          };
+        }
+        return { success: false, error: error?.message || "Failed to change job alert status." };
       }
 
       return { success: true, data: mapRowToJobAlert(data as unknown as JobAlertDbRow) };
-    } catch {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("ACTIVE_JOB_ALERT_LIMIT_REACHED")) {
+        return {
+          success: false,
+          error: "You've reached the active job alerts limit for your plan.",
+          code: "LIMIT_REACHED",
+        };
+      }
       return { success: false, error: "Failed to change job alert status." };
     }
   },

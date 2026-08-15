@@ -38,6 +38,8 @@ export type SidebarNavItem = {
   icon: LucideIcon;
   /** Optional unread / count badge (e.g. Messages). */
   badgeCount?: number;
+  /** Optional text badge (e.g. "Soon", "New"). */
+  badgeText?: string;
   /** Subtle plan-restriction indicator (navigation remains accessible). */
   locked?: boolean;
 };
@@ -186,13 +188,18 @@ function SidebarNav({
                       </span>
                       {!collapsed ? (
                         <>
-                          <span className="flex-1">{item.label}</span>
+                          <span className="flex-1 truncate">{item.label}</span>
                           {item.locked ? (
                             <Lock
                               size={14}
                               className="shrink-0 text-muted"
                               aria-hidden="true"
                             />
+                          ) : null}
+                          {item.badgeText ? (
+                            <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                              {item.badgeText}
+                            </span>
                           ) : null}
                           {badge ? (
                             <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-bold text-white">
@@ -369,26 +376,27 @@ export const candidateNavSections: SidebarNavSection[] = [
     ],
   },
   {
+    items: [
+      { label: "Messages", href: "/candidate/messages", icon: MessageSquare },
+      { label: "Notifications", href: "/candidate/notifications", icon: Bell },
+      { label: "Subscriptions", href: "/candidate/subscription", icon: CreditCard },
+      { label: "Settings", href: "/candidate/settings", icon: Settings },
+    ],
+  },
+  {
     title: "Career Services",
     items: [
-      { label: "Mock Interview", href: "/candidate/mock-interview", icon: Target },
-      { label: "Career Counselling", href: "/candidate/career-counselling", icon: Users },
+      { label: "Mock Interview", href: "/candidate/mock-interview", icon: Target, badgeText: "Soon" },
+      { label: "Career Counselling", href: "/candidate/career-counselling", icon: Users, badgeText: "Soon" },
     ],
   },
   {
     title: "Learning",
-    items: [{ label: "Learning Center", href: "/candidate/learning", icon: BookOpen }],
+    items: [{ label: "Learning Center", href: "/candidate/learning", icon: BookOpen, badgeText: "Soon" }],
   },
   {
     title: "Community",
-    items: [{ label: "Community", href: "/candidate/community", icon: UsersRound }],
-  },
-  {
-    items: [
-      { label: "Messages", href: "/candidate/messages", icon: MessageSquare },
-      { label: "Notifications", href: "/candidate/notifications", icon: Bell },
-      { label: "Settings", href: "/candidate/settings", icon: Settings },
-    ],
+    items: [{ label: "Community", href: "/candidate/community", icon: UsersRound, badgeText: "Soon" }],
   },
 ];
 

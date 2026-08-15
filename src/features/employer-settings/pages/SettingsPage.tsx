@@ -273,8 +273,7 @@ export function SettingsPage() {
         <div className="rounded-xl border border-error/30 bg-error/5 px-4 py-4">
           <p className="text-sm font-medium text-text">Delete Employer Account</p>
           <p className="mt-1 text-sm text-muted">
-            Request deletion of your employer account. Sprint 6A shows confirmation
-            UI only and does not delete data.
+            Request deletion of your employer account.
           </p>
           <div className="mt-3">
             <Button type="button" variant="secondary" onClick={() => setDeleteOpen(true)}>

@@ -1,11 +1,6 @@
-import { PlaceholderPage } from "@/components/dashboard/shared/PlaceholderPage";
+import { CandidateSettingsPage } from "@/features/candidate-settings";
 
 export default function Page() {
-  return (
-    <PlaceholderPage
-      title="Settings"
-      description="Manage account preferences and privacy."
-      backHref="/candidate/dashboard"
-    />
-  );
+  return <CandidateSettingsPage />;
 }
+

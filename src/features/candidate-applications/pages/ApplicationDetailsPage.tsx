@@ -42,7 +42,7 @@ export function ApplicationDetailsPage() {
 
   if (!hydrated || loadingDirect) {
     return (
-      <div className="mx-auto max-w-4xl animate-pulse space-y-4">
+      <div className="mx-auto max-w-7xl w-full animate-pulse space-y-4">
         <div className="h-8 w-64 rounded bg-surface" />
         <div className="h-40 rounded-[var(--radius-card)] bg-surface" />
       </div>
@@ -66,7 +66,7 @@ export function ApplicationDetailsPage() {
   const canWithdraw = canWithdrawApplication(application.status);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-7xl w-full space-y-6">
       <div>
         <Link href="/candidate/applications" className="text-sm font-medium text-primary">
           ← My Applications

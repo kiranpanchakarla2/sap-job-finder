@@ -17,6 +17,7 @@ import { SavedJobsProvider } from "@/features/candidate-jobs";
 import { JobAlertsProvider } from "@/features/candidate-alerts";
 import { CandidateMessagesProvider } from "@/features/candidate-messages";
 import { CandidateNotificationsProvider } from "@/features/candidate-notifications";
+import { CandidateSubscriptionProvider } from "@/features/candidate-subscription";
 import { siteConfig } from "@/lib/constants";
 import { ThemeProvider } from "@/theme/theme-provider";
 
@@ -78,20 +79,22 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="relative min-h-screen font-sans">
         <ThemeProvider>
           <AuthProvider>
-            <SavedJobsProvider>
-              <ApplicationsProvider>
-                <JobAlertsProvider>
-                  <CandidateMessagesProvider>
-                    <CandidateNotificationsProvider>
-                      <ThemeAtmosphere />
-                      <div className="relative z-[1]">{children}</div>
-                      <ThemeSwitcher />
-                      <AppToaster />
-                    </CandidateNotificationsProvider>
-                  </CandidateMessagesProvider>
-                </JobAlertsProvider>
-              </ApplicationsProvider>
-            </SavedJobsProvider>
+            <CandidateSubscriptionProvider>
+              <SavedJobsProvider>
+                <ApplicationsProvider>
+                  <JobAlertsProvider>
+                    <CandidateMessagesProvider>
+                      <CandidateNotificationsProvider>
+                        <ThemeAtmosphere />
+                        <div className="relative z-[1]">{children}</div>
+                        <ThemeSwitcher />
+                        <AppToaster />
+                      </CandidateNotificationsProvider>
+                    </CandidateMessagesProvider>
+                  </JobAlertsProvider>
+                </ApplicationsProvider>
+              </SavedJobsProvider>
+            </CandidateSubscriptionProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

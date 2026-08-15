@@ -180,6 +180,51 @@ type SubscriptionRow = {
   updated_at: string;
 };
 
+type CandidatePlanRow = {
+  id: string;
+  name: string;
+  tagline: string;
+  description: string;
+  price_monthly: number;
+  currency: string;
+  billing_cycle: "monthly" | "yearly";
+  is_active: boolean;
+  badge: string | null;
+  highlighted: boolean;
+  features: string[];
+  limits: Json;
+  feature_flags: string[];
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+type CandidateSubscriptionRow = {
+  id: string;
+  candidate_id: string;
+  plan_id: string;
+  status: "active" | "trialing" | "past_due" | "cancelled" | "expired";
+  billing_cycle: "monthly" | "yearly";
+  price_monthly: number;
+  currency: string;
+  current_period_start: string;
+  current_period_end: string;
+  cancel_at_period_end: boolean;
+  renewal_date: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CandidateSettingsRow = {
+  id: string;
+  candidate_id: string;
+  notification_preferences: Json;
+  job_preferences: Json;
+  privacy_preferences: Json;
+  created_at: string;
+  updated_at: string;
+};
+
 type TalentSearchUsageRow = {
   id: string;
   company_id: string;
@@ -593,6 +638,41 @@ export type Database = {
           payment_method_configured?: boolean;
         }
       >;
+      candidate_plans: GenericTable<CandidatePlanRow>;
+      candidate_subscriptions: GenericTable<
+        CandidateSubscriptionRow,
+        {
+          candidate_id: string;
+          plan_id: string;
+          id?: string;
+          status?: CandidateSubscriptionRow["status"];
+          billing_cycle?: CandidateSubscriptionRow["billing_cycle"];
+          price_monthly?: number;
+          currency?: string;
+          current_period_start?: string;
+          current_period_end?: string;
+          cancel_at_period_end?: boolean;
+          renewal_date?: string | null;
+        }
+      >;
+      candidate_settings: GenericTable<
+        CandidateSettingsRow,
+        {
+          candidate_id: string;
+          notification_preferences?: Json;
+          job_preferences?: Json;
+          privacy_preferences?: Json;
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        },
+        Partial<{
+          notification_preferences: Json;
+          job_preferences: Json;
+          privacy_preferences: Json;
+          updated_at: string;
+        }>
+      >;
       talent_search_usage: GenericTable<TalentSearchUsageRow>;
       job_alerts: GenericTable<
         {
@@ -660,9 +740,17 @@ export type Database = {
         id: string;
         user_id: string;
         title: string;
-        message: string;
+        description: string;
+        message?: string | null;
         type: string;
-        is_read: boolean;
+        is_read?: boolean;
+        read_at: string | null;
+        priority: "normal" | "important";
+        related_entity_type: string | null;
+        related_entity_id: string | null;
+        action_url: string | null;
+        action_label: string | null;
+        metadata: Json;
         created_at: string;
         updated_at: string;
       }>;
@@ -822,6 +910,27 @@ export type Database = {
           created_at: string;
           updated_at: string;
         };
+      };
+      get_candidate_effective_plan: {
+        Args: { p_candidate_id: string };
+        Returns: string;
+      };
+      get_candidate_active_job_alert_limit: {
+        Args: { p_candidate_id: string };
+        Returns: number | null;
+      };
+      get_candidate_subscription_overview: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      dev_set_candidate_subscription: {
+        Args: {
+          p_plan_id: string;
+          p_status?: string;
+          p_cancel_at_period_end?: boolean;
+          p_days_remaining?: number;
+        };
+        Returns: Json;
       };
     };
     Enums: {

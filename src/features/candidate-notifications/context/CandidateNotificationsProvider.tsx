@@ -32,13 +32,13 @@ export function CandidateNotificationsProvider({
 }: {
   children: ReactNode;
 }) {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [notifications, setNotifications] = useState<CandidateNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const refreshNotifications = useCallback(async () => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user?.id) {
       setNotifications([]);
       setLoading(false);
       setError(null);
@@ -59,12 +59,28 @@ export function CandidateNotificationsProvider({
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user?.id]);
 
   useEffect(() => {
     if (authLoading) return;
     void refreshNotifications();
   }, [authLoading, refreshNotifications]);
+
+  // Realtime subscription scoped to user.id
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) return;
+
+    const unsubscribe = candidateNotificationService.subscribeToNotifications(
+      user.id,
+      () => {
+        void refreshNotifications();
+      },
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [isAuthenticated, user?.id, refreshNotifications]);
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.isRead).length,
