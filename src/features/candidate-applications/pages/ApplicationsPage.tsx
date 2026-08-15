@@ -44,7 +44,7 @@ export function ApplicationsPage() {
 
   if (!hydrated) {
     return (
-      <div className="mx-auto max-w-5xl animate-pulse space-y-4">
+      <div className="mx-auto max-w-7xl w-full animate-pulse space-y-4">
         <div className="h-8 w-48 rounded bg-surface" />
         <div className="grid gap-3 sm:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -56,7 +56,7 @@ export function ApplicationsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-7xl w-full space-y-6">
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-text sm:text-3xl">
           My Applications

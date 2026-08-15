@@ -10,6 +10,8 @@ import { TopHeader } from "@/components/dashboard/shared/TopHeader";
 import { useApplications } from "@/features/candidate-applications";
 import { useSavedJobs } from "@/features/candidate-jobs";
 import { useJobAlerts } from "@/features/candidate-alerts";
+import { useCandidateMessages } from "@/features/candidate-messages";
+import { useCandidateNotifications } from "@/features/candidate-notifications";
 import { Footer } from "@/components/Footer";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import type { AuthRole } from "@/types/auth";
@@ -20,6 +22,8 @@ function useCandidateNavSections(): SidebarNavSection[] {
   const { savedCount } = useSavedJobs();
   const { applicationCount } = useApplications();
   const { activeAlertsCount } = useJobAlerts();
+  const { unreadCount } = useCandidateMessages();
+  const { unreadCount: notificationsCount } = useCandidateNotifications();
 
   return useMemo(() => {
     return candidateNavSections.map((section) => ({
@@ -34,15 +38,22 @@ function useCandidateNavSections(): SidebarNavSection[] {
         if (item.href === "/candidate/job-alerts") {
           return { ...item, badgeCount: activeAlertsCount || undefined };
         }
+        if (item.href === "/candidate/messages") {
+          return { ...item, badgeCount: unreadCount || undefined };
+        }
+        if (item.href === "/candidate/notifications") {
+          return { ...item, badgeCount: notificationsCount || undefined };
+        }
         return item;
       }),
     }));
-  }, [savedCount, applicationCount, activeAlertsCount]);
+  }, [savedCount, applicationCount, activeAlertsCount, unreadCount, notificationsCount]);
 }
 
 export function CandidateLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const sections = useCandidateNavSections();
+  const { unreadCount: notificationsCount } = useCandidateNotifications();
 
   return (
     <ProtectedRoute allowedRoles={CANDIDATE_ROLES}>
@@ -59,8 +70,9 @@ export function CandidateLayout({ children }: { children: ReactNode }) {
             onMenuClick={() => setSidebarOpen(true)}
             searchPlaceholder="Search SAP jobs, companies…"
             notificationsHref="/candidate/notifications"
+            notificationCount={notificationsCount}
           />
-          <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+          <main className="flex-1 min-w-0 w-full px-3 py-4 sm:px-6 sm:py-6 lg:px-8">{children}</main>
           <Footer />
         </div>
       </div>

@@ -1,11 +1,7 @@
-import { PlaceholderPage } from "@/components/dashboard/shared/PlaceholderPage";
+"use client";
+
+import { CandidateNotificationsPage } from "@/features/candidate-notifications";
 
 export default function Page() {
-  return (
-    <PlaceholderPage
-      title="Notifications"
-      description="Stay updated on applications and interviews."
-      backHref="/candidate/dashboard"
-    />
-  );
+  return <CandidateNotificationsPage />;
 }
