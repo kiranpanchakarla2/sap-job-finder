@@ -8,7 +8,7 @@ import {
   type CandidateCertificationRow,
   type CandidateProfileRow,
 } from "../lib/candidateProfileMapper";
-import type { CandidateProfileForm } from "../types/profile.types";
+import type { CandidateProfileForm, ProfileCompletionResult } from "../types/profile.types";
 
 const AVATAR_BUCKET = "candidate-avatars";
 
@@ -501,6 +501,17 @@ export const candidateProfileService = {
     return {
       success: true,
       data: calculateProfileCompletion(result.data).percent,
+    };
+  },
+
+  async getProfileCompletion(): Promise<
+    CandidateProfileServiceResult<ProfileCompletionResult>
+  > {
+    const result = await this.getMyProfile();
+    if (!result.success) return result;
+    return {
+      success: true,
+      data: calculateProfileCompletion(result.data),
     };
   },
 

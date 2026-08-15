@@ -75,6 +75,8 @@ async function candidateId(): Promise<Result<string>> {
 
 async function mapApplication(row: ApplicationRow): Promise<Result<CandidateApplication>> {
   const supabase = createClient();
+  const { normalizeApplicationStatus } = await import("../constants");
+  
   const [jobRes, resumeRes, answersRes, historyRes] = await Promise.all([
     supabase.from("jobs").select(JOB_DETAIL_SELECT).eq("id", row.job_id).maybeSingle(),
     row.resume_id
@@ -92,9 +94,9 @@ async function mapApplication(row: ApplicationRow): Promise<Result<CandidateAppl
     answer: asAnswerValue(item.answer),
   }));
   const timeline = ((historyRes.data ?? []) as HistoryRow[]).map((item) => ({
-    status: item.status,
+    status: normalizeApplicationStatus(item.status as string),
     timestamp: item.created_at,
-    label: item.status.replace(/_/g, " "),
+    label: normalizeApplicationStatus(item.status as string).replace(/_/g, " "),
   }));
 
   return {
@@ -114,7 +116,7 @@ async function mapApplication(row: ApplicationRow): Promise<Result<CandidateAppl
       },
       coverLetter: row.cover_letter ?? "",
       answers,
-      status: row.status,
+      status: normalizeApplicationStatus(row.status as string),
       appliedAt: row.applied_at,
       updatedAt: row.updated_at,
       withdrawnAt: row.withdrawn_at,
@@ -138,6 +140,35 @@ export const candidateApplicationService = {
     const failed = mapped.find((item) => !item.success);
     if (failed && !failed.success) return failed;
     return { success: true, data: mapped.flatMap((item) => item.success ? [item.data] : []) };
+  },
+
+  async getCandidateApplication(applicationId: string): Promise<Result<CandidateApplication>> {
+    const candidate = await candidateId();
+    if (!candidate.success) return candidate;
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("job_applications")
+      .select("id, job_id, candidate_id, resume_id, cover_letter, status, applied_at, updated_at, withdrawn_at")
+      .eq("id", applicationId)
+      .eq("candidate_id", candidate.data)
+      .maybeSingle();
+    if (error || !data) return { success: false, error: message(error, "Application not found.") };
+    return mapApplication(data as ApplicationRow);
+  },
+
+  async getExistingApplication(jobId: string): Promise<Result<CandidateApplication | null>> {
+    const candidate = await candidateId();
+    if (!candidate.success) return candidate;
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("job_applications")
+      .select("id, job_id, candidate_id, resume_id, cover_letter, status, applied_at, updated_at, withdrawn_at")
+      .eq("job_id", jobId)
+      .eq("candidate_id", candidate.data)
+      .maybeSingle();
+    if (error) return { success: false, error: message(error, "Unable to check existing application.") };
+    if (!data) return { success: true, data: null };
+    return mapApplication(data as ApplicationRow);
   },
 
   async getJobApplicationQuestions(jobId: string): Promise<Result<ApplicationQuestion[]>> {

@@ -23,7 +23,7 @@ export function StatCard({
           : "bg-primary/10 text-primary";
 
   return (
-    <div className="rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft">
+    <div className="rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft h-full">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm text-muted">{label}</p>

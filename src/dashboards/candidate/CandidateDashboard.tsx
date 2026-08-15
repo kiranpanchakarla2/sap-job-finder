@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
+  Bell,
   Bookmark,
   Briefcase,
   Eye,
@@ -26,6 +27,7 @@ import {
 import { useCandidateProfileCompletion } from "@/features/candidate-profile/hooks/useCandidateProfileCompletion";
 import { MOCK_RESUME_SCORE } from "@/features/candidate-resume";
 import { useSavedJobs } from "@/features/candidate-jobs";
+import { useJobAlerts } from "@/features/candidate-alerts";
 import { loadCandidateMatchProfile } from "@/features/candidate-jobs/lib/loadCandidateMatchProfile";
 import { formatPostedShort } from "@/features/candidate-jobs/lib/formatPosted";
 import { candidateJobService } from "@/features/candidate-jobs/services/candidateJobService";
@@ -34,10 +36,11 @@ import type { RecommendedJob } from "@/types/job";
 export function CandidateDashboard() {
   const { user } = useAuth();
   const { savedCount, toggleSave } = useSavedJobs();
+  const { activeAlertsCount, totalAlertsCount } = useJobAlerts();
   const { applications } = useApplications();
   const applicationStats = computeApplicationStats(applications);
   const firstName = user?.name?.split(" ")[0] || "Candidate";
-  const { percent: profileCompletion } = useCandidateProfileCompletion();
+  const { percent: profileCompletion, completion } = useCandidateProfileCompletion();
   const [recommendedJobs, setRecommendedJobs] = useState<RecommendedJob[]>([]);
 
   useEffect(() => {
@@ -92,10 +95,12 @@ export function CandidateDashboard() {
             progress={profileCompletion}
             href="/candidate/profile"
             ctaLabel="Complete Profile"
+            className="h-full"
+            breakdown={completion?.categories.map(cat => ({ label: cat.label, complete: cat.complete }))}
           />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:col-span-2">
-          <Link href="/candidate/applications" className="block">
+        <div className="grid gap-4 grid-cols-2 grid-rows-2 lg:col-span-2">
+          <Link href="/candidate/applications" className="block h-full">
             <StatCard
               label="Applications"
               value={applicationStats.total}
@@ -103,7 +108,7 @@ export function CandidateDashboard() {
               hint={`${applicationStats.underReview} under review`}
             />
           </Link>
-          <Link href="/candidate/saved-jobs" className="block">
+          <Link href="/candidate/saved-jobs" className="block h-full">
             <StatCard
               label="Saved Jobs"
               value={savedCount}
@@ -111,20 +116,23 @@ export function CandidateDashboard() {
               tone="info"
             />
           </Link>
-          <Link href="/candidate/applications" className="block">
+          <Link href="/candidate/job-alerts" className="block h-full">
+            <StatCard
+              label="Job Alerts"
+              value={activeAlertsCount}
+              icon={Bell}
+              hint={totalAlertsCount > 0 ? `${totalAlertsCount} configured` : "Configure alerts"}
+              tone="success"
+            />
+          </Link>
+          <Link href="/candidate/applications" className="block h-full">
             <StatCard
               label="Interview Calls"
               value={applicationStats.interviews}
               icon={PhoneCall}
-              tone="success"
+              tone="warning"
             />
           </Link>
-          <StatCard
-            label="Profile Views"
-            value={candidateDashboardStats.profileViews}
-            icon={Eye}
-            tone="warning"
-          />
         </div>
       </div>
 

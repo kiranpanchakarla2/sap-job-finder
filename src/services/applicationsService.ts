@@ -12,29 +12,26 @@ export type ApplicationRow = {
   } | null;
 };
 
-export async function applyToJob(jobId: string, candidateProfileId: string) {
+export async function applyToJob(jobId: string, _candidateProfileId?: string) {
   const supabase = createClient();
-  const { data, error } = await supabase
-    .from("job_applications")
-    .upsert(
-      {
-        job_id: jobId,
-        candidate_id: candidateProfileId,
-        status: "new",
-      },
-      { onConflict: "job_id,candidate_id" },
-    )
-    .select("id")
-    .single();
+  const { data, error } = await supabase.rpc("submit_candidate_application", {
+    p_job_id: jobId,
+    p_resume_id: null,
+    p_cover_letter: "",
+    p_answers: [],
+  } as never);
 
-  if (error?.code === "23505") {
-    return {
-      data: null,
-      error: { ...error, message: "You have already applied to this job." },
-    };
+  if (error) {
+    if (error.code === "23505" || error.message?.includes("already applied")) {
+      return {
+        data: null,
+        error: { ...error, message: "You have already applied to this job." },
+      };
+    }
+    return { data: null, error };
   }
 
-  return { data, error };
+  return { data: { id: data }, error: null };
 }
 
 export async function listMyApplications(candidateProfileId: string) {

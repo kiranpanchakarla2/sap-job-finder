@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { DiscoveryJob } from "@/features/candidate-jobs/types/job.types";
+import { useAuth } from "@/auth/AuthContext";
 import { formatApplicationDate, getCandidateReviewSnapshot } from "../lib/applicationUtils";
 import type {
   ApplicationDraft,
@@ -23,8 +24,11 @@ export function ApplicationReview({
   resumes: SelectableResume[];
   onEditStep: (step: ApplicationDraft["currentStep"]) => void;
 }) {
+  const { user } = useAuth();
   const resume = resumes.find((item) => item.id === draft.resumeId);
   const profile = getCandidateReviewSnapshot();
+  const candidateName = user?.name || profile.name;
+  const candidateEmail = user?.email || profile.email;
   const answeredCount = requirements.questions.filter((q) => {
     const value = draft.answers[q.id];
     if (value == null || value === "") return false;
@@ -76,9 +80,9 @@ export function ApplicationReview({
       </ReviewSection>
 
       <ReviewSection title="Candidate Profile" editHref="/candidate/profile" editLabel="Edit Profile">
-        <p className="font-medium text-text">{profile.name}</p>
+        <p className="font-medium text-text">{candidateName}</p>
         <p className="text-sm text-muted">
-          {profile.email} · {profile.phone}
+          {candidateEmail} · {profile.phone}
         </p>
         <p className="mt-1 text-sm text-muted">
           {profile.location} · {profile.headline} · {profile.experience}

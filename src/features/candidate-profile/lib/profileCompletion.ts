@@ -79,7 +79,7 @@ export function calculateProfileCompletion(
     },
     {
       id: "resume",
-      label: "Resume (Sprint 2)",
+      label: "Resume Uploaded",
       complete: profile.hasResume,
     },
   ];

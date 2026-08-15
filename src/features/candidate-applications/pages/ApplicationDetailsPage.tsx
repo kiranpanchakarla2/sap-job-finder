@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/features/candidate-resume/components/ConfirmDialog";
 import { canWithdrawApplication } from "../constants";
 import { useApplications } from "../context/ApplicationsProvider";
 import { formatApplicationDate } from "../lib/applicationUtils";
+import { candidateApplicationService } from "../services/candidateApplicationService";
+import type { CandidateApplication } from "../types/application.types";
 import { ApplicationStatusBadge } from "../components/ApplicationStatusBadge";
 import { ApplicationTimeline } from "../components/ApplicationTimeline";
 
@@ -15,10 +17,30 @@ export function ApplicationDetailsPage() {
   const params = useParams<{ applicationId: string }>();
   const { getApplicationById, withdrawApplication, hydrated } = useApplications();
   const [confirmWithdraw, setConfirmWithdraw] = useState(false);
+  const [directApplication, setDirectApplication] = useState<CandidateApplication | null>(null);
+  const [loadingDirect, setLoadingDirect] = useState(false);
 
-  const application = getApplicationById(params.applicationId);
+  const contextApplication = getApplicationById(params.applicationId);
 
-  if (!hydrated) {
+  useEffect(() => {
+    if (!contextApplication && params.applicationId && hydrated) {
+      let cancelled = false;
+      setLoadingDirect(true);
+      void candidateApplicationService.getCandidateApplication(params.applicationId).then((res) => {
+        if (!cancelled && res.success) {
+          setDirectApplication(res.data);
+        }
+        if (!cancelled) setLoadingDirect(false);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+  }, [contextApplication, params.applicationId, hydrated]);
+
+  const application = contextApplication ?? directApplication;
+
+  if (!hydrated || loadingDirect) {
     return (
       <div className="mx-auto max-w-4xl animate-pulse space-y-4">
         <div className="h-8 w-64 rounded bg-surface" />

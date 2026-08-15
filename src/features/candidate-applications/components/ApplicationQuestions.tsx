@@ -77,7 +77,7 @@ export function ApplicationQuestionRenderer({
         ) : null}
 
         {question.type === "yesNo" ? (
-          <div className="flex flex-wrap gap-2" role="radiogroup" aria-labelledby={`${id}-label`}>
+          <div className="flex flex-wrap gap-3" role="radiogroup" aria-labelledby={`${id}-label`}>
             {[true, false].map((option) => {
               const selected = value === option;
               return (
@@ -87,10 +87,10 @@ export function ApplicationQuestionRenderer({
                   role="radio"
                   aria-checked={selected}
                   onClick={() => onChange(option)}
-                  className={`inline-flex h-16 min-w-24 items-center justify-center rounded-full border px-6 text-lg font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${
+                  className={`inline-flex h-10 min-w-20 items-center justify-center rounded-lg border px-4 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
                     selected
-                      ? "border-primary bg-primary text-white"
-                      : "border-border bg-surface text-text hover:bg-primary/5"
+                      ? "border-primary bg-primary text-white shadow-soft"
+                      : "border-border bg-surface text-text hover:border-primary/30 hover:bg-primary/5"
                   }`}
                 >
                   {option ? "Yes" : "No"}

@@ -14,6 +14,7 @@ import { ThemeAtmosphere } from "@/components/theme/ThemeAtmosphere";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { ApplicationsProvider } from "@/features/candidate-applications";
 import { SavedJobsProvider } from "@/features/candidate-jobs";
+import { JobAlertsProvider } from "@/features/candidate-alerts";
 import { siteConfig } from "@/lib/constants";
 import { ThemeProvider } from "@/theme/theme-provider";
 
@@ -77,10 +78,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <AuthProvider>
             <SavedJobsProvider>
               <ApplicationsProvider>
-                <ThemeAtmosphere />
-                <div className="relative z-[1]">{children}</div>
-                <ThemeSwitcher />
-                <AppToaster />
+                <JobAlertsProvider>
+                  <ThemeAtmosphere />
+                  <div className="relative z-[1]">{children}</div>
+                  <ThemeSwitcher />
+                  <AppToaster />
+                </JobAlertsProvider>
               </ApplicationsProvider>
             </SavedJobsProvider>
           </AuthProvider>

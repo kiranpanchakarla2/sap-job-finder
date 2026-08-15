@@ -94,7 +94,7 @@ export function SavedJobsProvider({ children }: { children: ReactNode }) {
           return;
         }
         setSavedJobs((prev) => prev.filter((job) => job.id !== jobId));
-        toast.success("Job removed from saved jobs.");
+        toast.success("Job removed from Saved Jobs.");
         return;
       }
 
@@ -131,7 +131,7 @@ export function SavedJobsProvider({ children }: { children: ReactNode }) {
         void refreshSaved();
         return;
       }
-      toast.success("Job removed from saved jobs.");
+      toast.success("Job removed from Saved Jobs.");
     },
     [idSet, isAuthenticated, refreshSaved],
   );

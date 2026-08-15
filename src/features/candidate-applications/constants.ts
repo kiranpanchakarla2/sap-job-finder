@@ -1,4 +1,4 @@
-import type { ApplicationStatus, ApplicationStepId } from "./types/application.types";
+import type { ApplicationStatus, ApplicationStepId, DatabaseApplicationStatus } from "./types/application.types";
 
 export const APPLICATION_STORAGE_KEY = "sapjobsfinder-candidate-applications-v1";
 export const APPLICATION_DRAFTS_STORAGE_KEY = "sapjobsfinder-candidate-application-drafts-v1";
@@ -24,6 +24,28 @@ export type ApplicationStatusConfig = {
   badgeClass: string;
   canWithdraw: boolean;
 };
+
+/**
+ * Normalize database status to frontend status.
+ * The database uses Sprint 4B terminology: 'new', 'reviewing', etc.
+ * The frontend uses candidate-friendly terminology: 'applied', 'under_review', etc.
+ */
+export function normalizeApplicationStatus(dbStatus: string): ApplicationStatus {
+  const mapping: Record<string, ApplicationStatus> = {
+    "new": "applied",
+    "reviewing": "under_review",
+    "shortlisted": "shortlisted",
+    "interview": "interview",
+    "hired": "hired",
+    "rejected": "rejected",
+    "withdrawn": "withdrawn",
+    // Also support frontend status in case it's passed directly
+    "applied": "applied",
+    "under_review": "under_review",
+    "offer": "offer",
+  };
+  return (mapping[dbStatus] as ApplicationStatus) || "applied";
+}
 
 export const APPLICATION_STATUS_CONFIG: Record<ApplicationStatus, ApplicationStatusConfig> = {
   applied: {

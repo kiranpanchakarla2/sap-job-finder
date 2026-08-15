@@ -62,7 +62,7 @@ export function ApplyJobPage() {
   const requirements = useMemo(
     () => ({
       ...configuredRequirements,
-      questions: databaseQuestions ?? configuredRequirements.questions,
+      questions: databaseQuestions !== null ? databaseQuestions : configuredRequirements.questions,
     }),
     [configuredRequirements, databaseQuestions],
   );

@@ -269,8 +269,8 @@ export function JobDetailsPage() {
             <section className="rounded-[var(--radius-card)] border border-border bg-card p-6 shadow-soft">
               <h2 className="text-lg font-semibold text-text">Responsibilities</h2>
               <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-muted">
-                {job.responsibilities.map((item) => (
-                  <li key={item}>{item}</li>
+                {job.responsibilities.map((item, index) => (
+                  <li key={index}>{item}</li>
                 ))}
               </ul>
             </section>

@@ -48,20 +48,17 @@ async function resolveCandidateId(
   return { success: true, data: profile.id };
 }
 
-function isUniqueViolation(error: { code?: string; message?: string } | null) {
-  return error?.code === "23505" || error?.message?.toLowerCase().includes("duplicate") === true;
-}
-
 export const candidateSavedJobService = {
   async getSavedJobIds(): Promise<CandidateSavedJobServiceResult<string[]>> {
     try {
       const supabase = createClient();
       const candidate = await resolveCandidateId(supabase);
+
       if (!candidate.success) {
         if (candidate.code === "UNAUTHENTICATED") {
           return { success: true, data: [] };
         }
-        return candidate;
+        return { success: false, error: candidate.error, code: candidate.code };
       }
 
       const { data, error } = await supabase
@@ -70,15 +67,13 @@ export const candidateSavedJobService = {
         .eq("candidate_id", candidate.data);
 
       if (error) {
-        return { success: false, error: "Unable to load saved jobs." };
+        return { success: false, error: "Unable to load saved job IDs." };
       }
 
-      return {
-        success: true,
-        data: (data ?? []).map((row) => row.job_id).filter(Boolean),
-      };
+      const jobIds = (data ?? []).map((row) => row.job_id).filter(Boolean);
+      return { success: true, data: jobIds };
     } catch {
-      return { success: false, error: "Unable to load saved jobs." };
+      return { success: false, error: "Unable to load saved job IDs." };
     }
   },
 
@@ -88,11 +83,12 @@ export const candidateSavedJobService = {
     try {
       const supabase = createClient();
       const candidate = await resolveCandidateId(supabase);
+
       if (!candidate.success) {
         if (candidate.code === "UNAUTHENTICATED") {
           return { success: true, data: [] };
         }
-        return candidate;
+        return { success: false, error: candidate.error, code: candidate.code };
       }
 
       const { data: savedRows, error: savedError } = await supabase
@@ -117,7 +113,7 @@ export const candidateSavedJobService = {
         .in("id", jobIds);
 
       if (jobsError) {
-        return { success: false, error: "Unable to load saved jobs." };
+        return { success: false, error: "Unable to load job details." };
       }
 
       const jobMap = new Map(
@@ -127,11 +123,12 @@ export const candidateSavedJobService = {
       const jobs: Array<DiscoveryJob & { savedAt: string }> = [];
       for (const row of rows) {
         const jobRow = jobMap.get(row.job_id);
-        if (!jobRow) continue;
-        jobs.push({
-          ...mapJobRowToDiscovery(jobRow),
-          savedAt: row.created_at,
-        });
+        if (jobRow) {
+          jobs.push({
+            ...mapJobRowToDiscovery(jobRow),
+            savedAt: row.created_at,
+          });
+        }
       }
 
       return { success: true, data: jobs };
@@ -140,11 +137,43 @@ export const candidateSavedJobService = {
     }
   },
 
+  async isJobSaved(jobId: string): Promise<CandidateSavedJobServiceResult<boolean>> {
+    try {
+      const supabase = createClient();
+      const candidate = await resolveCandidateId(supabase);
+
+      if (!candidate.success) {
+        if (candidate.code === "UNAUTHENTICATED") {
+          return { success: true, data: false };
+        }
+        return { success: false, error: candidate.error, code: candidate.code };
+      }
+
+      const { data, error } = await supabase
+        .from("saved_jobs")
+        .select("id")
+        .eq("candidate_id", candidate.data)
+        .eq("job_id", jobId)
+        .maybeSingle();
+
+      if (error) {
+        return { success: false, error: "Unable to check saved status." };
+      }
+
+      return { success: true, data: Boolean(data?.id) };
+    } catch {
+      return { success: false, error: "Unable to check saved status." };
+    }
+  },
+
   async saveJob(jobId: string): Promise<CandidateSavedJobServiceResult<true>> {
     try {
       const supabase = createClient();
       const candidate = await resolveCandidateId(supabase);
-      if (!candidate.success) return candidate;
+
+      if (!candidate.success) {
+        return { success: false, error: candidate.error, code: candidate.code };
+      }
 
       const { error } = await supabase.from("saved_jobs").insert({
         candidate_id: candidate.data,
@@ -152,15 +181,16 @@ export const candidateSavedJobService = {
       });
 
       if (error) {
-        if (isUniqueViolation(error)) {
+        // Code 23505 is PostgreSQL unique constraint violation (duplicate save)
+        if (error.code === "23505") {
           return { success: true, data: true };
         }
-        return { success: false, error: "Unable to save this job." };
+        return { success: false, error: "Failed to save job. Please try again." };
       }
 
       return { success: true, data: true };
     } catch {
-      return { success: false, error: "Unable to save this job." };
+      return { success: false, error: "Failed to save job. Please try again." };
     }
   },
 
@@ -168,7 +198,10 @@ export const candidateSavedJobService = {
     try {
       const supabase = createClient();
       const candidate = await resolveCandidateId(supabase);
-      if (!candidate.success) return candidate;
+
+      if (!candidate.success) {
+        return { success: false, error: candidate.error, code: candidate.code };
+      }
 
       const { error } = await supabase
         .from("saved_jobs")
@@ -177,12 +210,12 @@ export const candidateSavedJobService = {
         .eq("job_id", jobId);
 
       if (error) {
-        return { success: false, error: "Unable to remove this saved job." };
+        return { success: false, error: "Failed to remove saved job. Please try again." };
       }
 
       return { success: true, data: true };
     } catch {
-      return { success: false, error: "Unable to remove this saved job." };
+      return { success: false, error: "Failed to remove saved job. Please try again." };
     }
   },
 };

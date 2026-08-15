@@ -542,12 +542,20 @@ export type Database = {
         created_at: string;
         read_at: string | null;
       }>;
-      saved_jobs: GenericTable<{
-        id: string;
-        candidate_id: string;
-        job_id: string;
-        created_at: string;
-      }>;
+      saved_jobs: GenericTable<
+        {
+          id: string;
+          candidate_id: string;
+          job_id: string;
+          created_at: string;
+        },
+        {
+          candidate_id: string;
+          job_id: string;
+          id?: string;
+          created_at?: string;
+        }
+      >;
       saved_candidates: GenericTable<
         SavedCandidateRow,
         {
@@ -586,7 +594,68 @@ export type Database = {
         }
       >;
       talent_search_usage: GenericTable<TalentSearchUsageRow>;
-      job_alerts: GenericTable<Record<string, unknown>>;
+      job_alerts: GenericTable<
+        {
+          id: string;
+          candidate_id: string;
+          name: string;
+          keywords: string[];
+          location: string | null;
+          experience_min: number | null;
+          experience_max: number | null;
+          experience: string | null;
+          sap_module: string | null;
+          sap_modules: string[];
+          work_mode: string | null;
+          employment_type: string | null;
+          salary_min: number | null;
+          salary_max: number | null;
+          frequency: AlertFrequency;
+          is_active: boolean;
+          last_matched_count: number;
+          created_at: string;
+          updated_at: string;
+        },
+        {
+          candidate_id: string;
+          name: string;
+          keywords?: string[];
+          location?: string | null;
+          experience_min?: number | null;
+          experience_max?: number | null;
+          experience?: string | null;
+          sap_module?: string | null;
+          sap_modules?: string[];
+          work_mode?: string | null;
+          employment_type?: string | null;
+          salary_min?: number | null;
+          salary_max?: number | null;
+          frequency?: AlertFrequency;
+          is_active?: boolean;
+          last_matched_count?: number;
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        },
+        Partial<{
+          name: string;
+          keywords: string[];
+          location: string | null;
+          experience_min: number | null;
+          experience_max: number | null;
+          experience: string | null;
+          sap_module: string | null;
+          sap_modules: string[];
+          work_mode: string | null;
+          employment_type: string | null;
+          salary_min: number | null;
+          salary_max: number | null;
+          frequency: AlertFrequency;
+          is_active: boolean;
+          last_matched_count: number;
+          updated_at: string;
+        }>
+      >;
       notifications: GenericTable<{
         id: string;
         user_id: string;

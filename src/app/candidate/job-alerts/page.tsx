@@ -1,11 +1,7 @@
-import { PlaceholderPage } from "@/components/dashboard/shared/PlaceholderPage";
+"use client";
+
+import { JobAlertsPage } from "@/features/candidate-alerts";
 
 export default function Page() {
-  return (
-    <PlaceholderPage
-      title="Job Alerts"
-      description="Configure alerts for new SAP openings."
-      backHref="/candidate/dashboard"
-    />
-  );
+  return <JobAlertsPage />;
 }

@@ -1,6 +1,10 @@
 /**
  * Candidate application models — Sprint 4 Phase A (local/mock).
  * Phase B maps these to applications / application_answers / status history.
+ * 
+ * NOTE: These are the FRONTEND-FACING status values.
+ * The database stores: 'new' → 'applied', 'reviewing' → 'under_review', etc.
+ * See normalizeApplicationStatus() for the mapping.
  */
 
 export type ApplicationStatus =
@@ -9,6 +13,16 @@ export type ApplicationStatus =
   | "shortlisted"
   | "interview"
   | "offer"
+  | "hired"
+  | "rejected"
+  | "withdrawn";
+
+/** Database status values (from Sprint 4B) */
+export type DatabaseApplicationStatus =
+  | "new"
+  | "reviewing"
+  | "shortlisted"
+  | "interview"
   | "hired"
   | "rejected"
   | "withdrawn";

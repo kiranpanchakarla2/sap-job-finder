@@ -9,6 +9,7 @@ import {
 import { TopHeader } from "@/components/dashboard/shared/TopHeader";
 import { useApplications } from "@/features/candidate-applications";
 import { useSavedJobs } from "@/features/candidate-jobs";
+import { useJobAlerts } from "@/features/candidate-alerts";
 import { Footer } from "@/components/Footer";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import type { AuthRole } from "@/types/auth";
@@ -18,6 +19,7 @@ const CANDIDATE_ROLES: AuthRole[] = ["candidate", "admin"];
 function useCandidateNavSections(): SidebarNavSection[] {
   const { savedCount } = useSavedJobs();
   const { applicationCount } = useApplications();
+  const { activeAlertsCount } = useJobAlerts();
 
   return useMemo(() => {
     return candidateNavSections.map((section) => ({
@@ -29,10 +31,13 @@ function useCandidateNavSections(): SidebarNavSection[] {
         if (item.href === "/candidate/applications") {
           return { ...item, badgeCount: applicationCount || undefined };
         }
+        if (item.href === "/candidate/job-alerts") {
+          return { ...item, badgeCount: activeAlertsCount || undefined };
+        }
         return item;
       }),
     }));
-  }, [savedCount, applicationCount]);
+  }, [savedCount, applicationCount, activeAlertsCount]);
 }
 
 export function CandidateLayout({ children }: { children: ReactNode }) {

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CheckCircle2, Circle } from "lucide-react";
 
 export function ProgressCard({
   title,
@@ -6,17 +7,21 @@ export function ProgressCard({
   progress,
   href,
   ctaLabel = "Continue",
+  className = "",
+  breakdown,
 }: {
   title: string;
   description?: string;
   progress: number;
   href?: string;
   ctaLabel?: string;
+  className?: string;
+  breakdown?: Array<{ label: string; complete: boolean }>;
 }) {
   const clamped = Math.max(0, Math.min(100, progress));
 
   return (
-    <div className="rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft">
+    <div className={`rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft ${className}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-text">{title}</h3>
@@ -37,6 +42,27 @@ export function ProgressCard({
           style={{ width: `${clamped}%` }}
         />
       </div>
+      
+      {breakdown && breakdown.length > 0 ? (
+        <div className="mt-5 space-y-2">
+          <p className="text-xs font-semibold text-muted uppercase tracking-wide">Sections</p>
+          <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
+            {breakdown.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                {item.complete ? (
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" aria-hidden="true" />
+                ) : (
+                  <Circle size={14} className="text-muted shrink-0" aria-hidden="true" />
+                )}
+                <span className={`text-xs ${item.complete ? "text-text" : "text-muted"}`}>
+                  {item.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+      
       {href ? (
         <Link
           href={href}
