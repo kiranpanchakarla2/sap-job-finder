@@ -3,6 +3,7 @@ import { Hero } from "@/components/Hero";
 import { HeroStats } from "@/components/HeroStats";
 import { PopularVacancies } from "@/components/PopularVacancies";
 import { HowItWorks } from "@/components/HowItWorks";
+import { HomeContactSection } from "@/components/HomeContactSection";
 import { FeaturedJobs } from "@/components/FeaturedJobs";
 import { TopCompanies } from "@/components/TopCompanies";
 import { LatestJobs } from "@/components/LatestJobs";
@@ -19,6 +20,7 @@ export default function HomePage() {
         <HeroStats />
         <PopularVacancies />
         <HowItWorks />
+        <HomeContactSection />
         <FeaturedJobs />
         <TopCompanies />
         <LatestJobs />

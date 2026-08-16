@@ -8,6 +8,7 @@ import {
   Briefcase,
   CreditCard,
   Eye,
+  HelpCircle,
   PhoneCall,
   Sparkles,
 } from "lucide-react";
@@ -252,6 +253,27 @@ export function CandidateDashboard() {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* Candidate Help & Support Assistance Banner */}
+      <div className="rounded-2xl border border-border bg-gradient-to-r from-surface via-card to-surface p-5 sm:p-6 shadow-soft flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
+            <HelpCircle size={22} aria-hidden="true" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-text">Need assistance with your applications or account?</h3>
+            <p className="text-xs text-muted mt-0.5">
+              Have questions about your profile, resume score, or job matches? Our SAP candidate support team is here to help.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/candidate/contact"
+          className="inline-flex shrink-0 items-center justify-center rounded-xl bg-primary text-white px-5 py-2.5 text-xs font-semibold shadow-soft transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+        >
+          Contact Support
+        </Link>
       </div>
     </div>
   );

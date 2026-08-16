@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/auth/AuthContext";
 import {
   buildCandidateUsageMetrics,
   CANDIDATE_PLAN_DEFINITIONS,
@@ -47,6 +48,11 @@ type CandidateSubscriptionContextValue = {
 const CandidateSubscriptionContext = createContext<CandidateSubscriptionContextValue | null>(null);
 
 export function CandidateSubscriptionProvider({ children }: { children: ReactNode }) {
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const isCandidate = Boolean(
+    isAuthenticated && user && (user.role === "candidate" || user.role === "admin"),
+  );
+
   const [subscription, setSubscription] = useState<CandidateSubscription | null>(null);
   const [plans, setPlans] = useState<CandidatePlanDefinition[]>(CANDIDATE_PLAN_DEFINITIONS);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,6 +61,14 @@ export function CandidateSubscriptionProvider({ children }: { children: ReactNod
   const [simError, setSimError] = useState(false);
 
   const fetchSubscription = useCallback(async () => {
+    if (!isCandidate || !user?.id) {
+      setSubscription(null);
+      setIsLoading(false);
+      setIsError(false);
+      setError(null);
+      return;
+    }
+
     setIsLoading(true);
     setIsError(false);
     setError(null);
@@ -78,12 +92,13 @@ export function CandidateSubscriptionProvider({ children }: { children: ReactNod
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isCandidate, user?.id]);
 
   useEffect(() => {
+    if (authLoading) return;
     void fetchSubscription();
     setSimError(candidateSubscriptionService.isSimulatingError());
-  }, [fetchSubscription]);
+  }, [authLoading, fetchSubscription]);
 
   const upgradePlan = useCallback(
     async (targetPlanId: CandidatePlanId): Promise<boolean> => {

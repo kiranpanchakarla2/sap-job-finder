@@ -226,7 +226,7 @@ export const resourcesMenu: NavMenuConfig = {
   variant: "mega",
   columns: [
     {
-      title: "Community",
+      title: "Community & Support",
       links: [
         { label: "SAP Community", href: "/services/community/discussions" },
         { label: "Ask an Expert", href: "/services/community/discussions" },
@@ -235,8 +235,8 @@ export const resourcesMenu: NavMenuConfig = {
           href: "/services/community/success-stories",
         },
         {
-          label: "Success Stories",
-          href: "/services/community/success-stories",
+          label: "Contact Us",
+          href: "/contact",
         },
       ],
     },

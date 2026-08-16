@@ -33,12 +33,15 @@ export function CandidateNotificationsProvider({
   children: ReactNode;
 }) {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const isCandidate = Boolean(
+    isAuthenticated && user && (user.role === "candidate" || user.role === "admin"),
+  );
   const [notifications, setNotifications] = useState<CandidateNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const refreshNotifications = useCallback(async () => {
-    if (!isAuthenticated || !user?.id) {
+    if (!isCandidate || !user?.id) {
       setNotifications([]);
       setLoading(false);
       setError(null);
@@ -59,7 +62,7 @@ export function CandidateNotificationsProvider({
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, user?.id]);
+  }, [isCandidate, user?.id]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -68,7 +71,7 @@ export function CandidateNotificationsProvider({
 
   // Realtime subscription scoped to user.id
   useEffect(() => {
-    if (!isAuthenticated || !user?.id) return;
+    if (!isCandidate || !user?.id) return;
 
     const unsubscribe = candidateNotificationService.subscribeToNotifications(
       user.id,

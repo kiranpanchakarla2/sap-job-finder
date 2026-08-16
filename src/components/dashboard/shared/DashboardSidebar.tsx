@@ -15,6 +15,7 @@ import {
   CreditCard,
   FileText,
   Heart,
+  HelpCircle,
   LayoutDashboard,
   Lock,
   LogOut,
@@ -381,6 +382,7 @@ export const candidateNavSections: SidebarNavSection[] = [
       { label: "Notifications", href: "/candidate/notifications", icon: Bell },
       { label: "Subscriptions", href: "/candidate/subscription", icon: CreditCard },
       { label: "Settings", href: "/candidate/settings", icon: Settings },
+      { label: "Help & Support", href: "/candidate/contact", icon: HelpCircle },
     ],
   },
   {
@@ -428,6 +430,7 @@ export const employerNavSections: SidebarNavSection[] = [
       { label: "Analytics", href: "/employer/analytics", icon: BarChart3 },
       { label: "Subscription", href: "/employer/subscription", icon: CreditCard },
       { label: "Settings", href: "/employer/settings", icon: Settings },
+      { label: "Help & Support", href: "/employer/contact", icon: HelpCircle },
     ],
   },
 ];

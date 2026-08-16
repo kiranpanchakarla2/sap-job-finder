@@ -46,10 +46,98 @@ export type LegacyApplicationStatus =
 export type AlertFrequency = "daily" | "weekly" | "instant";
 export type SkillProficiency = "beginner" | "intermediate" | "advanced" | "expert";
 
+export type ContactRequestUserType = "anonymous" | "candidate" | "employer";
+export type ContactRequestStatus = "new" | "in_progress" | "resolved" | "closed";
+export type ContactRequestPriority = "low" | "normal" | "high" | "urgent";
+export type ContactRequestCategory =
+  | "general"
+  | "candidate_support"
+  | "employer_support"
+  | "account"
+  | "job_application"
+  | "job_posting"
+  | "bulk_upload"
+  | "talent_search"
+  | "community"
+  | "technical_issue"
+  | "subscription"
+  | "payment"
+  | "report_problem"
+  | "partnership"
+  | "other";
+
 /** @deprecated use AppRole */
 export type UserRole = AppRole;
 /** @deprecated legacy work mode label */
 export type WorkMode = "Remote" | "Hybrid" | "Onsite";
+
+type ContactRequestRow = {
+  id: string;
+  user_id: string | null;
+  user_type: ContactRequestUserType;
+  company_id: string | null;
+  name: string;
+  email: string;
+  category: ContactRequestCategory;
+  subject: string;
+  message: string;
+  attachment_url: string | null;
+  attachment_name: string | null;
+  attachment_size: number | null;
+  status: ContactRequestStatus;
+  priority: ContactRequestPriority;
+  assigned_to: string | null;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type ContactRequestNoteRow = {
+  id: string;
+  contact_request_id: string;
+  author_user_id: string | null;
+  note: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type ContactRequestEventRow = {
+  id: string;
+  contact_request_id: string;
+  actor_user_id: string | null;
+  event_type:
+    | "created"
+    | "status_changed"
+    | "priority_changed"
+    | "assigned"
+    | "unassigned"
+    | "note_added"
+    | "attachment_uploaded";
+  old_value: string | null;
+  new_value: string | null;
+  metadata: Json;
+  created_at: string;
+};
+
+type ContactNotificationLogRow = {
+  id: string;
+  contact_request_id: string;
+  event_id: string | null;
+  notification_type:
+    | "user_confirmation"
+    | "support_new_request"
+    | "user_status_update";
+  recipient: string;
+  subject: string;
+  status: "pending" | "sent" | "failed" | "skipped";
+  provider: string;
+  provider_message_id: string | null;
+  error_message: string | null;
+  retry_count: number;
+  metadata: Json;
+  created_at: string;
+  sent_at: string | null;
+};
 
 type ProfileRow = {
   id: string;
@@ -816,12 +904,148 @@ export type Database = {
       }>;
       leads: GenericTable<Record<string, unknown>>;
       feedback: GenericTable<Record<string, unknown>>;
+      contact_requests: GenericTable<
+        ContactRequestRow,
+        {
+          name: string;
+          email: string;
+          category: ContactRequestCategory;
+          subject: string;
+          message: string;
+          user_id?: string | null;
+          user_type?: ContactRequestUserType;
+          company_id?: string | null;
+          attachment_url?: string | null;
+          attachment_name?: string | null;
+          attachment_size?: number | null;
+          status?: ContactRequestStatus;
+          priority?: ContactRequestPriority;
+          assigned_to?: string | null;
+          admin_notes?: string | null;
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        }
+      >;
+      contact_request_notes: GenericTable<
+        ContactRequestNoteRow,
+        {
+          contact_request_id: string;
+          author_user_id?: string | null;
+          note: string;
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        }
+      >;
+      contact_request_events: GenericTable<
+        ContactRequestEventRow,
+        {
+          contact_request_id: string;
+          actor_user_id?: string | null;
+          event_type:
+            | "created"
+            | "status_changed"
+            | "priority_changed"
+            | "assigned"
+            | "unassigned"
+            | "note_added"
+            | "attachment_uploaded";
+          old_value?: string | null;
+          new_value?: string | null;
+          metadata?: Json;
+          id?: string;
+          created_at?: string;
+        }
+      >;
+      contact_notification_logs: GenericTable<
+        ContactNotificationLogRow,
+        {
+          contact_request_id: string;
+          notification_type:
+            | "user_confirmation"
+            | "support_new_request"
+            | "user_status_update";
+          recipient: string;
+          subject: string;
+          status?: "pending" | "sent" | "failed" | "skipped";
+          provider?: string;
+          provider_message_id?: string | null;
+          error_message?: string | null;
+          event_id?: string | null;
+          retry_count?: number;
+          metadata?: Json;
+          id?: string;
+          created_at?: string;
+          sent_at?: string | null;
+        }
+      >;
     };
     Views: Record<string, never>;
     Functions: {
       current_app_role: { Args: Record<string, never>; Returns: AppRole };
       current_company_id: { Args: Record<string, never>; Returns: string };
       current_candidate_id: { Args: Record<string, never>; Returns: string };
+      log_contact_notification: {
+        Args: {
+          p_contact_request_id: string;
+          p_notification_type: string;
+          p_recipient: string;
+          p_subject: string;
+          p_status: string;
+          p_provider?: string;
+          p_provider_message_id?: string | null;
+          p_error_message?: string | null;
+          p_event_id?: string | null;
+          p_metadata?: Json;
+        };
+        Returns: Json;
+      };
+      check_contact_notification_sent: {
+        Args: {
+          p_contact_request_id: string;
+          p_notification_type: string;
+          p_event_id?: string | null;
+        };
+        Returns: boolean;
+      };
+      get_support_requests: {
+        Args: {
+          p_search?: string | null;
+          p_user_type?: string | null;
+          p_status?: string | null;
+          p_priority?: string | null;
+          p_category?: string | null;
+          p_company_id?: string | null;
+          p_date_from?: string | null;
+          p_date_to?: string | null;
+          p_page?: number | null;
+          p_page_size?: number | null;
+          p_sort_by?: string | null;
+          p_sort_direction?: string | null;
+        };
+        Returns: Json;
+      };
+      get_support_request_by_id: {
+        Args: { p_id: string };
+        Returns: Json;
+      };
+      update_support_request_status: {
+        Args: { p_id: string; p_status: string };
+        Returns: Json;
+      };
+      update_support_request_priority: {
+        Args: { p_id: string; p_priority: string };
+        Returns: Json;
+      };
+      assign_support_request: {
+        Args: { p_id: string; p_assigned_to?: string | null };
+        Returns: Json;
+      };
+      add_support_request_note: {
+        Args: { p_id: string; p_note: string };
+        Returns: Json;
+      };
       submit_candidate_application: {
         Args: { p_job_id: string; p_resume_id: string | null; p_cover_letter: string; p_answers?: Json };
         Returns: string;
@@ -1017,6 +1241,10 @@ export type Database = {
       application_status: ApplicationStatus;
       alert_frequency: AlertFrequency;
       skill_proficiency: SkillProficiency;
+      contact_request_user_type: ContactRequestUserType;
+      contact_request_status: ContactRequestStatus;
+      contact_request_priority: ContactRequestPriority;
+      contact_request_category: ContactRequestCategory;
     };
     CompositeTypes: Record<string, never>;
   };

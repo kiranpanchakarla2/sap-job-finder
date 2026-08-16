@@ -30,7 +30,10 @@ type SavedJobsContextValue = {
 const SavedJobsContext = createContext<SavedJobsContextValue | null>(null);
 
 export function SavedJobsProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const isCandidate = Boolean(
+    isAuthenticated && user && (user.role === "candidate" || user.role === "admin"),
+  );
   const router = useRouter();
   const pathname = usePathname();
   const [savedIds, setSavedIds] = useState<string[]>([]);
@@ -38,7 +41,7 @@ export function SavedJobsProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const refreshSaved = useCallback(async () => {
-    if (!isAuthenticated) {
+    if (!isCandidate || !user?.id) {
       setSavedIds([]);
       setSavedJobs([]);
       setLoading(false);
@@ -54,7 +57,7 @@ export function SavedJobsProvider({ children }: { children: ReactNode }) {
     if (idsResult.success) setSavedIds(idsResult.data);
     if (jobsResult.success) setSavedJobs(jobsResult.data);
     setLoading(false);
-  }, [isAuthenticated]);
+  }, [isCandidate, user?.id]);
 
   useEffect(() => {
     if (authLoading) return;

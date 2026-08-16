@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/auth/AuthContext";
 import { candidateMessageService } from "../services/candidateMessageService";
 import type {
   CandidateConversation,
@@ -42,6 +43,11 @@ export function CandidateMessagesProvider({
 }: {
   children: ReactNode;
 }) {
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const isCandidate = Boolean(
+    isAuthenticated && user && (user.role === "candidate" || user.role === "admin"),
+  );
+
   const [search, setSearch] = useState("");
   const [allConversations, setAllConversations] = useState<CandidateConversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -52,6 +58,14 @@ export function CandidateMessagesProvider({
   const [error, setError] = useState<string | null>(null);
 
   const loadConversations = useCallback(async () => {
+    if (!isCandidate || !user?.id) {
+      setAllConversations([]);
+      setIsLoading(false);
+      setIsError(false);
+      setError(null);
+      return;
+    }
+
     setIsLoading(true);
     setIsError(false);
     setError(null);
@@ -69,14 +83,17 @@ export function CandidateMessagesProvider({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isCandidate, user?.id]);
 
   useEffect(() => {
+    if (authLoading) return;
     void loadConversations();
-  }, [loadConversations]);
+  }, [authLoading, loadConversations]);
 
   // Realtime subscription for updates
   useEffect(() => {
+    if (!isCandidate || !user?.id) return;
+
     const unsubscribe = candidateMessageService.subscribeToAllConversations(() => {
       void candidateMessageService.listConversations().then((result) => {
         if (result.success) {
@@ -95,7 +112,7 @@ export function CandidateMessagesProvider({
     return () => {
       unsubscribe();
     };
-  }, [activeId]);
+  }, [activeId, isCandidate, user?.id]);
 
   // Derive unread count from all conversations
   const unreadCount = useMemo(() => {

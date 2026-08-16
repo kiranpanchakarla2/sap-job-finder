@@ -115,8 +115,20 @@ function getCompanyLogoColor(name: string): string {
   return COMPANY_COLORS[index];
 }
 
+function isAuthSessionMissing(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { name?: string; message?: string };
+  return (
+    e.name === "AuthSessionMissingError" ||
+    (typeof e.message === "string" && e.message.toLowerCase().includes("auth session missing"))
+  );
+}
+
 function logError(context: string, error: unknown) {
   if (process.env.NODE_ENV !== "production") {
+    if (context === "auth" && isAuthSessionMissing(error)) {
+      return;
+    }
     console.error(`[candidateMessageService] ${context}`, error);
   }
 }
@@ -135,7 +147,9 @@ async function requireUser(): Promise<
     error,
   } = await supabase.auth.getUser();
   if (error || !user) {
-    logError("auth", error);
+    if (error) {
+      logError("auth", error);
+    }
     return { success: false, error: ERR.auth };
   }
   return { success: true, data: { userId: user.id } };

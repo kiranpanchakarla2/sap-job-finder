@@ -29,12 +29,15 @@ type JobAlertsContextValue = {
 const JobAlertsContext = createContext<JobAlertsContextValue | null>(null);
 
 export function JobAlertsProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const isCandidate = Boolean(
+    isAuthenticated && user && (user.role === "candidate" || user.role === "admin"),
+  );
   const [alerts, setAlerts] = useState<JobAlert[]>([]);
   const [loading, setLoading] = useState(true);
 
   const refreshAlerts = useCallback(async () => {
-    if (!isAuthenticated) {
+    if (!isCandidate || !user?.id) {
       setAlerts([]);
       setLoading(false);
       return;
@@ -45,10 +48,12 @@ export function JobAlertsProvider({ children }: { children: ReactNode }) {
     if (result.success) {
       setAlerts(result.data);
     } else {
-      toast.error(result.error);
+      if (result.code !== "NO_CANDIDATE" && result.code !== "UNAUTHENTICATED") {
+        toast.error(result.error);
+      }
     }
     setLoading(false);
-  }, [isAuthenticated]);
+  }, [isCandidate, user?.id]);
 
   useEffect(() => {
     if (authLoading) return;

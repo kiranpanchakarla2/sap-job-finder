@@ -43,8 +43,20 @@ const ERR = {
   conflict: "Interviewer is unavailable at this time.",
 } as const;
 
+function isAuthSessionMissing(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { name?: string; message?: string };
+  return (
+    e.name === "AuthSessionMissingError" ||
+    (typeof e.message === "string" && e.message.toLowerCase().includes("auth session missing"))
+  );
+}
+
 function logError(context: string, error: unknown) {
   if (process.env.NODE_ENV !== "production") {
+    if (context === "auth" && isAuthSessionMissing(error)) {
+      return;
+    }
     console.error(`[interviewService] ${context}`, error);
   }
 }

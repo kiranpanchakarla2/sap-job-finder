@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Building2, ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
+import { Building2, ChevronDown, HelpCircle, LogOut, Settings, UserRound } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { useRouter } from "next/navigation";
 import { resolveEmployerMembership } from "@/features/employer-auth/services/employerMembershipService";
@@ -199,6 +199,27 @@ export function UserMenu() {
             <Settings size={15} aria-hidden="true" />
             Settings
           </Link>
+          {isEmployer ? (
+            <Link
+              href="/employer/contact"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 px-3 py-2.5 text-sm text-text transition hover:bg-surface"
+            >
+              <HelpCircle size={15} aria-hidden="true" />
+              Help & Support
+            </Link>
+          ) : (
+            <Link
+              href="/candidate/contact"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 px-3 py-2.5 text-sm text-text transition hover:bg-surface"
+            >
+              <HelpCircle size={15} aria-hidden="true" />
+              Help & Support
+            </Link>
+          )}
           <button
             type="button"
             role="menuitem"

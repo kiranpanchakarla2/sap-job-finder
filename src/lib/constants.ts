@@ -10,6 +10,7 @@ export const siteConfig = {
     "Search thousands of SAP jobs across Commerce, ABAP, Fiori, BTP and more — remote, hybrid, and onsite.",
   description:
     "Discover SAP jobs across Commerce, ABAP, Fiori, BTP, MM, SD, FICO and more. Build your profile, apply, and grow your SAP career.",
+  supportEmail: "support@sapjobsfinder.com",
 };
 
 export const heroStats = [
@@ -152,3 +153,122 @@ export const candidateSidebarLinks = [
   { label: "Saved Jobs", href: "/jobs?saved=1", icon: "Heart", disabled: true },
   { label: "Settings", href: "/profile", icon: "Settings", disabled: true },
 ] as const;
+
+// ---------------------------------------------------------------------------
+// Contact Us Centralized Constants (Sprint 8A Foundation)
+// ---------------------------------------------------------------------------
+
+export const CONTACT_REQUEST_USER_TYPES = [
+  "anonymous",
+  "candidate",
+  "employer",
+] as const;
+
+export const CONTACT_REQUEST_STATUSES = [
+  { value: "new", label: "New", color: "#3B82F6" },
+  { value: "in_progress", label: "In Progress", color: "#F59E0B" },
+  { value: "resolved", label: "Resolved", color: "#10B981" },
+  { value: "closed", label: "Closed", color: "#6B7280" },
+] as const;
+
+export const CONTACT_REQUEST_PRIORITIES = [
+  { value: "low", label: "Low", color: "#6B7280" },
+  { value: "normal", label: "Normal", color: "#3B82F6" },
+  { value: "high", label: "High", color: "#F59E0B" },
+  { value: "urgent", label: "Urgent", color: "#EF4444" },
+] as const;
+
+export const CONTACT_REQUEST_CATEGORIES = [
+  { value: "general", label: "General Inquiry", description: "General questions about SAP Jobs Finder" },
+  { value: "candidate_support", label: "Candidate Support", description: "Help with candidate profile, resume, or applications" },
+  { value: "employer_support", label: "Employer Support", description: "Help with employer account, team, or job postings" },
+  { value: "account", label: "Account & Login", description: "Issues signing in, password reset, or account settings" },
+  { value: "job_application", label: "Job Applications", description: "Questions or issues regarding job applications" },
+  { value: "job_posting", label: "Job Postings", description: "Help creating, editing, or publishing job listings" },
+  { value: "bulk_upload", label: "Bulk Job Import", description: "Assistance with Excel bulk job upload templates or errors" },
+  { value: "talent_search", label: "Talent Search", description: "Questions about candidate discovery and talent search filters" },
+  { value: "community", label: "Community & Events", description: "Community feedback, meetups, or user group inquiries" },
+  { value: "technical_issue", label: "Technical Issue / Bug", description: "Report bugs, broken pages, or UI glitches" },
+  { value: "subscription", label: "Subscription & Plans", description: "Inquiries about candidate or employer subscription tiers" },
+  { value: "payment", label: "Billing & Payments", description: "Invoices, payment issues, or refunds" },
+  { value: "report_problem", label: "Report a Problem / Abuse", description: "Report fraudulent jobs, spam, or misconduct" },
+  { value: "partnership", label: "Partnerships & Media", description: "Business collaboration, advertising, or press inquiries" },
+  { value: "other", label: "Other", description: "Any other topic not listed above" },
+] as const;
+
+/**
+ * Filtered categories for Public / Anonymous users (Sprint 8B)
+ */
+export const PUBLIC_CONTACT_CATEGORIES = [
+  "general",
+  "account",
+  "partnership",
+  "report_problem",
+  "technical_issue",
+  "other",
+] as const;
+
+/**
+ * Filtered categories for Candidates (Sprint 8C)
+ */
+export const CANDIDATE_CONTACT_CATEGORIES = [
+  "job_application",
+  "candidate_support",
+  "account",
+  "community",
+  "subscription",
+  "payment",
+  "technical_issue",
+  "report_problem",
+  "general",
+  "other",
+] as const;
+
+/**
+ * Filtered categories for Employers (Sprint 8D)
+ */
+export const EMPLOYER_CONTACT_CATEGORIES = [
+  "employer_support",
+  "job_posting",
+  "bulk_upload",
+  "talent_search",
+  "account",
+  "subscription",
+  "payment",
+  "technical_issue",
+  "report_problem",
+  "partnership",
+  "other",
+] as const;
+
+/**
+ * Attachment limits & allowed MIME types
+ */
+export const CONTACT_ATTACHMENT_CONFIG = {
+  bucketName: "contact-attachments",
+  maxSizeBytes: 10 * 1024 * 1024, // 10 MB
+  maxSizeLabel: "10 MB",
+  allowedMimeTypes: [
+    "application/pdf",
+    "image/png",
+    "image/jpeg",
+    "image/jpg",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "text/plain",
+  ] as const,
+  allowedExtensions: [
+    ".pdf",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".txt",
+  ] as const,
+};
+

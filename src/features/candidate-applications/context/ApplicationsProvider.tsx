@@ -17,6 +17,7 @@ import {
 import {
   createEmptyDraft,
 } from "../lib/applicationUtils";
+import { useAuth } from "@/auth/AuthContext";
 import { candidateApplicationService } from "../services/candidateApplicationService";
 import type {
   ApplicationDraft,
@@ -56,12 +57,22 @@ function readJson<T>(key: string, fallback: T): T {
 }
 
 export function ApplicationsProvider({ children }: { children: ReactNode }) {
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const isCandidate = Boolean(
+    isAuthenticated && user && (user.role === "candidate" || user.role === "admin"),
+  );
+
   const [applications, setApplications] = useState<CandidateApplication[]>([]);
   const [resumes, setResumes] = useState<SelectableResume[]>([]);
   const [drafts, setDrafts] = useState<ApplicationDraft[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   const loadRemoteApplications = useCallback(async () => {
+    if (!isCandidate || !user?.id) {
+      setApplications([]);
+      setResumes([]);
+      return { success: true as const, data: [] as CandidateApplication[] };
+    }
     const [applicationsResult, resumesResult] = await Promise.all([
       candidateApplicationService.getCandidateApplications(),
       candidateApplicationService.getSelectableResumes(),
@@ -71,13 +82,14 @@ export function ApplicationsProvider({ children }: { children: ReactNode }) {
     if (resumesResult.success) setResumes(resumesResult.data);
     else setResumes([]);
     return applicationsResult;
-  }, []);
+  }, [isCandidate, user?.id]);
 
   useEffect(() => {
     const storedDrafts = readJson<ApplicationDraft[]>(APPLICATION_DRAFTS_STORAGE_KEY, []);
     setDrafts(storedDrafts);
+    if (authLoading) return;
     void loadRemoteApplications().finally(() => setHydrated(true));
-  }, [loadRemoteApplications]);
+  }, [authLoading, loadRemoteApplications]);
 
   useEffect(() => {
     if (!hydrated) return;

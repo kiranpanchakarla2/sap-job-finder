@@ -32,8 +32,20 @@ const ERR = {
 const RESUME_BUCKET = "candidate-resumes";
 const SIGNED_URL_TTL_SECONDS = 60 * 10;
 
+function isAuthSessionMissing(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { name?: string; message?: string };
+  return (
+    e.name === "AuthSessionMissingError" ||
+    (typeof e.message === "string" && e.message.toLowerCase().includes("auth session missing"))
+  );
+}
+
 function logError(context: string, error: unknown) {
   if (process.env.NODE_ENV !== "production") {
+    if (context === "auth" && isAuthSessionMissing(error)) {
+      return;
+    }
     console.error(`[applicationService] ${context}`, error);
   }
 }

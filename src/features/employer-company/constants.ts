@@ -25,6 +25,7 @@ export const EMPLOYER_ROUTES = {
   analytics: "/employer/analytics",
   subscription: "/employer/subscription",
   settings: "/employer/settings",
+  contact: "/employer/contact",
   login: "/employer/login",
   landing: "/employer",
   forgotPassword: "/employer/forgot-password",

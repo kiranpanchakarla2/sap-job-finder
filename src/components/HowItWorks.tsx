@@ -83,14 +83,23 @@ function StepConnector({ index }: { index: number }) {
           className="how-it-works-connector-flow"
         />
 
+        {/* Start point indicator */}
         <circle cx="6" cy={arcUp ? 28 : 20} r="3.5" fill="var(--primary)" opacity="0.35" />
         <circle cx="6" cy={arcUp ? 28 : 20} r="2" fill="var(--primary)" />
 
-        <path
-          d={arcUp ? "M68 24 L76 28 L68 32 Z" : "M68 16 L76 20 L68 24 Z"}
-          fill="var(--accent)"
-        />
+        {/* Tangent-aligned arrowhead */}
+        <g transform={arcUp ? "translate(74, 28) rotate(41)" : "translate(74, 20) rotate(-41)"}>
+          <path
+            d="M-6 -4.5 L1 0 L-6 4.5"
+            stroke="var(--primary)"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        </g>
 
+        {/* Animated travelling particle */}
         <circle r="2.5" fill="var(--primary)">
           <animateMotion
             dur="2.4s"
