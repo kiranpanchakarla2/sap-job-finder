@@ -8,6 +8,7 @@ import {
   Briefcase,
   CreditCard,
   Eye,
+  GraduationCap,
   HelpCircle,
   PhoneCall,
   Sparkles,
@@ -18,16 +19,12 @@ import { EmptyState } from "@/components/dashboard/shared/EmptyState";
 import { ProgressCard } from "@/components/dashboard/shared/ProgressCard";
 import { StatCard } from "@/components/dashboard/shared/StatCard";
 import {
-  candidateDashboardStats,
-  learningCourses,
-  upcomingInterviews,
-} from "@/data/mockData";
-import {
   computeApplicationStats,
+  formatApplicationDate,
   useApplications,
 } from "@/features/candidate-applications";
 import { useCandidateProfileCompletion } from "@/features/candidate-profile/hooks/useCandidateProfileCompletion";
-import { MOCK_RESUME_SCORE } from "@/features/candidate-resume";
+import { useCandidateCareer } from "@/features/candidate-resume";
 import { useSavedJobs } from "@/features/candidate-jobs";
 import { useJobAlerts } from "@/features/candidate-alerts";
 import { loadCandidateMatchProfile } from "@/features/candidate-jobs/lib/loadCandidateMatchProfile";
@@ -42,10 +39,18 @@ export function CandidateDashboard() {
   const { savedCount, toggleSave } = useSavedJobs();
   const { activeAlertsCount, totalAlertsCount } = useJobAlerts();
   const { applications } = useApplications();
+  const { data: careerData } = useCandidateCareer();
   const applicationStats = computeApplicationStats(applications);
+  const interviewApplications = applications.filter((app) => app.status === "interview");
   const firstName = user?.name?.split(" ")[0] || "Candidate";
   const { percent: profileCompletion, completion } = useCandidateProfileCompletion();
   const [recommendedJobs, setRecommendedJobs] = useState<RecommendedJob[]>([]);
+
+  const resumeScore = careerData?.resumeScore ?? {
+    score: profileCompletion,
+    label: profileCompletion >= 80 ? "Strong profile" : "In progress",
+    tip: "Upload your resume and add SAP skills.",
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -188,33 +193,60 @@ export function CandidateDashboard() {
 
       <div className="grid gap-4 xl:grid-cols-2">
         <section className="rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft">
-          <h2 className="text-lg font-semibold text-text">Upcoming Interviews</h2>
-          <div className="mt-4 space-y-3">
-            {upcomingInterviews.map((interview) => (
-              <div
-                key={interview.id}
-                className="rounded-2xl border border-border bg-surface/70 px-4 py-3"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-semibold text-text">{interview.jobTitle}</p>
-                    <p className="text-xs text-muted">{interview.company}</p>
-                  </div>
-                  <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
-                    {interview.mode}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-muted">{interview.scheduledAt}</p>
-              </div>
-            ))}
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-text">Upcoming Interviews</h2>
+            <Link
+              href="/candidate/applications"
+              className="text-xs font-semibold text-primary hover:text-accent"
+            >
+              View all
+            </Link>
           </div>
+          {interviewApplications.length ? (
+            <div className="mt-4 space-y-3">
+              {interviewApplications.map((app) => (
+                <div
+                  key={app.id}
+                  className="rounded-2xl border border-border bg-surface/70 px-4 py-3"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-text">{app.job.title}</p>
+                      <p className="text-xs text-muted">
+                        {app.job.companyName} · {app.job.location}
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-600">
+                      Interview Scheduled
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-muted">
+                    Applied {formatApplicationDate(app.appliedAt)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-4 rounded-2xl border border-dashed border-border bg-surface/40 p-6 text-center">
+              <p className="text-sm font-medium text-text">No upcoming interviews scheduled</p>
+              <p className="mt-1 text-xs text-muted">
+                When employers schedule interviews for your applications, they will appear here.
+              </p>
+              <Link
+                href="/candidate/jobs"
+                className="mt-3 inline-flex text-xs font-semibold text-primary hover:underline"
+              >
+                Browse open SAP jobs
+              </Link>
+            </div>
+          )}
         </section>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <ProgressCard
             title="Resume Score"
-            description={`${MOCK_RESUME_SCORE.label} — add certifications for a higher score.`}
-            progress={MOCK_RESUME_SCORE.score}
+            description={`${resumeScore.label} — ${resumeScore.tip}`}
+            progress={resumeScore.score}
             href="/candidate/resume"
             ctaLabel="Improve Resume"
           />
@@ -233,15 +265,26 @@ export function CandidateDashboard() {
               Start Practice
             </Link>
           </div>
-          <ProgressCard
-            title="Learning Progress"
-            description={learningCourses[0]?.title}
-            progress={learningCourses[0]?.progress ?? 0}
-            href="/candidate/learning"
-            ctaLabel="Continue Learning"
-          />
           <div className="rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft">
-            <h3 className="text-sm font-semibold text-text">Career Counselling</h3>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <GraduationCap size={18} aria-hidden="true" />
+            </div>
+            <h3 className="mt-3 text-sm font-semibold text-text">Learning Center</h3>
+            <p className="mt-1 text-xs text-muted">
+              Explore SAP skill tutorials, S/4HANA guides, and learning paths.
+            </p>
+            <Link
+              href="/candidate/learning"
+              className="mt-4 inline-flex text-sm font-semibold text-primary hover:text-accent"
+            >
+              Explore Courses
+            </Link>
+          </div>
+          <div className="rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+              <Briefcase size={18} aria-hidden="true" />
+            </div>
+            <h3 className="mt-3 text-sm font-semibold text-text">Career Counselling</h3>
             <p className="mt-1 text-xs text-muted">
               Book a 1:1 session with an SAP career mentor.
             </p>

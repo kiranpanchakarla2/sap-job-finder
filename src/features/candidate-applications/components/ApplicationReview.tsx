@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { DiscoveryJob } from "@/features/candidate-jobs/types/job.types";
 import { useAuth } from "@/auth/AuthContext";
-import { formatApplicationDate, getCandidateReviewSnapshot } from "../lib/applicationUtils";
+import { formatApplicationDate } from "../lib/applicationUtils";
 import type {
   ApplicationDraft,
   JobApplicationRequirements,
@@ -24,11 +24,11 @@ export function ApplicationReview({
   resumes: SelectableResume[];
   onEditStep: (step: ApplicationDraft["currentStep"]) => void;
 }) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const resume = resumes.find((item) => item.id === draft.resumeId);
-  const profile = getCandidateReviewSnapshot();
-  const candidateName = user?.name || profile.name;
-  const candidateEmail = user?.email || profile.email;
+  const fullName = profile ? `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() : "";
+  const candidateName = fullName || user?.name || "Candidate";
+  const candidateEmail = user?.email || "";
   const answeredCount = requirements.questions.filter((q) => {
     const value = draft.answers[q.id];
     if (value == null || value === "") return false;
@@ -82,21 +82,12 @@ export function ApplicationReview({
       <ReviewSection title="Candidate Profile" editHref="/candidate/profile" editLabel="Edit Profile">
         <p className="font-medium text-text">{candidateName}</p>
         <p className="text-sm text-muted">
-          {candidateEmail} · {profile.phone}
+          {candidateEmail}
+          {profile?.phone ? ` · ${profile.phone}` : ""}
         </p>
-        <p className="mt-1 text-sm text-muted">
-          {profile.location} · {profile.headline} · {profile.experience}
+        <p className="mt-1 text-xs text-muted">
+          Your profile details and uploaded resume will be shared with {job.companyName}.
         </p>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {profile.skills.map((skill) => (
-            <span
-              key={skill}
-              className="rounded-full bg-badge px-2.5 py-1 text-[11px] font-medium text-badge-fg"
-            >
-              {skill}
-            </span>
-          ))}
-        </div>
       </ReviewSection>
 
       <div className="rounded-[var(--radius-card)] border border-primary/20 bg-primary/5 p-4">

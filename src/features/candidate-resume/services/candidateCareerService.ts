@@ -21,8 +21,9 @@ import type {
   CareerExperience,
   CareerHighlight,
   CandidateResume,
+  ResumeScoreInsight,
 } from "../types/resume.types";
-import { MOCK_RESUME_SCORE } from "../data/mockCandidateResume";
+import { calculateResumeScore } from "../lib/calculateResumeScore";
 import type { CandidateCertification } from "@/features/candidate-profile/types/profile.types";
 import { mapCertificationsFromRows } from "@/features/candidate-profile/lib/candidateProfileMapper";
 
@@ -47,7 +48,7 @@ export type CandidateCareerPageData = {
   sapExperienceLabel: string;
   profileCompletion: number;
   hasResume: boolean;
-  resumeScore: typeof MOCK_RESUME_SCORE;
+  resumeScore: ResumeScoreInsight;
 };
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -277,7 +278,14 @@ export const candidateCareerService = {
             : "SAP Experience",
           profileCompletion: profileRes.data?.profile_completion ?? 0,
           hasResume: resumes.length > 0 || Boolean(profileRes.data?.resume_url),
-          resumeScore: { ...MOCK_RESUME_SCORE },
+          resumeScore: calculateResumeScore({
+            hasResume: resumes.length > 0 || Boolean(profileRes.data?.resume_url),
+            experienceCount: experienceRes.data?.length ?? 0,
+            educationCount: educationRes.data?.length ?? 0,
+            skillsCount: (profileRes.data?.skills?.length ?? 0) + (profileRes.data?.sap_skills?.length ?? 0),
+            certificationsCount: certsRes.data?.length ?? 0,
+            highlightsCount: highlightsRes.data?.length ?? 0,
+          }),
         },
       };
     } catch (error) {

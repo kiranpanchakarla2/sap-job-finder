@@ -5,7 +5,10 @@ export {
   ApplicationsProvider,
   useApplications,
 } from "./context/ApplicationsProvider";
-export { computeApplicationStats } from "./lib/applicationUtils";
+export {
+  computeApplicationStats,
+  formatApplicationDate,
+} from "./lib/applicationUtils";
 export { ApplicationStatusBadge } from "./components/ApplicationStatusBadge";
 export type {
   CandidateApplication,

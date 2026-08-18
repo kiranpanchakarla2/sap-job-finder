@@ -2,10 +2,20 @@
 
 import Link from "next/link";
 import { Check, AlertTriangle } from "lucide-react";
-import { getApplicationReadiness } from "../lib/applicationUtils";
+import { useCandidateProfileCompletion } from "@/features/candidate-profile/hooks/useCandidateProfileCompletion";
 
 export function ProfileCompletenessCheck() {
-  const readiness = getApplicationReadiness();
+  const { percent, completion, isLoading } = useCandidateProfileCompletion();
+
+  const label =
+    percent >= 90 ? "Complete" : percent >= 70 ? "Almost complete" : "Needs attention";
+
+  const categories = completion?.categories ?? [
+    { label: "Personal Information", complete: false },
+    { label: "SAP Skills & Experience", complete: false },
+    { label: "Career & Employment", complete: false },
+    { label: "Professional Summary", complete: false },
+  ];
 
   return (
     <section className="rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-soft">
@@ -13,18 +23,18 @@ export function ProfileCompletenessCheck() {
         <div>
           <h2 className="text-lg font-semibold text-text">You&apos;re almost ready to apply</h2>
           <p className="mt-1 text-sm text-muted">
-            Profile completeness {readiness.percent}% — {readiness.label}.
+            Profile completeness {isLoading ? "..." : `${percent}%`} — {label}.
           </p>
         </div>
         <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-          {readiness.percent}%
+          {percent}%
         </span>
       </div>
 
       <ul className="mt-4 space-y-2">
-        {readiness.items.map((item) => (
+        {categories.map((item) => (
           <li
-            key={item.id}
+            key={item.label}
             className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface/50 px-3 py-2.5"
           >
             <span className="inline-flex items-center gap-2 text-sm text-text">
@@ -37,10 +47,10 @@ export function ProfileCompletenessCheck() {
             </span>
             {!item.complete ? (
               <Link
-                href={item.href}
+                href="/candidate/profile"
                 className="text-xs font-semibold text-primary hover:text-accent"
               >
-                {item.actionLabel}
+                Complete section
               </Link>
             ) : (
               <span className="text-xs font-medium text-emerald-700">Complete</span>

@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { NativeSelect } from "@/components/ui/NativeSelect";
-import { getDiscoveryJobById } from "@/features/candidate-jobs/data/mockJobs";
 import { ConfirmDialog } from "@/features/candidate-resume/components/ConfirmDialog";
 import {
   APPLICATION_STATUS_CONFIG,
@@ -78,17 +77,17 @@ export function ApplicationsPage() {
           <h2 className="text-lg font-semibold text-text">Draft Applications</h2>
           <div className="grid gap-3">
             {drafts.map((draft) => {
-              const draftJob = getDiscoveryJobById(draft.jobId);
+              const matchedApp = applications.find((a) => a.jobId === draft.jobId);
               return (
               <div
                 key={draft.jobId}
                 className="rounded-[var(--radius-card)] border border-dashed border-border bg-card p-4 shadow-soft"
               >
                 <p className="font-semibold text-text">
-                  {draftJob?.title ?? `Draft for job ${draft.jobId}`}
+                  {matchedApp?.job.title ?? "Job Application in Progress"}
                 </p>
-                {draftJob ? (
-                  <p className="mt-0.5 text-sm text-muted">{draftJob.companyName}</p>
+                {matchedApp?.job.companyName ? (
+                  <p className="mt-0.5 text-sm text-muted">{matchedApp.job.companyName}</p>
                 ) : null}
                 <p className="mt-1 text-xs text-muted">
                   {draft.resumeId ? "Resume selected" : "Resume pending"}

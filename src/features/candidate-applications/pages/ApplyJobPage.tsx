@@ -5,11 +5,10 @@ import { useParams, usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { candidateJobService } from "@/features/candidate-jobs/services/candidateJobService";
-import { getDiscoveryJobById, listActiveDiscoveryJobs } from "@/features/candidate-jobs/data/mockJobs";
 import type { DiscoveryJob } from "@/features/candidate-jobs/types/job.types";
 import { ConfirmDialog } from "@/features/candidate-resume/components/ConfirmDialog";
 import { APPLICATION_STEPS } from "../constants";
-import { resolveJobApplicationRequirements } from "../data/mockApplicationRequirements";
+import { resolveJobApplicationRequirements } from "../lib/jobRequirements";
 import { useApplications } from "../context/ApplicationsProvider";
 import { candidateApplicationService } from "../services/candidateApplicationService";
 import { createEmptyDraft, validateStep } from "../lib/applicationUtils";
@@ -21,10 +20,6 @@ import { ApplicationSummary } from "../components/ApplicationSummary";
 import { CoverLetterEditor } from "../components/CoverLetterEditor";
 import { ProfileCompletenessCheck } from "../components/ProfileCompletenessCheck";
 import { ResumeSelector } from "../components/ResumeSelector";
-
-function resolveJobLocally(jobId: string): DiscoveryJob | null {
-  return getDiscoveryJobById(jobId) ?? listActiveDiscoveryJobs().find((j) => j.id === jobId) ?? null;
-}
 
 export function ApplyJobPage() {
   const params = useParams<{ id: string }>();
@@ -76,8 +71,7 @@ export function ApplyJobPage() {
       if (remote.success && remote.data && remote.data.status === "active") {
         setJob(remote.data);
       } else {
-        const local = resolveJobLocally(jobId);
-        setJob(local && local.status === "active" ? local : null);
+        setJob(null);
       }
       setLoadingJob(false);
     })();

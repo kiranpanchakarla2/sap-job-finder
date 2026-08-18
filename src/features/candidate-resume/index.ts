@@ -1,5 +1,5 @@
 export { CandidateResumePage } from "./pages/CandidateResumePage";
-export { MOCK_RESUME_SCORE } from "./data/mockCandidateResume";
+export { calculateResumeScore } from "./lib/calculateResumeScore";
 export { candidateCareerService } from "./services/candidateCareerService";
 export { useCandidateCareer } from "./hooks/useCandidateCareer";
 export type {

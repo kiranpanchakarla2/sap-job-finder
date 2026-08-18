@@ -14,7 +14,6 @@ import { UpgradeModal } from "../components/UpgradeModal";
 import { ManageSubscriptionModal } from "../components/ManageSubscriptionModal";
 import { CancelSubscriptionModal } from "../components/CancelSubscriptionModal";
 import { SubscriptionSkeleton } from "../components/SubscriptionSkeleton";
-import { DevStateSwitcher } from "../components/DevStateSwitcher";
 import type { CandidatePlanId } from "../types/subscription.types";
 
 export function CandidateSubscriptionPage() {
@@ -55,7 +54,6 @@ export function CandidateSubscriptionPage() {
           description={error ?? "Please check your connection and try again."}
           onRetry={() => void reload()}
         />
-        <DevStateSwitcher />
       </div>
     );
   }
@@ -141,9 +139,6 @@ export function CandidateSubscriptionPage() {
 
       {/* BENEFITS HIGHLIGHTS */}
       <BenefitsSection />
-
-      {/* DEV STATE SWITCHER (COLLAPSIBLE TEST CONTROL) */}
-      <DevStateSwitcher />
 
       {/* UPGRADE / SWITCH PLAN MODAL */}
       <UpgradeModal

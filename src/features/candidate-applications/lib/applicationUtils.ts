@@ -1,5 +1,4 @@
 import type { DiscoveryJob } from "@/features/candidate-jobs/types/job.types";
-import { MOCK_CANDIDATE_PROFILE } from "@/features/candidate-profile/data/mockCandidateProfile";
 import { APPLICATION_STATUS_CONFIG } from "../constants";
 import type {
   ApplicationDraft,
@@ -115,89 +114,7 @@ export function filterApplications(
   return result;
 }
 
-export type ReadinessItem = {
-  id: string;
-  label: string;
-  complete: boolean;
-  href: string;
-  actionLabel: string;
-};
 
-export function getApplicationReadiness(): {
-  percent: number;
-  label: string;
-  items: ReadinessItem[];
-} {
-  const profile = MOCK_CANDIDATE_PROFILE;
-  const hasProfile = Boolean(
-    profile.personal.firstName &&
-      profile.personal.email &&
-      profile.professionalSummary.trim().length > 40,
-  );
-  const hasResume = true; // mock resumes available
-  const hasExperience = true;
-  const hasEducation = true;
-  const hasSkills = profile.sapExpertise.technicalSkills.length >= 3;
-
-  const items: ReadinessItem[] = [
-    {
-      id: "profile",
-      label: "Profile",
-      complete: hasProfile,
-      href: "/candidate/profile",
-      actionLabel: "Complete Profile",
-    },
-    {
-      id: "resume",
-      label: "Resume",
-      complete: hasResume,
-      href: "/candidate/resume",
-      actionLabel: "Add Resume",
-    },
-    {
-      id: "experience",
-      label: "Experience",
-      complete: hasExperience,
-      href: "/candidate/resume",
-      actionLabel: "Add Experience",
-    },
-    {
-      id: "education",
-      label: "Education",
-      complete: hasEducation,
-      href: "/candidate/resume",
-      actionLabel: "Add Education",
-    },
-    {
-      id: "skills",
-      label: "Skills",
-      complete: hasSkills,
-      href: "/candidate/profile",
-      actionLabel: "Add Skills",
-    },
-  ];
-
-  const completeCount = items.filter((item) => item.complete).length;
-  const percent = Math.round((completeCount / items.length) * 100);
-  const label =
-    percent >= 90 ? "Complete" : percent >= 70 ? "Almost complete" : "Needs attention";
-
-  return { percent, label, items };
-}
-
-export function getCandidateReviewSnapshot() {
-  const profile = MOCK_CANDIDATE_PROFILE;
-  return {
-    name: `${profile.personal.firstName} ${profile.personal.lastName}`.trim(),
-    email: profile.personal.email,
-    phone: profile.personal.phone,
-    location: profile.personal.currentLocation,
-    headline: profile.career.currentJobTitle,
-    skills: profile.sapExpertise.technicalSkills.slice(0, 8),
-    experience: profile.career.totalExperience,
-    education: "See resume for education details",
-  };
-}
 
 export function validateStep(
   step: ApplicationDraft["currentStep"],
