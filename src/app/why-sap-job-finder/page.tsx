@@ -33,15 +33,6 @@ export const metadata: Metadata = {
   },
 };
 
-const quickNavLinks = [
-  { label: "Our Mission", href: "#mission" },
-  { label: "About", href: "#about" },
-  { label: "Why Us", href: "#why-sap-job-finder" },
-  { label: "For Professionals", href: "#professionals" },
-  { label: "For Employers", href: "#employers" },
-  { label: "Contact Us", href: "#contact" },
-];
-
 const missionPillars = [
   {
     icon: Search,
@@ -218,22 +209,6 @@ export default function WhySapJobFinderPage() {
                 <Users size={16} className="text-primary" aria-hidden="true" />
                 <span>Find SAP Talent</span>
               </Link>
-            </div>
-
-            {/* Quick Navigation Jump Bar */}
-            <div className="mt-12 flex flex-wrap items-center justify-center gap-2 border-t border-border/60 pt-6">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-                Jump to:
-              </span>
-              {quickNavLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  className="rounded-full border border-border/80 bg-card/80 px-3 py-1 text-xs font-medium text-muted transition hover:border-primary/40 hover:text-primary hover:bg-card"
-                >
-                  {link.label}
-                </a>
-              ))}
             </div>
           </div>
         </section>
