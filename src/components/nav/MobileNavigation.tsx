@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Clock } from "lucide-react";
 import { AuthActions } from "@/components/nav/AuthActions";
 import { mainNavMenus, type NavMenuId } from "@/lib/main-nav";
 
@@ -53,9 +53,17 @@ export function MobileNavigation({ open, onClose }: MobileNavigationProps) {
                     <div className="mb-2 ml-2 flex flex-col gap-3 border-l border-border pl-3">
                       {menu.columns.map((column) => (
                         <div key={column.title}>
-                          <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
-                            {column.title}
-                          </p>
+                          <div className="flex items-center gap-1.5 px-3 py-1">
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">
+                              {column.title}
+                            </p>
+                            {column.badge === "SOON" ? (
+                              <span className="inline-flex items-center gap-1 rounded bg-muted/15 px-1.5 py-0.5 text-[10px] font-medium leading-none text-muted whitespace-nowrap">
+                                <Clock size={10} className="shrink-0 opacity-70" aria-hidden="true" />
+                                Soon
+                              </span>
+                            ) : null}
+                          </div>
                           <div className="flex flex-col gap-0.5">
                             {column.links.map((link) => (
                               <Link
@@ -70,9 +78,14 @@ export function MobileNavigation({ open, onClose }: MobileNavigationProps) {
                               >
                                 <span className="inline-flex items-center gap-2">
                                   {link.label}
-                                  {link.badge ? (
-                                    <span className="rounded-full bg-gradient-to-r from-primary to-accent px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
-                                      {link.badge}
+                                  {link.badge === "NEW" ? (
+                                    <span className="rounded-full bg-gradient-to-r from-primary to-accent px-1.5 py-0.5 text-[9px] font-bold uppercase text-white shadow-xs">
+                                      NEW
+                                    </span>
+                                  ) : link.badge === "COMING SOON" ? (
+                                    <span className="inline-flex items-center gap-1 rounded bg-muted/15 px-1.5 py-0.5 text-[10px] font-medium leading-none text-muted whitespace-nowrap">
+                                      <Clock size={10} className="shrink-0 opacity-70" aria-hidden="true" />
+                                      Soon
                                     </span>
                                   ) : null}
                                 </span>

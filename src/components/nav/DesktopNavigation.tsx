@@ -115,9 +115,9 @@ export function DesktopNavigation() {
 
             return (
               <div key={menu.id} className="relative">
-                <button
+                <Link
                   id={buttonId}
-                  type="button"
+                  href={menu.href}
                   className={`inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 ${
                     open || active ? "text-text" : "text-muted hover:text-text"
                   }`}
@@ -128,7 +128,7 @@ export function DesktopNavigation() {
                   }
                   onMouseEnter={() => openMenu(menu.id)}
                   onFocus={() => openMenu(menu.id)}
-                  onClick={() => (open ? closeMenu() : openMenu(menu.id))}
+                  onClick={closeMenu}
                 >
                   {menu.label}
                   <ChevronDown
@@ -136,7 +136,7 @@ export function DesktopNavigation() {
                     className={`transition-transform duration-150 ${open ? "rotate-180" : ""}`}
                     aria-hidden="true"
                   />
-                </button>
+                </Link>
 
                 {menu.variant === "dropdown" && open ? (
                   <div id={`${buttonId}-panel`}>

@@ -6,16 +6,25 @@
 export type NavLinkItem = {
   label: string;
   href: string;
-  badge?: "NEW";
+  badge?: "NEW" | "COMING SOON";
   featured?: boolean;
 };
 
 export type NavColumn = {
   title: string;
   links: NavLinkItem[];
+  badge?: "SOON";
 };
 
-export type NavMenuId = "jobs" | "companies" | "salaries" | "career-services" | "resources";
+export type NavMenuId =
+  | "jobs"
+  | "talent-hub"
+  | "services"
+  | "why-sap-job-finder"
+  | "companies"
+  | "salaries"
+  | "career-services"
+  | "resources";
 
 export type NavMenuConfig = {
   id: NavMenuId;
@@ -67,6 +76,191 @@ export const jobsMenu: NavMenuConfig = {
     },
   ],
   footer: { label: "View all jobs", href: "/jobs" },
+};
+
+export const talentHubMenu: NavMenuConfig = {
+  id: "talent-hub",
+  label: "Talent Hub",
+  href: "/talent-hub",
+  variant: "mega",
+  columns: [
+    {
+      title: "Find SAP Talent",
+      links: [
+        {
+          label: "Search SAP Talent",
+          href: "/talent-hub",
+        },
+        {
+          label: "SAP Professionals",
+          href: "/talent-hub/professionals",
+        },
+        {
+          label: "SAP Consultants",
+          href: "/talent-hub/professionals?type=consultant",
+        },
+        {
+          label: "SAP Developers",
+          href: "/talent-hub/professionals?type=developer",
+        },
+        {
+          label: "SAP Architects",
+          href: "/talent-hub/professionals?type=architect",
+        },
+      ],
+    },
+    {
+      title: "Talent Hub",
+      links: [
+        {
+          label: "How Talent Hub Works",
+          href: "/talent-hub/how-it-works",
+        },
+        {
+          label: "For SAP Professionals",
+          href: "/talent-hub/candidates",
+        },
+        {
+          label: "For Employers",
+          href: "/talent-hub/employers",
+        },
+        {
+          label: "Talent Hub Guidelines",
+          href: "/talent-hub/guidelines",
+        },
+      ],
+    },
+  ],
+  footer: {
+    label: "Explore SAP Talent",
+    href: "/talent-hub",
+  },
+};
+
+export const servicesMenu: NavMenuConfig = {
+  id: "services",
+  label: "Services",
+  href: "/services",
+  variant: "mega",
+  columns: [
+    {
+      title: "For Candidates",
+      badge: "SOON",
+      links: [
+        {
+          label: "Resume Services",
+          href: "/services/resume",
+        },
+        {
+          label: "Mock Interviews",
+          href: "/services/mock-interviews",
+        },
+        {
+          label: "Career Guidance",
+          href: "/services/career-guidance",
+        },
+        {
+          label: "SAP Career Coaching",
+          href: "/services/career-coaching",
+        },
+      ],
+    },
+    {
+      title: "Learning",
+      badge: "SOON",
+      links: [
+        {
+          label: "SAP Learning",
+          href: "/services/learning",
+        },
+        {
+          label: "SAP Certification Guidance",
+          href: "/services/certification",
+        },
+        {
+          label: "Interview Preparation",
+          href: "/services/interview-preparation",
+        },
+        {
+          label: "Career Resources",
+          href: "/services/resources",
+        },
+      ],
+    },
+    {
+      title: "Community",
+      badge: "SOON",
+      links: [
+        {
+          label: "SAP Community",
+          href: "/community",
+        },
+        {
+          label: "Discussions",
+          href: "/community/discussions",
+        },
+        {
+          label: "Interview Experiences",
+          href: "/community/interview-experiences",
+        },
+        {
+          label: "SAP Professionals",
+          href: "/community/professionals",
+        },
+      ],
+    },
+  ],
+  footer: {
+    label: "Explore all services",
+    href: "/services",
+  },
+};
+
+export const whySapJobFinderMenu: NavMenuConfig = {
+  id: "why-sap-job-finder",
+  label: "Why SAP Jobs Finder?",
+  href: "/why-sap-job-finder",
+  variant: "dropdown",
+  columns: [
+    {
+      title: "Why SAP Jobs Finder?",
+      links: [
+        {
+          label: "Our Mission",
+          href: "/why-sap-job-finder",
+        },
+        {
+          label: "About SAP Jobs Finder",
+          href: "/why-sap-job-finder#about",
+        },
+        {
+          label: "For SAP Professionals",
+          href: "/why-sap-job-finder/candidates",
+        },
+        {
+          label: "For Employers",
+          href: "/why-sap-job-finder/employers",
+        },
+      ],
+    },
+    {
+      title: "Connect",
+      links: [
+        {
+          label: "Success Stories",
+          href: "/success-stories",
+        },
+        {
+          label: "Contact Us",
+          href: "/contact",
+        },
+      ],
+    },
+  ],
+  footer: {
+    label: "Discover SAP Jobs Finder",
+    href: "/why-sap-job-finder",
+  },
 };
 
 export const companiesMenu: NavMenuConfig = {
@@ -293,10 +487,15 @@ export const resourcesMenu: NavMenuConfig = {
 
 export const mainNavMenus: NavMenuConfig[] = [
   jobsMenu,
-  companiesMenu,
-  salariesMenu,
-  careerServicesMenu,
-  resourcesMenu,
+  talentHubMenu,
+  servicesMenu,
+  whySapJobFinderMenu,
+
+  // Future navigation — keep commented for now
+  // companiesMenu,
+  // salariesMenu,
+  // careerServicesMenu,
+  // resourcesMenu,
 ];
 
 export const authNav = {
