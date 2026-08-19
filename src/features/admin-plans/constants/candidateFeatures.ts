@@ -1,0 +1,140 @@
+import type { CandidateFeatureOption } from "../types/plan.types";
+
+export const CANDIDATE_FEATURE_OPTIONS: CandidateFeatureOption[] = [
+  {
+    key: "job_search",
+    label: "SAP Job Search & Discovery",
+    category: "search",
+    description: "Browse and search through SAP listings across all modules and locations.",
+  },
+  {
+    key: "basic_filters",
+    label: "Basic Filters (Module, Experience, City)",
+    category: "search",
+    description: "Filter SAP jobs by standard criteria including primary module and location.",
+  },
+  {
+    key: "advanced_search",
+    label: "Advanced Search & Secondary SAP Filters",
+    category: "search",
+    description: "Granular multi-module filtering, salary band filters, and remote work preferences.",
+  },
+  {
+    key: "applications",
+    label: "Job Applications",
+    category: "applications",
+    description: "Submit job applications directly to verified SAP employers.",
+  },
+  {
+    key: "saved_jobs",
+    label: "Saved Jobs Bookmark Tool",
+    category: "applications",
+    description: "Save job openings to track and review later.",
+  },
+  {
+    key: "job_alerts",
+    label: "Instant Job Alerts (Email/Push)",
+    category: "applications",
+    description: "Receive timely notifications when new matching SAP jobs are published.",
+  },
+  {
+    key: "application_tracking",
+    label: "Application Tracking Dashboard",
+    category: "applications",
+    description: "Live stage-by-stage status tracker from review to interview.",
+  },
+  {
+    key: "application_insights",
+    label: "Application Insights & Competitor Stats",
+    category: "applications",
+    description: "See applicant count, experience percentiles, and match score.",
+  },
+  {
+    key: "candidate_profile",
+    label: "Standard Candidate Profile",
+    category: "visibility",
+    description: "Public/recruiter-viewable profile showcasing SAP modules and experience.",
+  },
+  {
+    key: "profile_visibility",
+    label: "Priority Profile Visibility in Talent Search",
+    category: "visibility",
+    description: "Featured positioning at the top of employer Talent Search results.",
+  },
+  {
+    key: "recruiter_messaging",
+    label: "Recruiter Direct Messaging",
+    category: "visibility",
+    description: "Direct in-app messaging with hiring managers and SAP recruiters.",
+  },
+  {
+    key: "direct_recruiter_reach",
+    label: "Direct Recruiter Outreach",
+    category: "visibility",
+    description: "Allow premium recruiters to proactively contact candidate with job offers.",
+  },
+  {
+    key: "resume_builder",
+    label: "Basic Resume Builder",
+    category: "resume",
+    description: "Create and export standard SAP-formatted resumes.",
+  },
+  {
+    key: "ats_resume_score",
+    label: "ATS Resume Score & Optimizer",
+    category: "resume",
+    description: "Automated keyword and formatting scanner tailored for SAP job descriptions.",
+  },
+  {
+    key: "multi_resume",
+    label: "Multi-Resume Management",
+    category: "resume",
+    description: "Manage tailored resume versions for different SAP modules and roles.",
+  },
+  {
+    key: "candidate_analytics",
+    label: "Profile View Analytics",
+    category: "visibility",
+    description: "See which companies and recruiters viewed your candidate profile.",
+  },
+  {
+    key: "priority_support",
+    label: "Priority Dedicated Support",
+    category: "support",
+    description: "Fast-response dedicated customer support for career inquiries.",
+  },
+];
+
+export const CANDIDATE_DEFAULT_BULLETS: Record<string, string[]> = {
+  free: [
+    "5 applications / month",
+    "15 saved jobs",
+    "5 active job alerts",
+    "SAP job search & basic filters",
+    "Candidate profile",
+    "Basic resume builder",
+    "Standard application tracking",
+  ],
+  professional: [
+    "Everything in Free",
+    "25 applications / month",
+    "50 saved jobs",
+    "20 active job alerts",
+    "Advanced SAP search & filters",
+    "ATS Resume Score & feedback",
+    "Enhanced application tracking",
+    "Enhanced candidate profile",
+    "Priority email support",
+  ],
+  premium: [
+    "Everything in Professional",
+    "Unlimited job applications",
+    "Unlimited saved jobs",
+    "Unlimited job alerts",
+    "Multi-resume management",
+    "Advanced application insights",
+    "Priority profile visibility to employers",
+    "Direct recruiter outreach",
+    "Dedicated concierge support",
+  ],
+};

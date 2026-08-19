@@ -281,13 +281,19 @@ type SubscriptionPlanRow = {
   currency?: string;
   account_type?: "employer" | "candidate";
   description?: string;
+  tagline?: string;
+  badge?: string | null;
+  highlighted?: boolean;
   is_active?: boolean;
   sort_order?: number;
+  duration_value?: number;
+  duration_unit?: string;
   max_active_jobs: number | null;
   max_applications: number | null;
   max_talent_search: number | null;
   max_team_members: number | null;
   features: string[];
+  feature_flags?: string[];
   created_at: string;
   updated_at?: string;
 };
@@ -325,6 +331,8 @@ type CandidatePlanRow = {
   is_active: boolean;
   badge: string | null;
   highlighted: boolean;
+  duration_value?: number;
+  duration_unit?: string;
   features: string[];
   limits: Json;
   feature_flags: string[];
@@ -1062,6 +1070,14 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      admin_get_candidate_plan_usage_counts: {
+        Args: Record<string, never>;
+        Returns: { plan_id: string; active_count: number; total_count: number }[];
+      };
+      admin_get_employer_plan_usage_counts: {
+        Args: Record<string, never>;
+        Returns: { plan_id: string; active_count: number; total_count: number }[];
+      };
       admin_suspend_candidate: {
         Args: { p_candidate_id: string };
         Returns: Json;

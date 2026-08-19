@@ -1,14 +1,11 @@
-import { FileText } from "lucide-react";
-import { AdminPlaceholderPage } from "@/features/admin-shell/components/AdminPlaceholderPage";
+import { Metadata } from "next";
+import { CandidatePlansListPage } from "@/features/admin-plans";
+
+export const metadata: Metadata = {
+  title: "Candidate Subscription Plans | Super Admin",
+  description: "Configure candidate subscription tiers, pricing, duration, feature entitlements, and active plan definitions.",
+};
 
 export default function CandidatePlansAdminPage() {
-  return (
-    <AdminPlaceholderPage
-      title="Candidate Subscription Plans"
-      category="Subscriptions"
-      description="Configure candidate tiers, pricing, duration options, feature entitlements, and active plan definitions."
-      sprintMilestone="Sprint 10D"
-      icon={FileText}
-    />
-  );
+  return <CandidatePlansListPage />;
 }
