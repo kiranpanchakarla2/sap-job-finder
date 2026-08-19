@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/Button";
 import {
-  PaymentRequestBanner,
+  SubscriptionRenewalBanner,
+  getRenewalMilestone,
   type PaymentRequestRecord,
 } from "@/features/shared-subscription";
 import { daysUntil } from "../config/planRules";
@@ -11,23 +12,31 @@ import type { EmployerSubscription } from "../types/subscription.types";
 export function SubscriptionStatusBanners({
   subscription,
   pendingPaymentRequest,
+  canManage = true,
   onChoosePlan,
   onUpdateBilling,
 }: {
   subscription: EmployerSubscription;
   pendingPaymentRequest?: PaymentRequestRecord | null;
+  canManage?: boolean;
   onChoosePlan: () => void;
   onUpdateBilling: () => void;
 }) {
-  // If a payment request exists, display the shared PaymentRequestBanner
-  if (pendingPaymentRequest) {
+  const milestone = getRenewalMilestone(subscription);
+
+  // If a pending renewal request exists or a renewal milestone applies (30d, 14d, 7d, 1d, expired), show the renewal banner
+  if (pendingPaymentRequest || milestone) {
     return (
-      <PaymentRequestBanner
-        request={pendingPaymentRequest}
-        onRequestNew={onChoosePlan}
+      <SubscriptionRenewalBanner
+        accountType="employer"
+        subscription={subscription}
+        pendingPaymentRequest={pendingPaymentRequest}
+        canManage={canManage}
+        onRenew={onChoosePlan}
       />
     );
   }
+
 
   if (subscription.status === "trialing") {
     const days = daysUntil(subscription.trialEndsAt);

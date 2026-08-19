@@ -73,7 +73,7 @@ export const subscriptionService = {
         supabase
           .from("subscriptions")
           .select(
-            "plan_id, status, billing_cycle, price, renewal_date, next_billing_date, trial_ends_at, payment_method_configured, current_period_start, current_period_end",
+            "id, plan_id, status, billing_cycle, price, renewal_date, next_billing_date, trial_ends_at, payment_method_configured, current_period_start, current_period_end",
           )
           .maybeSingle(),
         supabase
@@ -134,9 +134,13 @@ export const subscriptionService = {
           : "monthly";
 
       const subscription: EmployerSubscription = {
+        id: subscriptionRow?.id ? String(subscriptionRow.id) : undefined,
         planId,
         status,
         price: subscriptionRow?.price ? Number(subscriptionRow.price) : undefined,
+        startDate: subscriptionRow?.current_period_start ?? undefined,
+        currentPeriodStart: subscriptionRow?.current_period_start ?? undefined,
+        currentPeriodEnd: subscriptionRow?.current_period_end ?? null,
         renewalDate: subscriptionRow?.renewal_date ?? null,
         trialEndsAt: subscriptionRow?.trial_ends_at ?? null,
         billingCycle,
@@ -150,6 +154,7 @@ export const subscriptionService = {
         },
         invoices: [],
       };
+
 
       // Map plans from DB or fallback to PLAN_DEFINITIONS
       let plans: PlanDefinition[] = PLAN_DEFINITIONS;

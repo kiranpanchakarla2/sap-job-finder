@@ -32,6 +32,11 @@ const EMPLOYER_AUTH_PUBLIC_PATHS = [
   "/employer/verify-email",
 ] as const;
 
+/** Public admin auth routes — no session required. */
+const ADMIN_AUTH_PUBLIC_PATHS = [
+  "/admin/login",
+] as const;
+
 function isEmployerAuthPublicPath(pathname: string): boolean {
   if (pathname === "/employer") return true;
   return EMPLOYER_AUTH_PUBLIC_PATHS.filter((path) => path !== "/employer").some(
@@ -39,8 +44,14 @@ function isEmployerAuthPublicPath(pathname: string): boolean {
   );
 }
 
+function isAdminAuthPublicPath(pathname: string): boolean {
+  return ADMIN_AUTH_PUBLIC_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
+}
+
 function matchProtectedRoute(pathname: string): boolean {
-  if (isEmployerAuthPublicPath(pathname)) {
+  if (isEmployerAuthPublicPath(pathname) || isAdminAuthPublicPath(pathname)) {
     return false;
   }
   return PROTECTED_PREFIXES.some(
@@ -49,11 +60,11 @@ function matchProtectedRoute(pathname: string): boolean {
 }
 
 function loginPathForProtectedRoute(pathname: string): string {
+  if (pathname.startsWith("/admin")) {
+    return "/admin/login";
+  }
   if (pathname.startsWith("/employer") || pathname.startsWith("/recruiter")) {
     return getLoginPathForRole("employer");
-  }
-  if (pathname.startsWith("/admin")) {
-    return getLoginPathForRole("admin");
   }
   return getLoginPathForRole("candidate");
 }
@@ -125,6 +136,30 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     const redirectResponse = NextResponse.redirect(loginUrl);
     copyCookies(supabaseResponse, redirectResponse);
     return redirectResponse;
+  }
+
+  if (isAuthenticated && pathname === "/admin/login") {
+    const userId = typeof claims?.sub === "string" ? claims.sub : null;
+    if (userId) {
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("user_id", userId)
+          .maybeSingle();
+        const role = normalizeRole(profile?.role);
+        if (role === "super_admin" || role === "admin") {
+          const adminUrl = request.nextUrl.clone();
+          adminUrl.pathname = "/admin";
+          adminUrl.search = "";
+          const redirectResponse = NextResponse.redirect(adminUrl);
+          copyCookies(supabaseResponse, redirectResponse);
+          return redirectResponse;
+        }
+      } catch {
+        // Continue to /admin/login if lookup fails
+      }
+    }
   }
 
   if (isAuthenticated && isProtected) {

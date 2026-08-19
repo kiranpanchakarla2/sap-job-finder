@@ -133,15 +133,47 @@ export async function requireRecruiterUser(
   return user;
 }
 
-/** Require an ADMIN for `/admin`. */
+/** Require an ADMIN / Super Admin for `/admin`. */
 export async function requireAdminUser(redirectTo = "/admin"): Promise<AuthUser> {
-  const user = await requireUser(redirectTo, "public");
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
-  if (!canAccessAdmin(user.role)) {
-    redirect(getHomePathForRole(user.role));
+  if (error || !user || !user.email) {
+    const params = new URLSearchParams({ next: redirectTo });
+    redirect(`/admin/login?${params.toString()}`);
   }
 
-  return user;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, first_name, last_name")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const role = normalizeRole(profile?.role);
+
+  if (!role || !canAccessAdmin(role)) {
+    if (role) {
+      redirect(getHomePathForRole(role));
+    }
+    await supabase.auth.signOut();
+    const params = new URLSearchParams({ next: redirectTo });
+    redirect(`/admin/login?${params.toString()}`);
+  }
+
+  return {
+    id: user.id,
+    email: user.email,
+    fullName: resolveFullName(
+      user.user_metadata as Record<string, unknown> | undefined,
+      user.email,
+      profile,
+    ),
+    role,
+    platform: getPlatformForRole(role),
+  };
 }
 
 /** Stub — no institution platform */

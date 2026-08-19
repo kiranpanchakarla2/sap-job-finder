@@ -8,7 +8,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
-  PaymentRequestBanner,
+  SubscriptionRenewalBanner,
+  getRenewalMilestone,
   type PaymentRequestRecord,
 } from "@/features/shared-subscription";
 import type {
@@ -46,16 +47,22 @@ export function SubscriptionStatusBanners({
     subscription.status === "cancelled" || subscription.cancelAtPeriodEnd;
   const isPastDue = subscription.status === "past_due";
   const isExpired = subscription.status === "expired";
+  const milestone = getRenewalMilestone(subscription);
 
-  // If a payment request exists, display the shared PaymentRequestBanner
-  if (pendingPaymentRequest) {
+
+  // If a pending renewal request exists or a renewal milestone applies (30d, 14d, 7d, 1d, expired), show the renewal banner
+  if (pendingPaymentRequest || milestone) {
     return (
-      <PaymentRequestBanner
-        request={pendingPaymentRequest}
-        onRequestNew={onViewPlans}
+      <SubscriptionRenewalBanner
+        accountType="candidate"
+        subscription={subscription}
+        currentPlanName={currentPlan.name}
+        pendingPaymentRequest={pendingPaymentRequest}
+        onRenew={onViewPlans}
       />
     );
   }
+
 
   if (isCancelled && subscription.planId !== "free") {
     return (

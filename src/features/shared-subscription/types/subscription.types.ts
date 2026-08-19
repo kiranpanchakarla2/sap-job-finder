@@ -173,3 +173,45 @@ export interface PaymentRequestDisplayInfo {
 export type ServiceResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
+
+export type RenewalMilestone =
+  | "30_day"
+  | "14_day"
+  | "7_day"
+  | "1_day"
+  | "expired";
+
+export type SubscriptionNotificationType =
+  | "subscription_renewal"
+  | "subscription_expired";
+
+export interface SubscriptionNotificationRecord {
+  id: string;
+  subscriptionId: string;
+  accountType: AccountType;
+  userId?: string | null;
+  candidateId?: string | null;
+  companyId?: string | null;
+  notificationType: SubscriptionNotificationType;
+  milestone: RenewalMilestone;
+  triggeredAt: string;
+  createdAt?: string;
+}
+
+export interface RenewalNotificationContent {
+  milestone: RenewalMilestone;
+  title: string;
+  description: string;
+  ctaText: string;
+  daysRemaining: number | null;
+  variant: "info" | "warning" | "error" | "pending";
+  isExpired: boolean;
+}
+
+export interface RecordNotificationInput {
+  subscriptionId: string;
+  accountType: AccountType;
+  milestone: RenewalMilestone;
+  notificationType?: SubscriptionNotificationType;
+}
+

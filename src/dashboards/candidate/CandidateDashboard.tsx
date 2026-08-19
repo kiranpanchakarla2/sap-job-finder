@@ -32,13 +32,17 @@ import { formatPostedShort } from "@/features/candidate-jobs/lib/formatPosted";
 import { candidateJobService } from "@/features/candidate-jobs/services/candidateJobService";
 import { candidateSettingsService } from "@/features/candidate-settings";
 import type { TalentHubVisibilityState } from "@/features/candidate-settings";
+import { useRouter } from "next/navigation";
+import { SubscriptionRenewalBanner } from "@/features/shared-subscription";
 import { useCandidateSubscription } from "@/features/candidate-subscription";
 import type { RecommendedJob } from "@/types/job";
 
 export function CandidateDashboard() {
+  const router = useRouter();
   const { user } = useAuth();
-  const { currentPlan } = useCandidateSubscription();
+  const { subscription, currentPlan, pendingPaymentRequest } = useCandidateSubscription();
   const { savedCount, toggleSave } = useSavedJobs();
+
   const { activeAlertsCount, totalAlertsCount } = useJobAlerts();
   const { applications } = useApplications();
   const { data: careerData } = useCandidateCareer();
@@ -158,6 +162,16 @@ export function CandidateDashboard() {
           </Link>
         </div>
       </div>
+
+      {/* RENEWAL / EXPIRY / PENDING PAYMENT REQUEST BANNER */}
+      <SubscriptionRenewalBanner
+        accountType="candidate"
+        subscription={subscription}
+        currentPlanName={currentPlan?.name}
+        pendingPaymentRequest={pendingPaymentRequest}
+        onRenew={() => router.push("/candidate/subscription")}
+      />
+
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-1">

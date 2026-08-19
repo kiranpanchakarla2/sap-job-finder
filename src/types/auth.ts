@@ -2,7 +2,7 @@
  * Auth models for SAPJobsFinder (Supabase Auth + profiles).
  */
 
-export const AUTH_ROLES = ["candidate", "employer", "admin"] as const;
+export const AUTH_ROLES = ["candidate", "employer", "admin", "super_admin"] as const;
 
 export type AuthRole = (typeof AUTH_ROLES)[number];
 
@@ -44,6 +44,7 @@ export function getDashboardPathForRole(role: AuthRole): string {
   switch (role) {
     case "employer":
       return "/employer/dashboard";
+    case "super_admin":
     case "admin":
       return "/admin";
     case "candidate":
@@ -54,8 +55,10 @@ export function getDashboardPathForRole(role: AuthRole): string {
 
 export function getLoginPathForRole(role: AuthRole): string {
   switch (role) {
-    case "employer":
+    case "super_admin":
     case "admin":
+      return "/admin/login";
+    case "employer":
       return "/employer/login";
     case "candidate":
     default:

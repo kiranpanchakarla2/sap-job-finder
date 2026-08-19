@@ -115,7 +115,18 @@ async function requireRoleMatch(
     };
   }
 
-  if (profile.role !== expectedRole && !(expectedRole === "employer" && profile.role === "admin")) {
+  const isAdminExpected = expectedRole === "super_admin" || expectedRole === "admin";
+  const isUserAdmin = profile.role === "super_admin" || profile.role === "admin";
+
+  if (isAdminExpected) {
+    if (!isUserAdmin) {
+      await createClient().auth.signOut();
+      return {
+        success: false,
+        error: "You do not have permission to access the administration portal.",
+      };
+    }
+  } else if (profile.role !== expectedRole && !(expectedRole === "employer" && isUserAdmin)) {
     await createClient().auth.signOut();
     return {
       success: false,
@@ -282,13 +293,33 @@ export async function loginEmployer(email: string, password: string): Promise<Au
   return requireRoleMatch(data.user, "employer");
 }
 
+export async function loginSuperAdmin(email: string, password: string): Promise<AuthResult> {
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email.trim().toLowerCase(),
+    password,
+  });
+
+  if (error) {
+    return { success: false, error: mapAuthError(error) };
+  }
+  if (!data.user) {
+    return { success: false, error: "Invalid email or password." };
+  }
+
+  return requireRoleMatch(data.user, "super_admin");
+}
+
 /** Role-aware login used by AuthContext */
 export async function login(
   email: string,
   password: string,
   role: AuthRole,
 ): Promise<AuthResult> {
-  if (role === "employer" || role === "admin") {
+  if (role === "super_admin" || role === "admin") {
+    return loginSuperAdmin(email, password);
+  }
+  if (role === "employer") {
     return loginEmployer(email, password);
   }
   return loginCandidate(email, password);

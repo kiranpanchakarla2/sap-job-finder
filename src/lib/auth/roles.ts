@@ -6,7 +6,7 @@
  * user_metadata claims for access control (middleware, session, callback).
  */
 
-export const USER_ROLES = ["candidate", "employer", "admin"] as const;
+export const USER_ROLES = ["candidate", "employer", "admin", "super_admin"] as const;
 
 export type UserRole = (typeof USER_ROLES)[number];
 
@@ -32,6 +32,9 @@ export function normalizeRole(value: unknown): UserRole | null {
     case "RECRUITER":
     case "EMPLOYER":
       return "employer";
+    case "SUPER_ADMIN":
+    case "SUPERADMIN":
+      return "super_admin";
     case "ADMIN":
       return "admin";
     default:
@@ -51,8 +54,12 @@ export function isRecruiterRole(role: UserRole): boolean {
   return role === "employer";
 }
 
+export function isSuperAdminRole(role: UserRole): boolean {
+  return role === "super_admin" || role === "admin";
+}
+
 export function isAdminRole(role: UserRole): boolean {
-  return role === "admin";
+  return role === "admin" || role === "super_admin";
 }
 
 /** @deprecated alias */
@@ -71,6 +78,7 @@ export function getPlatformForRole(_role: UserRole): Platform {
 
 export function getHomePathForRole(role: UserRole): string {
   switch (role) {
+    case "super_admin":
     case "admin":
       return "/admin";
     case "employer":
@@ -87,8 +95,10 @@ export function getLoginPathForPlatform(_platform: Platform = "public"): string 
 
 export function getLoginPathForRole(role: UserRole): string {
   switch (role) {
-    case "employer":
+    case "super_admin":
     case "admin":
+      return "/admin/login";
+    case "employer":
       return "/employer/login";
     case "candidate":
     default:
@@ -136,7 +146,7 @@ export function resolveRoleFromClaims(
 
 export function canAccessPath(role: UserRole, pathname: string): boolean {
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-    return role === "admin";
+    return role === "super_admin" || role === "admin";
   }
 
   if (
@@ -145,7 +155,7 @@ export function canAccessPath(role: UserRole, pathname: string): boolean {
     pathname === "/recruiter" ||
     pathname.startsWith("/recruiter/")
   ) {
-    return role === "employer" || role === "admin";
+    return role === "employer" || role === "super_admin" || role === "admin";
   }
 
   if (
@@ -158,22 +168,22 @@ export function canAccessPath(role: UserRole, pathname: string): boolean {
     pathname === "/applications" ||
     pathname.startsWith("/applications/")
   ) {
-    return role === "candidate" || role === "admin";
+    return role === "candidate" || role === "super_admin" || role === "admin";
   }
 
   return true;
 }
 
 export function canAccessPublicDashboard(role: UserRole): boolean {
-  return role === "candidate" || role === "admin";
+  return role === "candidate" || role === "super_admin" || role === "admin";
 }
 
 export function canAccessRecruiter(role: UserRole): boolean {
-  return role === "employer" || role === "admin";
+  return role === "employer" || role === "super_admin" || role === "admin";
 }
 
 export function canAccessAdmin(role: UserRole): boolean {
-  return role === "admin";
+  return role === "super_admin" || role === "admin";
 }
 
 /** Compatibility stub */

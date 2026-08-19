@@ -18,6 +18,8 @@ import { Skeleton, SkeletonCard } from "@/components/dashboard/shared/Skeleton";
 import { LoadingSpinner } from "@/components/dashboard/shared/LoadingSpinner";
 import { EMPLOYER_ROUTES } from "@/features/employer-company/constants";
 import { useCompanySetupStatus } from "@/features/employer-company/hooks/useCompanySetupStatus";
+import { useEmployerSubscription } from "@/features/employer-subscription";
+import { SubscriptionRenewalBanner } from "@/features/shared-subscription";
 import { DashboardJobPerformance } from "../components/DashboardJobPerformance";
 import { QuickActionCard } from "../components/QuickActionCard";
 import { RecentApplicantsTable } from "../components/RecentApplicantsTable";
@@ -45,6 +47,8 @@ export function EmployerDashboardPage() {
   const router = useRouter();
   const { setupComplete, isChecking } = useCompanySetupStatus();
   const { data, employer, isLoading, isError, error, reload } = useEmployerDashboard();
+  const { subscription, pendingPaymentRequest, canManage } = useEmployerSubscription();
+
 
   useEffect(() => {
     if (!isChecking && !setupComplete) {
@@ -116,6 +120,16 @@ export function EmployerDashboardPage() {
           Post a Job
         </Button>
       </div>
+
+      {/* SUBSCRIPTION RENEWAL / EXPIRY BANNER */}
+      <SubscriptionRenewalBanner
+        accountType="employer"
+        subscription={subscription}
+        pendingPaymentRequest={pendingPaymentRequest}
+        canManage={canManage}
+        onRenew={() => router.push(EMPLOYER_ROUTES.subscription || "/employer/subscription")}
+      />
+
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Link

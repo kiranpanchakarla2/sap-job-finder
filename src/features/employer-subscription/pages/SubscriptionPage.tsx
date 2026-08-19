@@ -87,10 +87,11 @@ export function SubscriptionPage() {
         </div>
       </header>
 
-      {/* STATUS BANNERS (Pending Request / Trialing / Past Due / Cancelled) */}
+      {/* STATUS BANNERS (Pending Request / Trialing / Past Due / Cancelled / Renewal) */}
       <SubscriptionStatusBanners
         subscription={subscription}
         pendingPaymentRequest={pendingPaymentRequest}
+        canManage={canManage}
         onChoosePlan={scrollToPlans}
         onUpdateBilling={() =>
           toast.message("Payment integration coming soon.", {
@@ -98,6 +99,7 @@ export function SubscriptionPage() {
           })
         }
       />
+
 
       {/* CURRENT PLAN SUMMARY */}
       <CurrentPlanCard subscription={subscription} />

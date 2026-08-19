@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export type AppRole = "candidate" | "employer" | "admin";
+export type AppRole = "candidate" | "employer" | "admin" | "super_admin";
 export type EmployerCompanyRole =
   | "owner"
   | "admin"
@@ -1328,7 +1328,17 @@ export type Database = {
         };
         Returns: Json;
       };
+      record_subscription_notification: {
+        Args: {
+          p_subscription_id: string;
+          p_account_type: string;
+          p_milestone: string;
+          p_notification_type?: string;
+        };
+        Returns: Json;
+      };
     };
+
     Enums: {
       app_role: AppRole;
       employer_company_role: EmployerCompanyRole;

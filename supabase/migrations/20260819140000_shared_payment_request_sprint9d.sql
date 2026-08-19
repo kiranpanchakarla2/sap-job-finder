@@ -525,3 +525,156 @@ create policy "Employers can view company payment requests"
 -- Revoke mutation rights from regular clients
 revoke update, delete on table public.payment_requests from anon, authenticated;
 grant select, insert on table public.payment_requests to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 7. SUBSCRIPTION NOTIFICATIONS TABLE (IDEMPOTENT RENEWAL & EXPIRY TRACKING)
+-- ----------------------------------------------------------------------------
+create table if not exists public.subscription_notifications (
+  id uuid primary key default gen_random_uuid(),
+  subscription_id text not null,
+  account_type text not null check (account_type in ('candidate', 'employer')),
+  user_id uuid references auth.users(id) on delete cascade,
+  candidate_id uuid references public.candidate_profiles(id) on delete set null,
+  company_id uuid references public.company_profiles(id) on delete set null,
+  notification_type text not null default 'subscription_renewal'
+    check (notification_type in ('subscription_renewal', 'subscription_expired')),
+  milestone text not null
+    check (milestone in ('30_day', '14_day', '7_day', '1_day', 'expired')),
+  triggered_at timestamptz not null default now(),
+  created_at timestamptz not null default now(),
+  constraint uq_subscription_notification unique (subscription_id, notification_type, milestone)
+);
+
+-- Performance & isolation indexes
+create index if not exists idx_subscription_notifications_sub_id
+  on public.subscription_notifications (subscription_id);
+
+create index if not exists idx_subscription_notifications_candidate
+  on public.subscription_notifications (candidate_id, notification_type);
+
+create index if not exists idx_subscription_notifications_company
+  on public.subscription_notifications (company_id, notification_type);
+
+create index if not exists idx_subscription_notifications_user
+  on public.subscription_notifications (user_id);
+
+-- RLS
+alter table public.subscription_notifications enable row level security;
+alter table public.subscription_notifications force row level security;
+
+-- Candidate read policy
+drop policy if exists "Candidates can view own subscription notifications" on public.subscription_notifications;
+create policy "Candidates can view own subscription notifications"
+  on public.subscription_notifications
+  for select
+  to authenticated
+  using (
+    account_type = 'candidate'
+    and (
+      candidate_id = (select public.current_candidate_id())
+      or user_id = auth.uid()
+    )
+  );
+
+-- Employer read policy
+drop policy if exists "Employers can view company subscription notifications" on public.subscription_notifications;
+create policy "Employers can view company subscription notifications"
+  on public.subscription_notifications
+  for select
+  to authenticated
+  using (
+    account_type = 'employer'
+    and (
+      company_id = public.current_company_id()
+      or user_id = auth.uid()
+    )
+  );
+
+-- Revoke mutation rights from regular clients
+revoke update, delete on table public.subscription_notifications from anon, authenticated;
+grant select, insert on table public.subscription_notifications to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 8. SECURITY DEFINER RPC: record_subscription_notification
+-- ----------------------------------------------------------------------------
+create or replace function public.record_subscription_notification(
+  p_subscription_id text,
+  p_account_type text,
+  p_milestone text,
+  p_notification_type text default 'subscription_renewal'
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+set row_security = off
+as $$
+declare
+  v_user_id uuid;
+  v_candidate_id uuid := null;
+  v_company_id uuid := null;
+  v_row record;
+begin
+  v_user_id := auth.uid();
+  if v_user_id is null then
+    raise exception 'UNAUTHENTICATED' using errcode = '42501';
+  end if;
+
+  if p_account_type = 'candidate' then
+    v_candidate_id := public.current_candidate_id();
+  elsif p_account_type = 'employer' then
+    v_company_id := public.current_company_id();
+  else
+    raise exception 'INVALID_ACCOUNT_TYPE' using errcode = '22023';
+  end if;
+
+  if p_milestone not in ('30_day', '14_day', '7_day', '1_day', 'expired') then
+    raise exception 'INVALID_MILESTONE' using errcode = '22023';
+  end if;
+
+  insert into public.subscription_notifications (
+    subscription_id,
+    account_type,
+    user_id,
+    candidate_id,
+    company_id,
+    notification_type,
+    milestone,
+    triggered_at
+  ) values (
+    p_subscription_id,
+    p_account_type,
+    v_user_id,
+    v_candidate_id,
+    v_company_id,
+    coalesce(p_notification_type, 'subscription_renewal'),
+    p_milestone,
+    now()
+  )
+  on conflict (subscription_id, notification_type, milestone) do nothing
+  returning * into v_row;
+
+  if v_row.id is null then
+    select * into v_row
+    from public.subscription_notifications
+    where subscription_id = p_subscription_id
+      and notification_type = coalesce(p_notification_type, 'subscription_renewal')
+      and milestone = p_milestone
+    limit 1;
+  end if;
+
+  return jsonb_build_object(
+    'id', v_row.id,
+    'subscriptionId', v_row.subscription_id,
+    'accountType', v_row.account_type,
+    'notificationType', v_row.notification_type,
+    'milestone', v_row.milestone,
+    'triggeredAt', v_row.triggered_at,
+    'createdAt', v_row.created_at
+  );
+end;
+$$;
+
+revoke all on function public.record_subscription_notification(text, text, text, text) from public;
+grant execute on function public.record_subscription_notification(text, text, text, text) to authenticated;
+

@@ -88,12 +88,16 @@ export type Invoice = {
 };
 
 export type EmployerSubscription = {
+  id?: string;
   planId: PlanId;
   status: SubscriptionStatus;
   renewalDate: string | null;
   trialEndsAt: string | null;
   billingCycle: BillingCycle;
   price?: number;
+  startDate?: string;
+  currentPeriodStart?: string;
+  currentPeriodEnd?: string | null;
   nextBillingDate: string | null;
   paymentMethodConfigured: boolean;
   usage: Record<UsageMetricKey, number>;

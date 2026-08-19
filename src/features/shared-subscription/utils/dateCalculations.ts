@@ -94,3 +94,70 @@ export function daysUntil(
   const diffMs = target.getTime() - now.getTime();
   return Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
 }
+
+/**
+ * Calculates calendar days remaining until the subscription end date.
+ * If the date is past or today has elapsed, returns 0 or negative calendar days.
+ * Returns null if no end date exists.
+ */
+export function getSubscriptionDaysRemaining(
+  subscriptionOrEndDate:
+    | { currentPeriodEnd?: string | null; endDate?: string | null; renewalDate?: string | null; trialEndsAt?: string | null }
+    | string
+    | Date
+    | null
+    | undefined,
+  now: Date = new Date(),
+): number | null {
+  if (!subscriptionOrEndDate) return null;
+
+  let endVal: string | Date | null = null;
+  if (typeof subscriptionOrEndDate === "string" || subscriptionOrEndDate instanceof Date) {
+    endVal = subscriptionOrEndDate;
+  } else if (typeof subscriptionOrEndDate === "object") {
+    endVal =
+      subscriptionOrEndDate.currentPeriodEnd ||
+      subscriptionOrEndDate.endDate ||
+      subscriptionOrEndDate.renewalDate ||
+      subscriptionOrEndDate.trialEndsAt ||
+      null;
+  }
+
+  if (!endVal) return null;
+
+  const targetDate = typeof endVal === "string" ? new Date(endVal) : endVal;
+  if (Number.isNaN(targetDate.getTime())) return null;
+
+  // Calendar-day diff (normalizing time components to ensure pure calendar day comparison)
+  const targetMidnight = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+  const nowMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const diffMs = targetMidnight.getTime() - nowMidnight.getTime();
+  return Math.round(diffMs / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * Evaluates whether a subscription has expired based on end date and status.
+ */
+export function isSubscriptionExpired(
+  subscriptionOrEndDate:
+    | { currentPeriodEnd?: string | null; endDate?: string | null; status?: SubscriptionStatus }
+    | string
+    | Date
+    | null
+    | undefined,
+  now: Date = new Date(),
+): boolean {
+  if (!subscriptionOrEndDate) return false;
+
+  if (typeof subscriptionOrEndDate === "object" && !(subscriptionOrEndDate instanceof Date)) {
+    if (subscriptionOrEndDate.status === "expired") {
+      return true;
+    }
+  }
+
+  const days = getSubscriptionDaysRemaining(subscriptionOrEndDate, now);
+  if (days === null) return false;
+  return days <= 0;
+}
+
