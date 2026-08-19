@@ -23,6 +23,7 @@ import type {
   NotificationPreferences,
   PrivacyPreferences,
   ProfileVisibilityTier,
+  TalentHubVisibilityState,
 } from "../types/settings.types";
 
 const WORK_MODE_TO_DB: Record<CandidateWorkMode, string> = {
@@ -115,19 +116,23 @@ function sanitizePrivacyPreferences(raw: unknown): PrivacyPreferences {
   }
 
   const obj = raw as Record<string, unknown>;
-  const visibility: ProfileVisibilityTier =
-    obj.profileVisibility === "public" ||
-    obj.profileVisibility === "limited" ||
-    obj.profileVisibility === "private"
-      ? obj.profileVisibility
-      : DEFAULT_PRIVACY_PREFERENCES.profileVisibility;
+  const rawVisibility = obj.talentHubVisibility || obj.profileVisibility;
+  let talentHubVisibility: TalentHubVisibilityState = "private";
+  if (rawVisibility === "employer_visible" || rawVisibility === "public" || rawVisibility === "limited") {
+    talentHubVisibility = "employer_visible";
+  } else if (rawVisibility === "open_to_opportunities") {
+    talentHubVisibility = "open_to_opportunities";
+  } else {
+    talentHubVisibility = "private";
+  }
 
   return {
-    profileVisibility: visibility,
+    profileVisibility: talentHubVisibility,
+    talentHubVisibility,
     showInTalentSearch:
       typeof obj.showInTalentSearch === "boolean"
         ? obj.showInTalentSearch
-        : DEFAULT_PRIVACY_PREFERENCES.showInTalentSearch,
+        : talentHubVisibility !== "private",
     showResumeToRecruiters:
       typeof obj.showResumeToRecruiters === "boolean"
         ? obj.showResumeToRecruiters
@@ -532,12 +537,14 @@ export const candidateSettingsService = {
       }
 
       // 2. Synchronize candidate_profiles visibility/talent search discovery
-      const isSearchable =
-        sanitized.showInTalentSearch && sanitized.profileVisibility !== "private";
+      const visibilityState = sanitized.talentHubVisibility || sanitized.profileVisibility;
+      const isSearchable = visibilityState !== "private" && sanitized.showInTalentSearch;
       const discoveryStatus =
-        sanitized.profileVisibility === "private"
+        visibilityState === "private"
           ? "not_available"
-          : "open_to_opportunities";
+          : visibilityState === "open_to_opportunities"
+            ? "open_to_opportunities"
+            : "available";
 
       const { error: profileError } = await supabase
         .from("candidate_profiles")

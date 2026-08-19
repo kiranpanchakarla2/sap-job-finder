@@ -170,6 +170,9 @@ export function useCandidateSettings() {
   const savePrivacy = useCallback(async () => {
     setIsSavingPrivacy(true);
     try {
+      const prevVisibility = savedPrivacy.talentHubVisibility || savedPrivacy.profileVisibility;
+      const nextVisibility = draftPrivacy.talentHubVisibility || draftPrivacy.profileVisibility;
+
       const result = await candidateSettingsService.savePrivacyPreferences(draftPrivacy);
       if (!result.success) {
         toast.error(result.error || "Unable to save your settings. Please try again.");
@@ -177,13 +180,20 @@ export function useCandidateSettings() {
       }
       setSavedPrivacy(result.data);
       setDraftPrivacy(result.data);
-      toast.success("Privacy settings updated successfully.");
+
+      if (prevVisibility === "private" && nextVisibility !== "private") {
+        toast.success("Your profile is now discoverable by employers through Talent Hub.");
+      } else if (prevVisibility !== "private" && nextVisibility === "private") {
+        toast.info("Your profile is no longer discoverable by employers.");
+      } else {
+        toast.success("Privacy settings updated successfully.");
+      }
     } catch {
       toast.error("Unable to save your settings. Please try again.");
     } finally {
       setIsSavingPrivacy(false);
     }
-  }, [draftPrivacy]);
+  }, [draftPrivacy, savedPrivacy]);
 
   const saveAll = useCallback(async () => {
     setIsSavingAll(true);

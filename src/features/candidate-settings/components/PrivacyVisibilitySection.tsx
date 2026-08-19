@@ -1,11 +1,24 @@
 "use client";
 
-import { Check, Eye, FileText, Loader2, Lock, RotateCcw, Search, Shield, Users } from "lucide-react";
+import {
+  Check,
+  Eye,
+  FileText,
+  Info,
+  Loader2,
+  Lock,
+  MessageSquare,
+  RotateCcw,
+  Search,
+  Shield,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { PROFILE_VISIBILITY_OPTIONS } from "../data/defaultSettings";
+import { TALENT_HUB_VISIBILITY_OPTIONS } from "../data/defaultSettings";
 import type {
   PrivacyPreferences,
-  ProfileVisibilityTier,
+  TalentHubVisibilityState,
 } from "../types/settings.types";
 import { SettingsSection } from "./SettingsSection";
 import { SettingsToggle } from "./SettingsToggle";
@@ -30,11 +43,31 @@ export function PrivacyVisibilitySection({
   onDiscard: () => void;
   onReset: () => void;
 }) {
+  const currentVisibility: TalentHubVisibilityState =
+    preferences.talentHubVisibility ||
+    (preferences.profileVisibility === "open_to_opportunities"
+      ? "open_to_opportunities"
+      : preferences.profileVisibility === "employer_visible" ||
+          preferences.profileVisibility === "public" ||
+          preferences.profileVisibility === "limited"
+        ? "employer_visible"
+        : "private");
+
+  const handleVisibilityChange = (state: TalentHubVisibilityState) => {
+    onChange("talentHubVisibility", state);
+    onChange("profileVisibility", state);
+    if (state === "private") {
+      onChange("showInTalentSearch", false);
+    } else {
+      onChange("showInTalentSearch", true);
+    }
+  };
+
   return (
     <SettingsSection
       id="privacy"
-      title="Privacy & Visibility"
-      description="Manage how recruiters and hiring managers find your profile and access your resume."
+      title="Talent Hub Visibility & Privacy"
+      description="Manage how verified employers discover your SAP profile and access your professional details."
       headerAction={
         <div className="flex items-center gap-2">
           {isDirty ? (
@@ -46,24 +79,38 @@ export function PrivacyVisibilitySection({
       }
     >
       <div className="space-y-6">
-        {/* Profile Visibility Tiers */}
+        {/* Talent Hub Explanation Banner */}
+        <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 text-xs leading-relaxed text-text">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Info size={16} aria-hidden="true" />
+          </div>
+          <div>
+            <p className="font-semibold text-primary">Your Privacy, Your Control</p>
+            <p className="mt-0.5 text-muted">
+              Talent Hub helps employers discover SAP professionals. You control whether your profile
+              appears in Talent Hub and can change your visibility at any time.
+            </p>
+          </div>
+        </div>
+
+        {/* Talent Hub Visibility Choices */}
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Eye className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold text-text">Profile Visibility</h3>
+            <h3 className="text-sm font-semibold text-text">Talent Hub Visibility</h3>
           </div>
           <p className="text-xs text-muted mb-3.5">
-            Control whether recruiters can discover and contact you directly.
+            Choose how you want to be discovered by verified employers across the SAP ecosystem.
           </p>
 
           <div className="space-y-3">
-            {PROFILE_VISIBILITY_OPTIONS.map((tier) => {
-              const selected = preferences.profileVisibility === tier.value;
+            {TALENT_HUB_VISIBILITY_OPTIONS.map((tier) => {
+              const selected = currentVisibility === tier.value;
               return (
                 <button
                   key={tier.value}
                   type="button"
-                  onClick={() => onChange("profileVisibility", tier.value)}
+                  onClick={() => handleVisibilityChange(tier.value)}
                   className={`flex w-full items-start gap-3.5 rounded-xl border p-4 text-left transition-all cursor-pointer ${
                     selected
                       ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-soft"
@@ -83,7 +130,7 @@ export function PrivacyVisibilitySection({
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-text">{tier.label}</span>
                       {tier.badge ? (
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                           {tier.badge}
                         </span>
                       ) : null}
@@ -98,28 +145,28 @@ export function PrivacyVisibilitySection({
           </div>
         </div>
 
-        {/* Discovery & Resume Toggles */}
+        {/* Granular Field-Level Permissions */}
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted mb-3">
-            Search & Candidate Discovery
+            Profile-Level Permissions
           </h3>
           <div className="space-y-3">
             <SettingsToggle
-              label="Show Profile in Talent Search"
-              description="Allow verified SAP employers to search for your profile by skills, modules, and target locations."
-              icon={<Search className="h-4 w-4 text-primary" />}
-              checked={preferences.showInTalentSearch}
-              onChange={(checked) => onChange("showInTalentSearch", checked)}
-              disabled={preferences.profileVisibility === "private"}
-            />
-
-            <SettingsToggle
-              label="Show Resume to Recruiters"
-              description="Allow hiring teams to view and download your default resume when browsing talent search results."
+              label="Show Resume to Verified Employers"
+              description="Allow authenticated employers browsing Talent Hub to view and download your verified resume."
               icon={<FileText className="h-4 w-4 text-primary" />}
               checked={preferences.showResumeToRecruiters}
               onChange={(checked) => onChange("showResumeToRecruiters", checked)}
-              disabled={preferences.profileVisibility === "private"}
+              disabled={currentVisibility === "private"}
+            />
+
+            <SettingsToggle
+              label="Appear in Search & Discovery Filters"
+              description="Allow employers to filter your profile by SAP modules, experience bands, and locations."
+              icon={<Search className="h-4 w-4 text-primary" />}
+              checked={preferences.showInTalentSearch}
+              onChange={(checked) => onChange("showInTalentSearch", checked)}
+              disabled={currentVisibility === "private"}
             />
           </div>
         </div>

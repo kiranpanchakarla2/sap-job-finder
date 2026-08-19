@@ -30,6 +30,8 @@ import { useJobAlerts } from "@/features/candidate-alerts";
 import { loadCandidateMatchProfile } from "@/features/candidate-jobs/lib/loadCandidateMatchProfile";
 import { formatPostedShort } from "@/features/candidate-jobs/lib/formatPosted";
 import { candidateJobService } from "@/features/candidate-jobs/services/candidateJobService";
+import { candidateSettingsService } from "@/features/candidate-settings";
+import type { TalentHubVisibilityState } from "@/features/candidate-settings";
 import { useCandidateSubscription } from "@/features/candidate-subscription";
 import type { RecommendedJob } from "@/types/job";
 
@@ -45,6 +47,8 @@ export function CandidateDashboard() {
   const firstName = user?.name?.split(" ")[0] || "Candidate";
   const { percent: profileCompletion, completion } = useCandidateProfileCompletion();
   const [recommendedJobs, setRecommendedJobs] = useState<RecommendedJob[]>([]);
+  const [talentHubVisibility, setTalentHubVisibility] =
+    useState<TalentHubVisibilityState>("private");
 
   const resumeScore = careerData?.resumeScore ?? {
     score: profileCompletion,
@@ -55,22 +59,34 @@ export function CandidateDashboard() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // Load recommended jobs
       const profile = await loadCandidateMatchProfile();
       const result = await candidateJobService.getRecommendedJobs(profile, 4);
-      if (cancelled || !result.success) return;
-      setRecommendedJobs(
-        result.data.map((job) => ({
-          id: job.id,
-          title: job.title,
-          company: job.companyName,
-          location: job.location,
-          experience: job.experienceLabel,
-          sapModule: job.sapModules[0] ?? "SAP",
-          salary: job.salaryLabel,
-          postedAt: formatPostedShort(job.postedAt),
-          workMode: job.workMode === "On-site" ? "Onsite" : job.workMode,
-        })),
-      );
+      if (!cancelled && result.success) {
+        setRecommendedJobs(
+          result.data.map((job) => ({
+            id: job.id,
+            title: job.title,
+            company: job.companyName,
+            location: job.location,
+            experience: job.experienceLabel,
+            sapModule: job.sapModules[0] ?? "SAP",
+            salary: job.salaryLabel,
+            postedAt: formatPostedShort(job.postedAt),
+            workMode: job.workMode === "On-site" ? "Onsite" : job.workMode,
+          })),
+        );
+      }
+
+      // Load Talent Hub privacy setting
+      const settingsRes = await candidateSettingsService.getMySettings();
+      if (!cancelled && settingsRes.success) {
+        setTalentHubVisibility(
+          settingsRes.data.privacy.talentHubVisibility ||
+            (settingsRes.data.privacy.profileVisibility as TalentHubVisibilityState) ||
+            "private",
+        );
+      }
     })();
     return () => {
       cancelled = true;
@@ -92,6 +108,35 @@ export function CandidateDashboard() {
             >
               <CreditCard size={12} aria-hidden="true" />
               <span>{currentPlan.name} Plan</span>
+            </Link>
+            <Link
+              href="/candidate/settings#privacy"
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition ${
+                talentHubVisibility === "open_to_opportunities"
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20"
+                  : talentHubVisibility === "employer_visible"
+                    ? "border-primary/20 bg-primary/10 text-primary hover:bg-primary/20"
+                    : "border-border bg-surface text-muted hover:bg-card hover:text-text"
+              }`}
+              title="Talent Hub Visibility Settings"
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  talentHubVisibility === "open_to_opportunities"
+                    ? "bg-emerald-500"
+                    : talentHubVisibility === "employer_visible"
+                      ? "bg-primary"
+                      : "bg-muted"
+                }`}
+              />
+              <span>
+                Talent Hub:{" "}
+                {talentHubVisibility === "open_to_opportunities"
+                  ? "Open to Opportunities"
+                  : talentHubVisibility === "employer_visible"
+                    ? "Visible to Employers"
+                    : "Private"}
+              </span>
             </Link>
           </div>
           <p className="mt-1 text-sm text-muted">

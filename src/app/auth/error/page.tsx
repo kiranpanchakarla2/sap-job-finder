@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   description: "Your email verification link could not be completed.",
 };
 
+export const dynamic = "force-dynamic";
+
 type AuthErrorPageProps = {
   searchParams: Promise<{ message?: string }>;
 };

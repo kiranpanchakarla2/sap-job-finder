@@ -8,15 +8,6 @@ export function Footer() {
         <div className="flex flex-col items-center gap-5">
           {/* Quick Navigation Links */}
           <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs sm:text-sm text-muted" aria-label="Footer">
-            <Link href="/jobs" className="transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 rounded">
-              Jobs
-            </Link>
-            <Link href="/companies" className="transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 rounded">
-              Companies
-            </Link>
-            <Link href="/services" className="transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 rounded">
-              Services
-            </Link>
             <Link href="/contact" className="font-semibold text-primary hover:text-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 rounded">
               Contact Us
             </Link>

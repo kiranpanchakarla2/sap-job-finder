@@ -15,10 +15,21 @@ export interface NotificationPreferences {
   jobAlertFrequency: JobAlertFrequency;
 }
 
-export type ProfileVisibilityTier = "public" | "limited" | "private";
+export type TalentHubVisibilityState =
+  | "private"
+  | "employer_visible"
+  | "open_to_opportunities";
+
+export type ProfileVisibilityTier =
+  | "private"
+  | "employer_visible"
+  | "open_to_opportunities"
+  | "public"
+  | "limited";
 
 export interface PrivacyPreferences {
   profileVisibility: ProfileVisibilityTier;
+  talentHubVisibility?: TalentHubVisibilityState;
   showInTalentSearch: boolean;
   showResumeToRecruiters: boolean;
 }

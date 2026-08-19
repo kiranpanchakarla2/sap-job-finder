@@ -88,24 +88,20 @@ export const talentHubMenu: NavMenuConfig = {
       title: "Find SAP Talent",
       links: [
         {
-          label: "Search SAP Talent",
-          href: "/talent-hub",
-        },
-        {
-          label: "SAP Professionals",
-          href: "/talent-hub/professionals",
+          label: "Find SAP Talent",
+          href: "/talent-hub/search",
         },
         {
           label: "SAP Consultants",
-          href: "/talent-hub/professionals?type=consultant",
+          href: "/talent-hub/search?type=consultant",
         },
         {
           label: "SAP Developers",
-          href: "/talent-hub/professionals?type=developer",
+          href: "/talent-hub/search?type=developer",
         },
         {
           label: "SAP Architects",
-          href: "/talent-hub/professionals?type=architect",
+          href: "/talent-hub/search?type=architect",
         },
       ],
     },
@@ -114,25 +110,25 @@ export const talentHubMenu: NavMenuConfig = {
       links: [
         {
           label: "How Talent Hub Works",
-          href: "/talent-hub/how-it-works",
+          href: "/talent-hub#how-it-works",
         },
         {
           label: "For SAP Professionals",
-          href: "/talent-hub/candidates",
+          href: "/talent-hub#professionals",
         },
         {
           label: "For Employers",
-          href: "/talent-hub/employers",
+          href: "/talent-hub#employers",
         },
         {
           label: "Talent Hub Guidelines",
-          href: "/talent-hub/guidelines",
+          href: "/talent-hub#guidelines",
         },
       ],
     },
   ],
   footer: {
-    label: "Explore SAP Talent",
+    label: "Explore Talent Hub",
     href: "/talent-hub",
   },
 };

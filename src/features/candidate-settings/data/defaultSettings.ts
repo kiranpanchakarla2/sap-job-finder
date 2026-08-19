@@ -8,6 +8,7 @@ import type {
   PrivacyPreferences,
   ProfileVisibilityTier,
   SettingsNavItem,
+  TalentHubVisibilityState,
 } from "../types/settings.types";
 
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
@@ -22,8 +23,9 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
 };
 
 export const DEFAULT_PRIVACY_PREFERENCES: PrivacyPreferences = {
-  profileVisibility: "public",
-  showInTalentSearch: true,
+  profileVisibility: "private",
+  talentHubVisibility: "private",
+  showInTalentSearch: false,
   showResumeToRecruiters: true,
 };
 
@@ -89,6 +91,30 @@ export const JOB_ALERT_FREQUENCY_OPTIONS: { value: JobAlertFrequency; label: str
   },
 ];
 
+export const TALENT_HUB_VISIBILITY_OPTIONS: {
+  value: TalentHubVisibilityState;
+  label: string;
+  badge?: string;
+  description: string;
+}[] = [
+  {
+    value: "private",
+    label: "Private",
+    description: "Your profile is not visible to employers.",
+  },
+  {
+    value: "employer_visible",
+    label: "Visible to Employers",
+    description: "Employers can discover your SAP profile through Talent Hub.",
+  },
+  {
+    value: "open_to_opportunities",
+    label: "Open to Opportunities",
+    badge: "Active",
+    description: "Let employers know you're open to relevant SAP opportunities.",
+  },
+];
+
 export const PROFILE_VISIBILITY_OPTIONS: {
   value: ProfileVisibilityTier;
   label: string;
@@ -96,20 +122,20 @@ export const PROFILE_VISIBILITY_OPTIONS: {
   description: string;
 }[] = [
   {
-    value: "public",
-    label: "Visible to Recruiters",
-    badge: "Recommended",
-    description: "Verified recruiters and SAP employers can discover your profile, experience, and invite you to apply.",
-  },
-  {
-    value: "limited",
-    label: "Limited Visibility",
-    description: "Recruiters can see your skills and career highlights, but your contact information is hidden until you apply.",
-  },
-  {
     value: "private",
     label: "Private",
-    description: "Hidden from recruiter talent searches. Your profile is only visible to employers when you submit an application.",
+    description: "Your profile is not visible to employers.",
+  },
+  {
+    value: "employer_visible",
+    label: "Visible to Employers",
+    description: "Employers can discover your SAP profile through Talent Hub.",
+  },
+  {
+    value: "open_to_opportunities",
+    label: "Open to Opportunities",
+    badge: "Active",
+    description: "Let employers know you're open to relevant SAP opportunities.",
   },
 ];
 
