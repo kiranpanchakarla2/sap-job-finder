@@ -1,12 +1,22 @@
+import type {
+  BillingCycle,
+  PaymentRequestRecord,
+  PaymentRequestStatus,
+} from "@/features/shared-subscription";
+
+export type { BillingCycle, PaymentRequestRecord, PaymentRequestStatus };
+
 export type PlanId = "free" | "pro" | "business";
 
 export type PlanCurrency = "INR" | "USD";
 
 export type SubscriptionStatus =
+  | "pending"
   | "active"
   | "trialing"
   | "past_due"
-  | "cancelled";
+  | "cancelled"
+  | "expired";
 
 export type PlanFeature =
   | "basic_analytics"
@@ -37,6 +47,8 @@ export type PlanDefinition = {
   id: PlanId;
   name: string;
   priceMonthly: number;
+  priceQuarterly: number;
+  priceYearly: number;
   currency: PlanCurrency;
   billingPeriod: "month";
   description: string;
@@ -44,6 +56,10 @@ export type PlanDefinition = {
   limits: PlanLimits;
   featureFlags: PlanFeature[];
   highlighted?: boolean;
+  badge?: string;
+  accountType?: "employer";
+  displayOrder?: number;
+  isActive?: boolean;
 };
 
 export type UsageMetricKey =
@@ -76,7 +92,8 @@ export type EmployerSubscription = {
   status: SubscriptionStatus;
   renewalDate: string | null;
   trialEndsAt: string | null;
-  billingCycle: "monthly" | "yearly";
+  billingCycle: BillingCycle;
+  price?: number;
   nextBillingDate: string | null;
   paymentMethodConfigured: boolean;
   usage: Record<UsageMetricKey, number>;

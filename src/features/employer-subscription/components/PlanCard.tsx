@@ -1,74 +1,156 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, Sparkles, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { formatPlanPrice } from "../config/planRules";
+import {
+  calculateSavings,
+  formatCurrency,
+  getPlanPrice,
+  type BillingCycle,
+} from "@/features/shared-subscription";
 import type { PlanDefinition, PlanId } from "../types/subscription.types";
 
 export function PlanCard({
   plan,
   currentPlanId,
-  onUpgrade,
+  billingCycle = "quarterly",
+  canManage = true,
+  onSelectPlan,
 }: {
   plan: PlanDefinition;
   currentPlanId: PlanId;
-  onUpgrade: (planId: PlanId) => void;
+  billingCycle?: BillingCycle;
+  canManage?: boolean;
+  onSelectPlan: (planId: PlanId) => void;
 }) {
   const isCurrent = plan.id === currentPlanId;
+  const isFree = plan.id === "free";
+
   const isDowngrade =
     (currentPlanId === "business" && plan.id !== "business") ||
     (currentPlanId === "pro" && plan.id === "free");
 
-  let ctaLabel = `Upgrade to ${plan.name}`;
-  if (isCurrent) ctaLabel = "Current Plan";
-  else if (isDowngrade) ctaLabel = `Switch to ${plan.name}`;
-  else if (plan.id === "free") ctaLabel = "Choose Free";
+  // Determine dynamic price based on the selected billing cycle
+  const price = isFree
+    ? 0
+    : getPlanPrice(
+        {
+          priceMonthly: plan.priceMonthly,
+          priceQuarterly: plan.priceQuarterly ?? plan.priceMonthly * 3,
+          priceYearly: plan.priceYearly ?? plan.priceMonthly * 12,
+        },
+        billingCycle,
+      );
+
+  // Determine period label
+  const periodLabel = isFree
+    ? "/month"
+    : billingCycle === "monthly"
+    ? "/month"
+    : billingCycle === "quarterly"
+    ? "/3 months"
+    : "/year";
+
+  // Calculate savings compared to paying monthly
+  const savings = isFree
+    ? null
+    : calculateSavings(plan.priceMonthly, price, billingCycle);
+
+  let ctaLabel = isFree ? "Choose Free" : `Subscribe to ${plan.name}`;
+  if (isCurrent) {
+    ctaLabel = "Current Plan";
+  } else if (isDowngrade) {
+    ctaLabel = `Switch to ${plan.name}`;
+  } else if (!canManage && !isFree) {
+    ctaLabel = "Admin Access Required";
+  }
 
   return (
     <article
-      className={`flex h-full flex-col rounded-[var(--radius-card)] border bg-card p-5 shadow-soft ${
+      className={`relative flex h-full flex-col rounded-[var(--radius-card)] border bg-card p-6 shadow-soft transition-all duration-200 ${
         plan.highlighted
-          ? "border-primary ring-2 ring-primary/20"
-          : "border-border"
+          ? "border-primary ring-2 ring-primary/25 shadow-lift"
+          : "border-border hover:border-border/80"
       }`}
     >
-      {plan.highlighted ? (
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-primary">
-          Most popular
-        </p>
+      {plan.badge ? (
+        <div className="mb-3 flex items-center justify-between gap-1.5">
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            <Sparkles size={13} aria-hidden="true" />
+            {plan.badge}
+          </span>
+        </div>
       ) : (
-        <div className="mb-3 h-4" aria-hidden="true" />
+        <div className="mb-3 h-6" aria-hidden="true" />
       )}
-      <h3 className="text-xl font-bold text-text">{plan.name}</h3>
-      <p className="mt-1 text-sm text-muted">{plan.description}</p>
-      <p className="mt-4 text-3xl font-bold tracking-tight text-text">
-        {formatPlanPrice(plan.priceMonthly, plan.currency)}
-        <span className="text-sm font-medium text-muted">/{plan.billingPeriod}</span>
-      </p>
 
-      <ul className="mt-5 flex-1 space-y-2.5">
+      <div>
+        <h3 className="text-xl font-bold tracking-tight text-text">{plan.name}</h3>
+        <p className="mt-1 text-xs font-medium text-muted min-h-[2rem] leading-relaxed">
+          {plan.description}
+        </p>
+      </div>
+
+      <div className="mt-4 border-b border-border pb-5">
+        <div className="flex items-baseline gap-1">
+          <span className="text-3xl font-extrabold tracking-tight text-text">
+            {formatCurrency(price, plan.currency)}
+          </span>
+          <span className="text-sm font-medium text-muted">{periodLabel}</span>
+        </div>
+
+        {/* Savings Badge */}
+        {savings && savings.savings > 0 ? (
+          <div className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 border border-emerald-500/20">
+              <TrendingDown size={12} aria-hidden="true" />
+              Save {formatCurrency(savings.savings, plan.currency)} · {savings.discountPercentage}%
+            </span>
+          </div>
+        ) : (
+          <div className="mt-2.5 h-5" aria-hidden="true" />
+        )}
+      </div>
+
+      <ul className="mt-5 flex-1 space-y-2.5" aria-label={`${plan.name} plan features`}>
         {plan.features.map((feature) => (
-          <li key={feature} className="flex items-start gap-2 text-sm text-text">
+          <li key={feature} className="flex items-start gap-2.5 text-xs sm:text-sm text-text">
             <Check
               size={16}
               className="mt-0.5 shrink-0 text-success"
               aria-hidden="true"
             />
-            <span>{feature}</span>
+            <span className="leading-snug">{feature}</span>
           </li>
         ))}
       </ul>
 
-      <div className="mt-6">
+      <div className="mt-6 pt-4">
         <Button
           type="button"
           variant={isCurrent ? "secondary" : plan.highlighted ? "primary" : "secondary"}
-          className="w-full"
-          disabled={isCurrent}
-          onClick={() => onUpgrade(plan.id)}
+          className={`w-full font-semibold ${
+            isCurrent
+              ? "opacity-75 cursor-default bg-surface text-muted border-border hover:bg-surface"
+              : !canManage && !isFree
+              ? "opacity-60 cursor-not-allowed"
+              : ""
+          }`}
+          disabled={isCurrent || (!canManage && !isFree)}
+          onClick={() => onSelectPlan(plan.id)}
+          aria-label={
+            isCurrent
+              ? `${plan.name} is your current plan`
+              : `${ctaLabel} for ${formatCurrency(price, plan.currency)} ${periodLabel}`
+          }
         >
           {ctaLabel}
         </Button>
+        {!canManage && !isFree && !isCurrent && (
+          <p className="mt-1.5 text-center text-[10px] text-muted">
+            Only Company Admins can request plan changes.
+          </p>
+        )}
       </div>
     </article>
   );

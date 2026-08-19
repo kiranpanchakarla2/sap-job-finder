@@ -1,8 +1,20 @@
 "use client";
 
-import { AlertCircle, AlertTriangle, ArrowRight, CheckCircle2, RotateCcw } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowRight,
+  RotateCcw,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import type { CandidatePlanDefinition, CandidateSubscription } from "../types/subscription.types";
+import {
+  PaymentRequestBanner,
+  type PaymentRequestRecord,
+} from "@/features/shared-subscription";
+import type {
+  CandidatePlanDefinition,
+  CandidateSubscription,
+} from "../types/subscription.types";
 
 function formatDisplayDate(iso: string | null): string {
   if (!iso) return "—";
@@ -20,17 +32,30 @@ function formatDisplayDate(iso: string | null): string {
 export function SubscriptionStatusBanners({
   subscription,
   currentPlan,
+  pendingPaymentRequest,
   onReactivate,
   onViewPlans,
 }: {
   subscription: CandidateSubscription;
   currentPlan: CandidatePlanDefinition;
+  pendingPaymentRequest?: PaymentRequestRecord | null;
   onReactivate: () => void;
   onViewPlans: () => void;
 }) {
-  const isCancelled = subscription.status === "cancelled" || subscription.cancelAtPeriodEnd;
+  const isCancelled =
+    subscription.status === "cancelled" || subscription.cancelAtPeriodEnd;
   const isPastDue = subscription.status === "past_due";
   const isExpired = subscription.status === "expired";
+
+  // If a payment request exists, display the shared PaymentRequestBanner
+  if (pendingPaymentRequest) {
+    return (
+      <PaymentRequestBanner
+        request={pendingPaymentRequest}
+        onRequestNew={onViewPlans}
+      />
+    );
+  }
 
   if (isCancelled && subscription.planId !== "free") {
     return (
@@ -47,7 +72,10 @@ export function SubscriptionStatusBanners({
             </p>
             <p className="mt-0.5 text-xs text-amber-800 dark:text-amber-300">
               Your {currentPlan.name} subscription will end on{" "}
-              <strong className="font-semibold">{formatDisplayDate(subscription.currentPeriodEnd)}</strong>. You will not be charged again and will return to the Free plan.
+              <strong className="font-semibold">
+                {formatDisplayDate(subscription.currentPeriodEnd)}
+              </strong>
+              . You will not be charged again and will return to the Free plan.
             </p>
           </div>
         </div>
@@ -77,7 +105,8 @@ export function SubscriptionStatusBanners({
               Payment Issue · Action Required
             </p>
             <p className="mt-0.5 text-xs text-rose-800 dark:text-rose-300">
-              We were unable to process your latest subscription payment. Your features remain active temporarily.
+              We were unable to process your latest subscription payment. Your
+              features remain active temporarily.
             </p>
           </div>
         </div>
@@ -106,7 +135,8 @@ export function SubscriptionStatusBanners({
               Your previous plan has expired
             </p>
             <p className="mt-0.5 text-xs text-muted">
-              You are currently on the Free plan. Upgrade anytime to restore higher limits and advanced job-search tools.
+              You are currently on the Free plan. Upgrade anytime to restore
+              higher limits and advanced job-search tools.
             </p>
           </div>
         </div>

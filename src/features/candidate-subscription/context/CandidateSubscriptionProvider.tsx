@@ -12,6 +12,11 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/auth/AuthContext";
 import {
+  findActivePendingPaymentRequest,
+  paymentRequestService,
+  type PaymentRequestRecord,
+} from "@/features/shared-subscription";
+import {
   buildCandidateUsageMetrics,
   CANDIDATE_PLAN_DEFINITIONS,
   getCandidatePlanDefinition,
@@ -32,6 +37,7 @@ type CandidateSubscriptionContextValue = {
   currentPlan: CandidatePlanDefinition;
   plans: CandidatePlanDefinition[];
   usage: CandidateUsageMetric[];
+  pendingPaymentRequest: PaymentRequestRecord | null;
   isLoading: boolean;
   isError: boolean;
   error: string | null;
@@ -45,16 +51,27 @@ type CandidateSubscriptionContextValue = {
   isSimulatingError: boolean;
 };
 
-const CandidateSubscriptionContext = createContext<CandidateSubscriptionContextValue | null>(null);
+const CandidateSubscriptionContext =
+  createContext<CandidateSubscriptionContextValue | null>(null);
 
-export function CandidateSubscriptionProvider({ children }: { children: ReactNode }) {
+export function CandidateSubscriptionProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const isCandidate = Boolean(
-    isAuthenticated && user && (user.role === "candidate" || user.role === "admin"),
+    isAuthenticated &&
+      user &&
+      (user.role === "candidate" || user.role === "admin"),
   );
 
-  const [subscription, setSubscription] = useState<CandidateSubscription | null>(null);
-  const [plans, setPlans] = useState<CandidatePlanDefinition[]>(CANDIDATE_PLAN_DEFINITIONS);
+  const [subscription, setSubscription] =
+    useState<CandidateSubscription | null>(null);
+  const [plans, setPlans] =
+    useState<CandidatePlanDefinition[]>(CANDIDATE_PLAN_DEFINITIONS);
+  const [pendingPaymentRequest, setPendingPaymentRequest] =
+    useState<PaymentRequestRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,6 +80,7 @@ export function CandidateSubscriptionProvider({ children }: { children: ReactNod
   const fetchSubscription = useCallback(async () => {
     if (!isCandidate || !user?.id) {
       setSubscription(null);
+      setPendingPaymentRequest(null);
       setIsLoading(false);
       setIsError(false);
       setError(null);
@@ -73,13 +91,23 @@ export function CandidateSubscriptionProvider({ children }: { children: ReactNod
     setIsError(false);
     setError(null);
     try {
-      const [subRes, plansRes] = await Promise.all([
+      const [subRes, plansRes, reqsRes] = await Promise.all([
         candidateSubscriptionService.getSubscription(),
         candidateSubscriptionService.getPlans(),
+        paymentRequestService.getCandidatePaymentRequests(),
       ]);
+
       if (plansRes.success && plansRes.data.length > 0) {
         setPlans(plansRes.data);
       }
+
+      if (reqsRes.success && reqsRes.data) {
+        const pending = findActivePendingPaymentRequest(reqsRes.data);
+        setPendingPaymentRequest(pending ?? null);
+      } else {
+        setPendingPaymentRequest(null);
+      }
+
       if (subRes.success) {
         setSubscription(subRes.data);
       } else {
@@ -115,7 +143,9 @@ export function CandidateSubscriptionProvider({ children }: { children: ReactNod
         toast.error("Upgrade failed", { description: res.error });
         return false;
       } catch {
-        toast.error("Upgrade failed", { description: "An unexpected error occurred." });
+        toast.error("Upgrade failed", {
+          description: "An unexpected error occurred.",
+        });
         return false;
       }
     },
@@ -137,7 +167,9 @@ export function CandidateSubscriptionProvider({ children }: { children: ReactNod
         toast.error("Plan switch failed", { description: res.error });
         return false;
       } catch {
-        toast.error("Plan switch failed", { description: "An unexpected error occurred." });
+        toast.error("Plan switch failed", {
+          description: "An unexpected error occurred.",
+        });
         return false;
       }
     },
@@ -158,7 +190,9 @@ export function CandidateSubscriptionProvider({ children }: { children: ReactNod
       toast.error("Cancellation failed", { description: res.error });
       return false;
     } catch {
-      toast.error("Cancellation failed", { description: "An unexpected error occurred." });
+      toast.error("Cancellation failed", {
+        description: "An unexpected error occurred.",
+      });
       return false;
     }
   }, []);
@@ -169,14 +203,17 @@ export function CandidateSubscriptionProvider({ children }: { children: ReactNod
       if (res.success) {
         setSubscription(res.data);
         toast.success("Subscription reactivated!", {
-          description: "Your subscription will automatically renew at the end of the period.",
+          description:
+            "Your subscription will automatically renew at the end of the period.",
         });
         return true;
       }
       toast.error("Reactivation failed", { description: res.error });
       return false;
     } catch {
-      toast.error("Reactivation failed", { description: "An unexpected error occurred." });
+      toast.error("Reactivation failed", {
+        description: "An unexpected error occurred.",
+      });
       return false;
     }
   }, []);
@@ -188,7 +225,9 @@ export function CandidateSubscriptionProvider({ children }: { children: ReactNod
         setSubscription(res.data);
         setIsError(false);
         setError(null);
-        toast.success(`Loaded mock state: ${MOCK_PRESETS[presetKey]?.label ?? presetKey}`);
+        toast.success(
+          `Loaded mock state: ${MOCK_PRESETS[presetKey]?.label ?? presetKey}`,
+        );
       }
     },
     [],
@@ -218,6 +257,7 @@ export function CandidateSubscriptionProvider({ children }: { children: ReactNod
       currentPlan,
       plans,
       usage,
+      pendingPaymentRequest,
       isLoading,
       isError,
       error,
@@ -235,6 +275,7 @@ export function CandidateSubscriptionProvider({ children }: { children: ReactNod
       currentPlan,
       plans,
       usage,
+      pendingPaymentRequest,
       isLoading,
       isError,
       error,

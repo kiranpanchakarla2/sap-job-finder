@@ -286,7 +286,8 @@ class CandidateSubscriptionService {
             const result: CandidateSubscription = {
               planId: effectivePlanId,
               status: sub?.status ?? "active",
-              billingCycle: "monthly",
+              billingCycle: sub?.billingCycle ?? "monthly",
+              price: (sub as { price?: number })?.price ?? sub?.priceMonthly ?? planDef.priceMonthly,
               priceMonthly: sub?.priceMonthly ?? planDef.priceMonthly,
               currency: sub?.currency ?? planDef.currency,
               startDate: sub?.currentPeriodStart ?? "2026-08-01",
@@ -337,6 +338,8 @@ class CandidateSubscriptionService {
               name: row.name,
               tagline: row.tagline,
               priceMonthly: Number(row.price_monthly),
+              priceQuarterly: Number(row.price_quarterly ?? 0),
+              priceYearly: Number(row.price_yearly ?? 0),
               currency: (row.currency as "INR") || "INR",
               billingPeriod: "month",
               description: row.description,

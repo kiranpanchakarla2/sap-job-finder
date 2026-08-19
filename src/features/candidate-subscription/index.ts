@@ -3,6 +3,8 @@ export * from "./config/planRules";
 export * from "./services/candidateSubscriptionService";
 export * from "./context/CandidateSubscriptionProvider";
 export * from "./hooks/useCandidateSubscription";
+export * from "./components/BillingPeriodSelector";
+export * from "./components/CandidatePaymentRequestModal";
 export * from "./components/PlanCard";
 export * from "./components/CurrentPlanCard";
 export * from "./components/UsageCard";

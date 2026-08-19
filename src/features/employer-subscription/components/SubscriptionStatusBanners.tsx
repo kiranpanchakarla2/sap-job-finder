@@ -1,18 +1,34 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import {
+  PaymentRequestBanner,
+  type PaymentRequestRecord,
+} from "@/features/shared-subscription";
 import { daysUntil } from "../config/planRules";
 import type { EmployerSubscription } from "../types/subscription.types";
 
 export function SubscriptionStatusBanners({
   subscription,
+  pendingPaymentRequest,
   onChoosePlan,
   onUpdateBilling,
 }: {
   subscription: EmployerSubscription;
+  pendingPaymentRequest?: PaymentRequestRecord | null;
   onChoosePlan: () => void;
   onUpdateBilling: () => void;
 }) {
+  // If a payment request exists, display the shared PaymentRequestBanner
+  if (pendingPaymentRequest) {
+    return (
+      <PaymentRequestBanner
+        request={pendingPaymentRequest}
+        onRequestNew={onChoosePlan}
+      />
+    );
+  }
+
   if (subscription.status === "trialing") {
     const days = daysUntil(subscription.trialEndsAt);
     return (

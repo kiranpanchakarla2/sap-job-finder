@@ -1,8 +1,11 @@
+import type { BillingCycle } from "@/features/shared-subscription";
+
 export type CandidatePlanId = "free" | "professional" | "premium";
 
 export type CandidatePlanCurrency = "INR";
 
 export type CandidateSubscriptionStatus =
+  | "pending"
   | "active"
   | "trialing"
   | "past_due"
@@ -41,6 +44,8 @@ export type CandidatePlanDefinition = {
   name: string;
   tagline: string;
   priceMonthly: number;
+  priceQuarterly?: number;
+  priceYearly?: number;
   currency: CandidatePlanCurrency;
   billingPeriod: "month";
   description: string;
@@ -49,6 +54,8 @@ export type CandidatePlanDefinition = {
   features: string[];
   limits: CandidatePlanLimits;
   featureFlags: CandidatePlanFeatureKey[];
+  accountType?: "candidate";
+  displayOrder?: number;
 };
 
 export type CandidateUsageMetricKey =
@@ -68,7 +75,8 @@ export type CandidateUsageMetric = {
 export type CandidateSubscription = {
   planId: CandidatePlanId;
   status: CandidateSubscriptionStatus;
-  billingCycle: "monthly";
+  billingCycle: BillingCycle;
+  price?: number;
   priceMonthly: number;
   currency: CandidatePlanCurrency;
   startDate: string;

@@ -274,20 +274,31 @@ type SubscriptionPlanRow = {
   id: string;
   name: string;
   price_monthly: number;
+  price_quarterly?: number;
+  price_yearly?: number;
+  currency?: string;
+  account_type?: "employer" | "candidate";
+  description?: string;
+  is_active?: boolean;
+  sort_order?: number;
   max_active_jobs: number | null;
   max_applications: number | null;
   max_talent_search: number | null;
   max_team_members: number | null;
   features: string[];
   created_at: string;
+  updated_at?: string;
 };
 
 type SubscriptionRow = {
   id: string;
   company_id: string;
   plan_id: string;
-  status: "active" | "trialing" | "past_due" | "cancelled";
-  billing_cycle: "monthly" | "yearly";
+  status: "pending" | "active" | "trialing" | "past_due" | "cancelled" | "expired";
+  billing_cycle: "monthly" | "quarterly" | "yearly";
+  price?: number;
+  currency?: string;
+  account_type?: "employer" | "candidate";
   current_period_start: string;
   current_period_end: string;
   trial_ends_at: string | null;
@@ -304,8 +315,11 @@ type CandidatePlanRow = {
   tagline: string;
   description: string;
   price_monthly: number;
+  price_quarterly?: number;
+  price_yearly?: number;
   currency: string;
-  billing_cycle: "monthly" | "yearly";
+  account_type?: "candidate" | "employer";
+  billing_cycle: "monthly" | "quarterly" | "yearly";
   is_active: boolean;
   badge: string | null;
   highlighted: boolean;
@@ -321,14 +335,43 @@ type CandidateSubscriptionRow = {
   id: string;
   candidate_id: string;
   plan_id: string;
-  status: "active" | "trialing" | "past_due" | "cancelled" | "expired";
-  billing_cycle: "monthly" | "yearly";
+  status: "pending" | "active" | "trialing" | "past_due" | "cancelled" | "expired";
+  billing_cycle: "monthly" | "quarterly" | "yearly";
+  price?: number;
   price_monthly: number;
   currency: string;
+  account_type?: "candidate" | "employer";
   current_period_start: string;
   current_period_end: string;
   cancel_at_period_end: boolean;
   renewal_date: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type PaymentRequestRow = {
+  id: string;
+  account_type: "candidate" | "employer";
+  user_id: string | null;
+  candidate_id: string | null;
+  company_id: string | null;
+  plan_id: string;
+  plan_name: string | null;
+  billing_cycle: "monthly" | "quarterly" | "yearly";
+  amount: number;
+  currency: string;
+  customer_name: string;
+  email: string;
+  whatsapp_number: string;
+  company_name: string | null;
+  status: "pending" | "payment_link_sent" | "payment_received" | "cancelled";
+  notes: string | null;
+  payment_link: string | null;
+  requested_at: string;
+  expires_at: string;
+  payment_link_sent_at: string | null;
+  payment_received_at: string | null;
+  cancelled_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -795,12 +838,43 @@ export type Database = {
           id?: string;
           status?: CandidateSubscriptionRow["status"];
           billing_cycle?: CandidateSubscriptionRow["billing_cycle"];
+          price?: number;
           price_monthly?: number;
           currency?: string;
+          account_type?: "candidate" | "employer";
           current_period_start?: string;
           current_period_end?: string;
           cancel_at_period_end?: boolean;
           renewal_date?: string | null;
+        }
+      >;
+      payment_requests: GenericTable<
+        PaymentRequestRow,
+        {
+          account_type: "candidate" | "employer";
+          plan_id: string;
+          billing_cycle: "monthly" | "quarterly" | "yearly";
+          amount: number;
+          customer_name: string;
+          email: string;
+          whatsapp_number: string;
+          id?: string;
+          user_id?: string | null;
+          candidate_id?: string | null;
+          company_id?: string | null;
+          plan_name?: string | null;
+          currency?: string;
+          company_name?: string | null;
+          status?: PaymentRequestRow["status"];
+          notes?: string | null;
+          payment_link?: string | null;
+          requested_at?: string;
+          expires_at?: string;
+          payment_link_sent_at?: string | null;
+          payment_received_at?: string | null;
+          cancelled_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
         }
       >;
       candidate_settings: GenericTable<
@@ -1230,6 +1304,28 @@ export type Database = {
       };
       delete_employer_account: {
         Args: Record<string, never>;
+        Returns: Json;
+      };
+      create_candidate_payment_request: {
+        Args: {
+          p_plan_id: string;
+          p_billing_cycle: string;
+          p_whatsapp_number: string;
+          p_customer_name?: string | null;
+          p_email?: string | null;
+          p_notes?: string | null;
+        };
+        Returns: Json;
+      };
+      create_employer_payment_request: {
+        Args: {
+          p_plan_id: string;
+          p_billing_cycle: string;
+          p_whatsapp_number: string;
+          p_contact_name?: string | null;
+          p_email?: string | null;
+          p_notes?: string | null;
+        };
         Returns: Json;
       };
     };

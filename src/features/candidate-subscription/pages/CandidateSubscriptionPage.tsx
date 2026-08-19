@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { ErrorState } from "@/components/dashboard/shared/ErrorState";
+import type { BillingCycle } from "@/features/shared-subscription";
 import { CANDIDATE_PLAN_DEFINITIONS } from "../config/planRules";
 import { useCandidateSubscription } from "../context/CandidateSubscriptionProvider";
 import { CurrentPlanCard } from "../components/CurrentPlanCard";
@@ -10,7 +11,8 @@ import { UsageCard } from "../components/UsageCard";
 import { PlanComparison } from "../components/PlanComparison";
 import { BenefitsSection } from "../components/BenefitsSection";
 import { SubscriptionStatusBanners } from "../components/SubscriptionStatusBanners";
-import { UpgradeModal } from "../components/UpgradeModal";
+import { BillingPeriodSelector } from "../components/BillingPeriodSelector";
+import { CandidatePaymentRequestModal } from "../components/CandidatePaymentRequestModal";
 import { ManageSubscriptionModal } from "../components/ManageSubscriptionModal";
 import { CancelSubscriptionModal } from "../components/CancelSubscriptionModal";
 import { SubscriptionSkeleton } from "../components/SubscriptionSkeleton";
@@ -22,17 +24,17 @@ export function CandidateSubscriptionPage() {
     currentPlan,
     plans,
     usage,
+    pendingPaymentRequest,
     isLoading,
     isError,
     error,
-    upgradePlan,
-    switchPlan,
     cancelSubscription,
     reactivateSubscription,
     reload,
   } = useCandidateSubscription();
 
-  const [selectedPlanId, setSelectedPlanId] = useState<CandidatePlanId | null>(null);
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>("quarterly");
+  const [paymentModalPlanId, setPaymentModalPlanId] = useState<CandidatePlanId | null>(null);
   const [manageModalOpen, setManageModalOpen] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
@@ -60,14 +62,16 @@ export function CandidateSubscriptionPage() {
 
   const handleSelectPlan = (planId: CandidatePlanId) => {
     if (planId === subscription.planId) return;
-    setSelectedPlanId(planId);
-  };
 
-  const handleConfirmUpgradeOrSwitch = async (planId: CandidatePlanId): Promise<boolean> => {
-    if (subscription.planId === "free") {
-      return upgradePlan(planId);
+    // Free plan does not trigger payment modal
+    if (planId === "free") {
+      // If candidate already has an active paid subscription, they can manage or cancel it
+      setManageModalOpen(true);
+      return;
     }
-    return switchPlan(planId);
+
+    // Paid plans trigger the Candidate Payment Request Modal
+    setPaymentModalPlanId(planId);
   };
 
   const handleRequestCancel = () => {
@@ -78,19 +82,22 @@ export function CandidateSubscriptionPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-8">
       {/* PAGE HEADER */}
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight text-text sm:text-3xl">
-          Subscription
-        </h1>
-        <p className="mt-1 text-sm text-muted">
-          Choose the plan that fits your SAP job search.
-        </p>
+      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-text sm:text-3xl">
+            Subscription
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            Choose the plan that fits your SAP job search.
+          </p>
+        </div>
       </header>
 
-      {/* STATUS BANNERS (Cancelled / Expired / Past Due) */}
+      {/* STATUS BANNERS (Pending Request / Cancelled / Expired / Past Due) */}
       <SubscriptionStatusBanners
         subscription={subscription}
         currentPlan={currentPlan}
+        pendingPaymentRequest={pendingPaymentRequest}
         onReactivate={() => void reactivateSubscription()}
         onViewPlans={scrollToPlans}
       />
@@ -111,23 +118,33 @@ export function CandidateSubscriptionPage() {
         onUpgrade={scrollToPlans}
       />
 
-      {/* THREE PLAN CARDS */}
-      <section ref={plansRef} aria-labelledby="available-plans-heading" className="space-y-4">
-        <div>
-          <h2 id="available-plans-heading" className="text-xl font-bold tracking-tight text-text">
-            Available Candidate Plans
-          </h2>
-          <p className="mt-1 text-xs text-muted">
-            Select the plan that matches your current career search goals.
-          </p>
+      {/* AVAILABLE CANDIDATE PLANS WITH BILLING PERIOD SELECTOR */}
+      <section ref={plansRef} aria-labelledby="available-plans-heading" className="space-y-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 id="available-plans-heading" className="text-xl font-bold tracking-tight text-text">
+              Available Candidate Plans
+            </h2>
+            <p className="mt-1 text-xs text-muted">
+              Select the plan and billing cycle that matches your career search goals.
+            </p>
+          </div>
+
+          {/* BILLING CYCLE SELECTOR */}
+          <BillingPeriodSelector
+            selectedCycle={billingCycle}
+            onSelectCycle={setBillingCycle}
+          />
         </div>
 
+        {/* THREE PLAN CARDS */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {(plans && plans.length > 0 ? plans : CANDIDATE_PLAN_DEFINITIONS).map((plan) => (
             <PlanCard
               key={plan.id}
               plan={plan}
               currentPlanId={subscription.planId}
+              billingCycle={billingCycle}
               onSelectPlan={handleSelectPlan}
             />
           ))}
@@ -140,13 +157,15 @@ export function CandidateSubscriptionPage() {
       {/* BENEFITS HIGHLIGHTS */}
       <BenefitsSection />
 
-      {/* UPGRADE / SWITCH PLAN MODAL */}
-      <UpgradeModal
-        open={Boolean(selectedPlanId)}
-        targetPlanId={selectedPlanId}
-        currentPlanId={subscription.planId}
-        onClose={() => setSelectedPlanId(null)}
-        onConfirmUpgrade={handleConfirmUpgradeOrSwitch}
+      {/* CANDIDATE MANUAL PAYMENT REQUEST MODAL */}
+      <CandidatePaymentRequestModal
+        open={Boolean(paymentModalPlanId)}
+        targetPlanId={paymentModalPlanId}
+        billingCycle={billingCycle}
+        onClose={() => setPaymentModalPlanId(null)}
+        onSuccess={() => {
+          void reload();
+        }}
       />
 
       {/* MANAGE ACTIVE SUBSCRIPTION MODAL */}

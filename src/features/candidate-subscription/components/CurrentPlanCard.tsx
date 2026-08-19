@@ -27,6 +27,11 @@ function StatusBadge({ status }: { status: CandidateSubscriptionStatus }) {
     CandidateSubscriptionStatus,
     { label: string; bg: string; text: string }
   > = {
+    pending: {
+      label: "Pending",
+      bg: "bg-amber-500/10 border-amber-500/20",
+      text: "text-amber-700 dark:text-amber-400",
+    },
     active: {
       label: "Active",
       bg: "bg-emerald-500/10 border-emerald-500/20",
