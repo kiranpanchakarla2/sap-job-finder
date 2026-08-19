@@ -62,7 +62,7 @@ async function fetchProfile(userId: string): Promise<AuthProfile | null> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, user_id, role, first_name, last_name, email, phone, avatar_url")
+    .select("id, user_id, role, first_name, last_name, email, phone, avatar_url, status")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -99,6 +99,7 @@ export async function buildAuthUser(user: User, profile?: AuthProfile | null): P
     phone: resolved.phone ?? undefined,
     avatarInitials: initialsFromName(name),
     companyName,
+    status: (resolved.status as "active" | "suspended" | "inactive") ?? "active",
   };
 }
 
@@ -112,6 +113,14 @@ async function requireRoleMatch(
     return {
       success: false,
       error: "Your account profile is incomplete. Please contact support.",
+    };
+  }
+
+  if (profile.status === "suspended") {
+    await createClient().auth.signOut();
+    return {
+      success: false,
+      error: "Your account has been suspended. Please contact support.",
     };
   }
 

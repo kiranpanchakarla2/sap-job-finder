@@ -30,6 +30,12 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
       return;
     }
 
+    if (user.status === "suspended") {
+      const loginPath = getLoginPathForRole(user.role);
+      router.replace(`${loginPath}?error=suspended`);
+      return;
+    }
+
     if (!allowedRoles.includes(user.role)) {
       router.replace(getDashboardPathForRole(user.role));
     }

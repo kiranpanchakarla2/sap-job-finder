@@ -148,6 +148,7 @@ type ProfileRow = {
   email: string | null;
   phone: string | null;
   avatar_url: string | null;
+  status?: "active" | "suspended" | "inactive";
   created_at: string;
   updated_at: string;
 };
@@ -198,6 +199,7 @@ type CandidateProfileRow = {
   discovery_status: "open_to_opportunities" | "available" | "not_available";
   employment_status: string | null;
   experience_band: string | null;
+  status?: "active" | "suspended" | "inactive";
   sap_experience_band: string | null;
   current_salary_label: string | null;
   expected_salary_label: string | null;
@@ -427,6 +429,8 @@ type CompanyProfileRow = {
   work_email: string;
   phone: string;
   setup_complete: boolean;
+  status?: "active" | "suspended" | "inactive";
+  is_verified?: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -493,6 +497,7 @@ export type Database = {
           email?: string | null;
           phone?: string | null;
           avatar_url?: string | null;
+          status?: "active" | "suspended" | "inactive";
           created_at?: string;
           updated_at?: string;
         }
@@ -1057,6 +1062,26 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      admin_suspend_candidate: {
+        Args: { p_candidate_id: string };
+        Returns: Json;
+      };
+      admin_reactivate_candidate: {
+        Args: { p_candidate_id: string };
+        Returns: Json;
+      };
+      admin_suspend_employer: {
+        Args: { p_company_id: string };
+        Returns: Json;
+      };
+      admin_reactivate_employer: {
+        Args: { p_company_id: string };
+        Returns: Json;
+      };
+      admin_verify_employer: {
+        Args: { p_company_id: string; p_verified: boolean };
+        Returns: Json;
+      };
       current_app_role: { Args: Record<string, never>; Returns: AppRole };
       current_company_id: { Args: Record<string, never>; Returns: string };
       current_candidate_id: { Args: Record<string, never>; Returns: string };

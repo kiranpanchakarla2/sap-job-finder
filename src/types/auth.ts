@@ -15,6 +15,7 @@ export type AuthProfile = {
   email?: string | null;
   phone: string | null;
   avatar_url: string | null;
+  status?: "active" | "suspended" | "inactive" | null;
 };
 
 export type AuthUser = {
@@ -25,6 +26,7 @@ export type AuthUser = {
   avatarInitials?: string;
   companyName?: string;
   phone?: string;
+  status?: "active" | "suspended" | "inactive";
 };
 
 export type AuthResult =
