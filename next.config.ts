@@ -13,6 +13,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "framer-motion",
+      "@supabase/supabase-js",
+      "@supabase/ssr",
+      "zod",
+      "xlsx",
+    ],
+  },
   async redirects() {
     return [
       {

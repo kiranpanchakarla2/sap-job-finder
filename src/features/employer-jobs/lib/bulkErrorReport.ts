@@ -1,10 +1,8 @@
-import ExcelJS from "exceljs";
+import * as XLSX from "xlsx";
 import type {
   BulkJobErrorReportRow,
   BulkJobValidationRow,
 } from "../types/bulkUpload.types";
-
-
 
 export const ERROR_REPORT_COLUMNS = [
   { header: "Excel Row", key: "rowNumber", width: 14, align: "center" as const },
@@ -39,9 +37,15 @@ export function extractErrorReportRows(
   const reportRows: BulkJobErrorReportRow[] = [];
 
   for (const row of rows) {
-    const rawTitle = row.data.title || String(row.raw["Job Title"] || row.raw["jobTitle"] || "(Empty Title)");
-    const rawModule = row.data.sapModule || String(row.raw["SAP Module"] || row.raw["sapModule"] || "(Empty Module)");
-    const rawLoc = row.data.location || String(row.raw["Location"] || row.raw["location"] || "(Empty Location)");
+    const rawTitle =
+      row.data.title ||
+      String(row.raw["Job Title"] || row.raw["jobTitle"] || "(Empty Title)");
+    const rawModule =
+      row.data.sapModule ||
+      String(row.raw["SAP Module"] || row.raw["sapModule"] || "(Empty Module)");
+    const rawLoc =
+      row.data.location ||
+      String(row.raw["Location"] || row.raw["location"] || "(Empty Location)");
 
     const jobTitle = sanitizeFormulaText(rawTitle);
     const sapModule = sanitizeFormulaText(rawModule);
@@ -83,96 +87,36 @@ export function extractErrorReportRows(
 export function createBulkJobErrorReportWorkbook(
   rows: BulkJobValidationRow[],
   originalFileName = "Spreadsheet"
-): ExcelJS.Workbook {
-  const workbook = new ExcelJS.Workbook();
-  workbook.creator = "SAP Jobs Finder";
-  workbook.created = new Date();
-
-  const worksheet = workbook.addWorksheet("Validation Issues", {
-    views: [{ state: "frozen", xSplit: 0, ySplit: 1, showGridLines: true }],
-    properties: { defaultRowHeight: 22 },
-  });
-
-  worksheet.columns = ERROR_REPORT_COLUMNS.map((col) => ({
-    header: col.header,
-    key: col.key,
-    width: col.width,
-  }));
-
-  // Style Header Row (Row 1)
-  const headerRow = worksheet.getRow(1);
-  headerRow.height = 28;
-  headerRow.eachCell((cell) => {
-    cell.font = {
-      name: "Calibri",
-      size: 11,
-      bold: true,
-      color: { argb: "FFFFFFFF" },
-    };
-    cell.fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FFDC2626" }, // Crimson Red for error report
-    };
-    cell.alignment = {
-      vertical: "middle",
-      horizontal: "center",
-      wrapText: false,
-    };
-    cell.border = {
-      top: { style: "thin", color: { argb: "FF991B1B" } },
-      bottom: { style: "medium", color: { argb: "FF7F1D1D" } },
-      left: { style: "thin", color: { argb: "FF991B1B" } },
-      right: { style: "thin", color: { argb: "FF991B1B" } },
-    };
-  });
-
+): XLSX.WorkBook {
+  const workbook = XLSX.utils.book_new();
   const reportItems = extractErrorReportRows(rows);
 
-  if (reportItems.length === 0) {
-    const emptyRow = worksheet.addRow({
-      rowNumber: "-",
-      jobTitle: "No errors or warnings found",
-      sapModule: "-",
-      location: "-",
-      issueType: "Info",
-      field: "None",
-      message: `All rows in ${originalFileName} passed validation successfully with no errors or warnings.`,
-    });
-    emptyRow.height = 24;
-    return workbook;
-  }
+  const wsData =
+    reportItems.length > 0
+      ? reportItems.map((item) => ({
+          "Excel Row": item.rowNumber,
+          "Job Title": item.jobTitle,
+          "SAP Module": item.sapModule,
+          "Location": item.location,
+          "Severity": item.issueType,
+          "Field Name": item.field,
+          "Issue Description": item.message,
+        }))
+      : [
+          {
+            "Excel Row": "-",
+            "Job Title": "No errors or warnings found",
+            "SAP Module": "-",
+            "Location": "-",
+            "Severity": "Info",
+            "Field Name": "None",
+            "Issue Description": `All rows in ${originalFileName} passed validation successfully with no errors or warnings.`,
+          },
+        ];
 
-  for (const item of reportItems) {
-    const isError = item.issueType === "Error";
-    const row = worksheet.addRow(item);
-    row.height = 26;
-
-    row.eachCell((cell, colNumber) => {
-      const colDef = ERROR_REPORT_COLUMNS[colNumber - 1];
-      cell.font = {
-        name: "Calibri",
-        size: 10,
-        color: isError ? { argb: "FF991B1B" } : { argb: "FF92400E" },
-      };
-      cell.alignment = {
-        vertical: "middle",
-        horizontal: colDef?.align ?? "left",
-        wrapText: colDef?.key === "message",
-      };
-      cell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: isError ? { argb: "FFFEE2E2" } : { argb: "FFFEF3C7" },
-      };
-      cell.border = {
-        top: { style: "thin", color: { argb: "FFE2E8F0" } },
-        bottom: { style: "thin", color: { argb: "FFE2E8F0" } },
-        left: { style: "thin", color: { argb: "FFE2E8F0" } },
-        right: { style: "thin", color: { argb: "FFE2E8F0" } },
-      };
-    });
-  }
+  const worksheet = XLSX.utils.json_to_sheet(wsData);
+  worksheet["!cols"] = ERROR_REPORT_COLUMNS.map((col) => ({ wch: col.width }));
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Validation Issues");
 
   return workbook;
 }
@@ -185,7 +129,7 @@ export async function generateBulkJobErrorReportBuffer(
   originalFileName?: string
 ): Promise<Uint8Array> {
   const workbook = createBulkJobErrorReportWorkbook(rows, originalFileName);
-  const buffer = await workbook.xlsx.writeBuffer();
+  const buffer = XLSX.write(workbook, { type: "array", bookType: "xlsx" });
   return new Uint8Array(buffer);
 }
 
@@ -214,63 +158,7 @@ export async function downloadBulkJobErrorReport(
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error("Failed to generate Excel error report:", error);
-    // Fallback: Generate CSV if ExcelJS fails
-    downloadCsvErrorReport(rows, originalFileName);
   }
-}
-
-/**
- * Fallback CSV error report downloader
- */
-function downloadCsvErrorReport(
-  rows: BulkJobValidationRow[],
-  originalFileName: string
-): void {
-  const reportItems = extractErrorReportRows(rows);
-  const headers = [
-    "Excel Row",
-    "Job Title",
-    "SAP Module",
-    "Location",
-    "Severity",
-    "Field Name",
-    "Issue Description",
-  ];
-
-  const escapeCsv = (val: unknown) => {
-    const str = String(val ?? "").replace(/"/g, '""');
-    return `"${str}"`;
-  };
-
-  const csvLines = [
-    headers.map(escapeCsv).join(","),
-    ...reportItems.map((item) =>
-      [
-        item.rowNumber,
-        item.jobTitle,
-        item.sapModule,
-        item.location,
-        item.issueType,
-        item.field,
-        item.message,
-      ]
-        .map(escapeCsv)
-        .join(",")
-    ),
-  ];
-
-  const blob = new Blob([csvLines.join("\n")], {
-    type: "text/csv;charset=utf-8;",
-  });
-  const baseName = originalFileName.replace(/\.[^/.]+$/, "");
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `Import_Errors_${baseName}.csv`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 }
 
 export const IMPORT_RESULT_REPORT_COLUMNS = [
@@ -290,132 +178,53 @@ export function createBulkImportResultWorkbook(
     skipped: { rowNumber: number; jobTitle: string; reason?: string; jobId?: string }[];
     failed: { rowNumber: number; jobTitle: string; reason?: string }[];
   },
-  originalFileName = "Bulk_Job_Upload"
-): ExcelJS.Workbook {
-  const workbook = new ExcelJS.Workbook();
-  workbook.creator = "SAP Jobs Finder";
-  workbook.created = new Date();
+  _originalFileName = "Bulk_Job_Upload"
+): XLSX.WorkBook {
+  const workbook = XLSX.utils.book_new();
 
-  const worksheet = workbook.addWorksheet("Import Results", {
-    views: [{ state: "frozen", xSplit: 0, ySplit: 1, showGridLines: true }],
-    properties: { defaultRowHeight: 22 },
-  });
-
-  worksheet.columns = IMPORT_RESULT_REPORT_COLUMNS.map((col) => ({
-    header: col.header,
-    key: col.key,
-    width: col.width,
-  }));
-
-  // Style Header Row
-  const headerRow = worksheet.getRow(1);
-  headerRow.height = 28;
-  headerRow.eachCell((cell) => {
-    cell.font = {
-      name: "Calibri",
-      size: 11,
-      bold: true,
-      color: { argb: "FFFFFFFF" },
-    };
-    cell.fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FF1E293B" }, // Slate 800
-    };
-    cell.alignment = {
-      vertical: "middle",
-      horizontal: "center",
-    };
-    cell.border = {
-      top: { style: "thin", color: { argb: "FF0F172A" } },
-      bottom: { style: "medium", color: { argb: "FF0F172A" } },
-      left: { style: "thin", color: { argb: "FF0F172A" } },
-      right: { style: "thin", color: { argb: "FF0F172A" } },
-    };
-  });
-
-  // Combine rows sorted by row number
   const allRows: {
-    rowNumber: number;
-    jobTitle: string;
-    status: "Created" | "Skipped" | "Failed";
-    reason: string;
-    jobId: string;
+    "Excel Row": number;
+    "Job Title": string;
+    "Import Status": "Created" | "Skipped" | "Failed";
+    "Result Details / Reason": string;
+    "Job ID": string;
   }[] = [];
 
   for (const item of result.created) {
     allRows.push({
-      rowNumber: item.rowNumber,
-      jobTitle: sanitizeFormulaText(item.jobTitle),
-      status: "Created",
-      reason: "Job created successfully as Draft.",
-      jobId: item.jobId || "—",
+      "Excel Row": item.rowNumber,
+      "Job Title": sanitizeFormulaText(item.jobTitle),
+      "Import Status": "Created",
+      "Result Details / Reason": "Job created successfully as Draft.",
+      "Job ID": item.jobId || "—",
     });
   }
 
   for (const item of result.skipped) {
     allRows.push({
-      rowNumber: item.rowNumber,
-      jobTitle: sanitizeFormulaText(item.jobTitle),
-      status: "Skipped",
-      reason: sanitizeFormulaText(item.reason || "Skipped."),
-      jobId: item.jobId || "—",
+      "Excel Row": item.rowNumber,
+      "Job Title": sanitizeFormulaText(item.jobTitle),
+      "Import Status": "Skipped",
+      "Result Details / Reason": sanitizeFormulaText(item.reason || "Skipped."),
+      "Job ID": item.jobId || "—",
     });
   }
 
   for (const item of result.failed) {
     allRows.push({
-      rowNumber: item.rowNumber,
-      jobTitle: sanitizeFormulaText(item.jobTitle),
-      status: "Failed",
-      reason: sanitizeFormulaText(item.reason || "Unable to import job."),
-      jobId: "—",
+      "Excel Row": item.rowNumber,
+      "Job Title": sanitizeFormulaText(item.jobTitle),
+      "Import Status": "Failed",
+      "Result Details / Reason": sanitizeFormulaText(item.reason || "Unable to import job."),
+      "Job ID": "—",
     });
   }
 
-  allRows.sort((a, b) => a.rowNumber - b.rowNumber);
+  allRows.sort((a, b) => a["Excel Row"] - b["Excel Row"]);
 
-  for (const item of allRows) {
-    const row = worksheet.addRow(item);
-    row.height = 24;
-
-    const isCreated = item.status === "Created";
-    const isSkipped = item.status === "Skipped";
-    const isFailed = item.status === "Failed";
-
-    row.eachCell((cell, colNumber) => {
-      const colDef = IMPORT_RESULT_REPORT_COLUMNS[colNumber - 1];
-      cell.font = {
-        name: "Calibri",
-        size: 10,
-        color: isCreated
-          ? { argb: "FF166534" }
-          : isSkipped
-          ? { argb: "FF92400E" }
-          : { argb: "FF991B1B" },
-      };
-      cell.alignment = {
-        vertical: "middle",
-        horizontal: colDef?.align ?? "left",
-        wrapText: colDef?.key === "reason",
-      };
-      cell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: isCreated
-          ? { argb: "FFF0FDF4" }
-          : isSkipped
-          ? { argb: "FFFEF3C7" }
-          : { argb: "FFFEE2E2" },
-      };
-      cell.border = {
-        top: { style: "thin", color: { argb: "FFE2E8F0" } },
-        bottom: { style: "thin", color: { argb: "FFE2E8F0" } },
-        left: { style: "thin", color: { argb: "FFE2E8F0" } },
-        right: { style: "thin", color: { argb: "FFE2E8F0" } },
-      };
-    });
-  }
+  const worksheet = XLSX.utils.json_to_sheet(allRows);
+  worksheet["!cols"] = IMPORT_RESULT_REPORT_COLUMNS.map((col) => ({ wch: col.width }));
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Import Results");
 
   return workbook;
 }
@@ -432,7 +241,7 @@ export async function generateBulkImportResultReportBuffer(
   originalFileName?: string
 ): Promise<Uint8Array> {
   const workbook = createBulkImportResultWorkbook(result, originalFileName);
-  const buffer = await workbook.xlsx.writeBuffer();
+  const buffer = XLSX.write(workbook, { type: "array", bookType: "xlsx" });
   return new Uint8Array(buffer);
 }
 
@@ -480,7 +289,7 @@ export function createBulkImportSessionWorkbook(
     jobId?: string | null;
   }>,
   fileName = "Import_Report"
-): ExcelJS.Workbook {
+): XLSX.WorkBook {
   const created = rows
     .filter((r) => r.status === "created")
     .map((r) => ({
@@ -521,7 +330,7 @@ export async function generateBulkImportSessionReportBuffer(
   fileName?: string
 ): Promise<Uint8Array> {
   const workbook = createBulkImportSessionWorkbook(rows, fileName);
-  const buffer = await workbook.xlsx.writeBuffer();
+  const buffer = XLSX.write(workbook, { type: "array", bookType: "xlsx" });
   return new Uint8Array(buffer);
 }
 
@@ -565,4 +374,3 @@ export async function downloadBulkImportSessionReport(
     console.error("Failed to download bulk import session report:", error);
   }
 }
-
