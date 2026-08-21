@@ -23,8 +23,13 @@ export const EMPLOYER_JOB_ROUTES = {
   preview: (id: string) => `/employer/jobs/${id}/preview`,
 } as const;
 
+export const BULK_JOB_TEMPLATE_URL =
+  process.env.NEXT_PUBLIC_BULK_JOB_TEMPLATE_URL?.trim() ||
+  "https://docs.google.com/spreadsheets/d/11MgsjOYNwqX_QNsHhK4zPgMdWE_ycs0L/edit?usp=sharing&ouid=106154592517041836278&rtpof=true&sd=true";
+
 export const BULK_UPLOAD_CONFIG = {
   templateVersion: "1.0",
+  templateUrl: BULK_JOB_TEMPLATE_URL,
   maxFileSizeBytes: 10 * 1024 * 1024, // 10 MB
   maxFileSizeLabel: "10 MB",
   maxRows: 1000,

@@ -9,31 +9,14 @@ import {
   Info,
   ShieldCheck,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import {
   BULK_JOB_TEMPLATE_COLUMNS,
-  BULK_JOB_TEMPLATE_FILENAME,
-  downloadBulkJobTemplate,
+  BULK_JOB_TEMPLATE_URL,
 } from "../lib/excelTemplate";
 
 export function ExcelTemplateCard() {
-  const [downloading, setDownloading] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
-
-  const handleDownload = async () => {
-    setDownloading(true);
-    try {
-      await downloadBulkJobTemplate();
-      toast.success("Excel template downloaded successfully.", {
-        description: `Saved as ${BULK_JOB_TEMPLATE_FILENAME}`,
-      });
-    } catch {
-      toast.error("Failed to download template. Please try again.");
-    } finally {
-      setDownloading(false);
-    }
-  };
 
   return (
     <div className="rounded-[var(--radius-card)] border border-border bg-card p-6 shadow-soft sm:p-7">
@@ -62,14 +45,14 @@ export function ExcelTemplateCard() {
 
         <div className="flex shrink-0 flex-col sm:flex-row lg:flex-col gap-3">
           <Button
-            type="button"
+            href={BULK_JOB_TEMPLATE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             variant="secondary"
-            onClick={handleDownload}
-            disabled={downloading}
             className="w-full sm:w-auto"
           >
             <Download size={16} aria-hidden="true" />
-            {downloading ? "Generating Template..." : "Download Excel Template"}
+            Download Excel Template
           </Button>
 
           <button

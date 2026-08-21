@@ -13,9 +13,7 @@ export { EMPLOYER_JOB_ROUTES } from "./constants";
 export {
   BULK_JOB_TEMPLATE_FILENAME,
   BULK_JOB_TEMPLATE_COLUMNS,
-  downloadBulkJobTemplate,
-  generateBulkJobTemplateBuffer,
-  createBulkJobTemplateWorkbook,
+  BULK_JOB_TEMPLATE_URL,
 } from "./lib/excelTemplate";
 export { parseExcelWorkbook, normalizeHeaderName } from "./lib/excelParser";
 export {
